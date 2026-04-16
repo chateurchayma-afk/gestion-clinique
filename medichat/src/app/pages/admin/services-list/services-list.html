@@ -1,0 +1,56 @@
+<div class="page-wrapper">
+  <div class="global-card">
+
+    <div class="page-header">
+      <div>
+        <h1>Services</h1>
+        <p>Gérez les services</p>
+      </div>
+
+      <button class="primary-btn" routerLink="/admin/add-service">
+        + Ajouter un service
+      </button>
+    </div>
+
+    <div class="inner-header">
+      <h2>Tous les services</h2>
+      <p>Consultez et gérez la liste complète des services médicaux.</p>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" placeholder="Rechercher un service..." />
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom du service</th>
+              <th>Département</th>
+              <th>Prix</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let s of services()">
+              <td><strong>{{ s.nom }}</strong></td>
+              <td>{{ s.departement }}</td>
+              <td>{{ s.prix }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.active]="s.statut === 'Actif'"
+                  [class.inactive]="s.statut === 'Inactif'">
+                  {{ s.statut }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

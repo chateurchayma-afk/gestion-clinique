@@ -1,0 +1,174 @@
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="brand">MediChat</div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <p class="nav-title">Dashboard</p>
+        <a class="nav-link active" routerLink="/admin-dashboard">Admin Dashboard</a>
+      </div>
+
+      <div class="nav-section">
+        <p class="nav-title">Médecins</p>
+        <a class="nav-link" routerLink="/admin/medecins">Liste des médecins</a>
+        <a class="nav-link">Planning des médecins</a>
+      </div>
+
+      <div class="nav-section">
+        <p class="nav-title">Patients</p>
+        <a class="nav-link" routerLink="/admin/patients">Liste des patients</a>
+      </div>
+
+      <div class="nav-section">
+        <p class="nav-title">Rendez-vous</p>
+        <a class="nav-link">Tous les rendez-vous</a>
+        <a class="nav-link">Vue calendrier</a>
+      </div>
+
+      <div class="nav-section">
+        <p class="nav-title">Services</p>
+        <a class="nav-link" routerLink="/admin/services">Liste des services</a>
+        <a class="nav-link" routerLink="/admin/specialites">Liste des spécialités</a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <h1>Dashboard Admin</h1>
+        <p>Vue d’ensemble de la plateforme MediChat</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="admin-chip">SJ</div>
+      </div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Patients</span>
+        <h2>1,245</h2>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">RDV Aujourd’hui</span>
+        <h2>37</h2>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Médecins Actifs</span>
+        <h2>15</h2>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Services</span>
+        <h2>8</h2>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <div class="card chart-card large-card">
+        <div class="card-header">
+          <h3>Statistiques des rendez-vous</h3>
+          <span class="badge">Mensuel</span>
+        </div>
+
+        <div class="chart-placeholder bars">
+          <div class="bar" style="height: 45%"></div>
+          <div class="bar" style="height: 60%"></div>
+          <div class="bar" style="height: 72%"></div>
+          <div class="bar" style="height: 82%"></div>
+          <div class="bar" style="height: 68%"></div>
+          <div class="bar" style="height: 54%"></div>
+          <div class="bar" style="height: 88%"></div>
+          <div class="bar" style="height: 76%"></div>
+          <div class="bar" style="height: 90%"></div>
+          <div class="bar" style="height: 84%"></div>
+          <div class="bar" style="height: 79%"></div>
+          <div class="bar" style="height: 86%"></div>
+        </div>
+      </div>
+
+      <div class="card donut-card">
+        <div class="card-header">
+          <h3>Top départements</h3>
+          <span class="badge">Hebdomadaire</span>
+        </div>
+
+        <div class="donut-wrapper">
+          <div class="donut">
+            <div class="donut-center">
+              <strong>638</strong>
+              <span>Total</span>
+            </div>
+          </div>
+
+          <div class="legend">
+            <div><span class="dot dot-blue"></span> Cardiologie</div>
+            <div><span class="dot dot-purple"></span> Dentaire</div>
+            <div><span class="dot dot-light"></span> Neurologie</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card table-card">
+      <div class="card-header">
+        <h3>Tous les rendez-vous</h3>
+        <button class="view-btn">Voir tout</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Médecin</th>
+              <th>Patient</th>
+              <th>Date & Heure</th>
+              <th>Mode</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dr. Julia Smith</td>
+              <td>Lucas Adams</td>
+              <td>29 May 2025 - 11:15</td>
+              <td>Online</td>
+              <td><span class="status confirmed">Confirmé</span></td>
+            </tr>
+            <tr>
+              <td>Dr. Lisa White</td>
+              <td>Ezra Belcher</td>
+              <td>29 May 2025 - 11:30</td>
+              <td>En personne</td>
+              <td><span class="status cancelled">Annulé</span></td>
+            </tr>
+            <tr>
+              <td>Dr. Patrick Brown</td>
+              <td>Olen Lentz</td>
+              <td>30 May 2025 - 09:30</td>
+              <td>Online</td>
+              <td><span class="status confirmed">Confirmé</span></td>
+            </tr>
+            <tr>
+              <td>Dr. Rachel Green</td>
+              <td>Bernard Griffith</td>
+              <td>30 May 2025 - 10:00</td>
+              <td>Offline</td>
+              <td><span class="status pending">En attente</span></td>
+            </tr>
+            <tr>
+              <td>Dr. Michael Smith</td>
+              <td>John Flakes</td>
+              <td>30 May 2025 - 11:00</td>
+              <td>Online</td>
+              <td><span class="status planned">Planifié</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>

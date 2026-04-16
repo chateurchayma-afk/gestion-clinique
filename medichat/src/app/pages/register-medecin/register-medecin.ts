@@ -1,0 +1,66 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth';
+
+@Component({
+  selector: 'app-register-medecin',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './register-medecin.html',
+  styleUrls: ['./register-medecin.css']
+})
+export class RegisterMedecin {
+  nom = '';
+  prenom = '';
+  email = '';
+  specialite = '';
+  experience = '';
+  telephone = '';
+  motDePasse = '';
+  adresse = '';
+  message = '';
+  errorMessage = '';
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  onRegister() {
+    this.errorMessage = '';
+    this.message = '';
+
+    const data = {
+      nom: this.nom,
+      prenom: this.prenom,
+      email: this.email,
+      motDePasse: this.motDePasse,
+      telephone: this.telephone
+    };
+
+    this.authService.registerMedecin(data).subscribe({
+      next: (response: any) => {
+        console.log(response);
+        this.message = 'Compte médecin créé avec succès';
+
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 1000);
+      },
+      error: (error: any) => {
+        console.error(error);
+
+        if (error?.error) {
+          this.errorMessage =
+            typeof error.error === 'string'
+              ? error.error
+              : 'Erreur lors de la création du compte';
+        } else {
+          this.errorMessage = 'Erreur lors de la création du compte';
+        }
+      }
+    });
+  }
+}

@@ -1,0 +1,27 @@
+<div class="overlay">
+  <div class="modal">
+    <button class="xbtn" type="button" [routerLink]="['/login']">✕</button>
+
+    <h2>Choisissez votre profil :</h2>
+
+    <div class="choices">
+      <a class="choice" [routerLink]="['/register/medecin']">
+        <div class="top">
+          <img class="img" src="/doctor.png" alt="Médecin" />
+        </div>
+        <div class="bar bar-med">Médecin</div>
+      </a>
+
+      <a class="choice" [routerLink]="['/register/patient']">
+        <div class="top">
+          <img class="img" src="/patient.png" alt="Patient" />
+        </div>
+        <div class="bar bar-pat">Patient</div>
+      </a>
+    </div>
+
+    <div class="footer">
+      <a class="close-btn" [routerLink]="['/login']">Fermer</a>
+    </div>
+  </div>
+</div>

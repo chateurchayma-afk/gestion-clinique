@@ -1,0 +1,258 @@
+<header class="navbar">
+  <div class="brand-block">
+    <div class="brand-text">
+      <span class="brand-name">MediChat</span>
+      <span class="brand-subtitle">Gestion Clinique Intelligente</span>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="#accueil">Accueil</a>
+    <a href="#services">Services</a>
+    <a href="#apropos">À propos</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+<button class="login-btn" [routerLink]="['/login']">Connexion</button>
+</header>
+
+<section class="hero" id="accueil">
+  <div class="hero-overlay"></div>
+  <div class="hero-container">
+    <div class="hero-text">
+      <span class="hero-badge">Plateforme médicale intelligente</span>
+
+      <h1>
+        Gestion intégrée des patients
+        <br />
+        et des services médicaux
+      </h1>
+
+      <p>
+        Une solution moderne pour centraliser les données cliniques, améliorer
+        le suivi des patients, optimiser les rendez-vous et renforcer l’aide à
+        la décision grâce à la Business Intelligence.
+      </p>
+
+      <div class="hero-actions">
+        <button class="primary-btn">Découvrir la plateforme</button>
+        <a href="#services" class="primary-btn">Voir les services</a>      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services-section" id="services">
+  <div class="services-badge fade-in-up">Nos Services</div>
+
+  <h2 class="services-title fade-in-up">Solution Complète de Gestion Médicale</h2>
+
+  <p class="services-desc fade-in-up">
+    Une plateforme tout-en-un pour optimiser la gestion de vos services médicaux
+    et améliorer la qualité des soins.
+  </p>
+
+  <div class="services-grid">
+    <div class="service-card reveal-card">
+      <div class="icon">👨‍⚕️</div>
+      <div class="service-card-content">
+        <h3>Gestion des Patients</h3>
+        <p>Dossiers médicaux électroniques complets et sécurisés.</p>
+      </div>
+    </div>
+
+    <div class="service-card reveal-card">
+      <div class="icon">📅</div>
+      <div class="service-card-content">
+        <h3>Rendez-vous Intelligents</h3>
+        <p>Planification automatisée avec rappels.</p>
+      </div>
+    </div>
+
+    <div class="service-card reveal-card">
+      <div class="icon">📊</div>
+      <div class="service-card-content">
+        <h3>Business Intelligence</h3>
+        <p>Tableaux de bord pour décisions médicales.</p>
+      </div>
+    </div>
+
+    <div class="service-card reveal-card">
+      <div class="icon">❤️</div>
+      <div class="service-card-content">
+        <h3>Suivi Médical</h3>
+        <p>Suivi continu et alertes automatiques.</p>
+      </div>
+    </div>
+
+    <div class="service-card reveal-card">
+      <div class="icon">📄</div>
+      <div class="service-card-content">
+        <h3>Rapports Médicaux</h3>
+        <p>Génération de rapports détaillés.</p>
+      </div>
+    </div>
+
+    <div class="service-card reveal-card">
+      <div class="icon">🔒</div>
+      <div class="service-card-content">
+        <h3>Sécurité & Confidentialité</h3>
+        <p>Protection des données médicales.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="about-section" id="apropos">
+
+  <div class="about-header">
+    <span class="about-badge">À propos</span>
+
+    <h2 class="about-title">
+      Une plateforme médicale intelligente au service des établissements de santé
+    </h2>
+
+    <p class="about-intro">
+      MediChat est une solution moderne de gestion clinique permettant de centraliser
+      les données médicales, améliorer l’organisation des services et faciliter
+      la prise de décision grâce à la Business Intelligence.
+    </p>
+  </div>
+
+  <div class="about-grid">
+
+    <div class="about-card">
+      <div class="about-icon">🎯</div>
+      <h3>Notre mission</h3>
+      <p>
+        Offrir une solution centralisée pour améliorer la gestion des patients,
+        des rendez-vous et des services médicaux.
+      </p>
+    </div>
+
+    <div class="about-card">
+      <div class="about-icon">📌</div>
+      <h3>Notre objectif</h3>
+      <p>
+        Simplifier le travail des médecins et des administrateurs tout en
+        améliorant l’expérience des patients.
+      </p>
+    </div>
+
+    <div class="about-card">
+      <div class="about-icon">📊</div>
+      <h3>Notre valeur ajoutée</h3>
+      <p>
+        Exploiter les données médicales à travers des tableaux de bord pour
+        une meilleure prise de décision.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+<section class="contact-section" id="contact">
+  <div class="contact-header">
+    <span class="contact-badge">Contact</span>
+    <h2 class="contact-title">Contactez-nous</h2>
+    <p class="contact-intro">
+      Vous avez une question, une suggestion ou besoin d’informations supplémentaires ?
+      Notre équipe est à votre disposition pour vous accompagner.
+    </p>
+  </div>
+
+  <div class="contact-container">
+    <div class="contact-form-card">
+      <h3>Envoyer un message</h3>
+
+      <form class="contact-form">
+        <div class="contact-row">
+          <div class="form-group">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" placeholder="Entrez votre nom" />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Adresse e-mail</label>
+            <input type="email" id="email" placeholder="Entrez votre adresse e-mail" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="sujet">Sujet</label>
+          <input type="text" id="sujet" placeholder="Entrez le sujet de votre message" />
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" rows="6" placeholder="Écrivez votre message ici..."></textarea>
+        </div>
+
+        <button type="submit" class="contact-btn">Envoyer</button>
+      </form>
+    </div>
+
+    <div class="contact-info-card">
+      <h3>Informations de contact</h3>
+
+      <div class="contact-info-item">
+        <div class="contact-icon">📍</div>
+        <div>
+          <h4>Adresse</h4>
+          <p>Établissement de santé / Centre médical, Tunisie</p>
+        </div>
+      </div>
+
+      <div class="contact-info-item">
+        <div class="contact-icon">📞</div>
+        <div>
+          <h4>Téléphone</h4>
+          <p>+216 00 000 000</p>
+        </div>
+      </div>
+
+      <div class="contact-info-item">
+        <div class="contact-icon">✉️</div>
+        <div>
+          <h4>Email</h4>
+          <p>contact@medichat.tn</p>
+        </div>
+      </div>
+
+      <div class="contact-info-item">
+        <div class="contact-icon">⏰</div>
+        <div>
+          <h4>Horaires</h4>
+          <p>Lundi - Vendredi : 08:00 - 17:00</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <h3>MediChat</h3>
+      <p>
+        Plateforme intelligente de gestion clinique pour améliorer
+        l’organisation des services médicaux et le suivi des patients.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h4>Liens rapides</h4>
+      <a href="#">Accueil</a>
+      <a href="#">Services</a>
+      <a href="#">À propos</a>
+      <a href="#">Contact</a>
+    </div>
+
+    <div class="footer-contact">
+      <h4>Contact</h4>
+      <p>+216 00 000 000</p>
+      <p>contact@medichat.tn</p>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2026 MediChat - Tous droits réservés</p>
+  </div>
+</footer>

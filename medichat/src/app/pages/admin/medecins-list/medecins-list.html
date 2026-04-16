@@ -1,0 +1,81 @@
+<div class="page-wrapper">
+  <div class="global-card">
+
+    <div class="page-header">
+      <div>
+        <h1>Liste des médecins</h1>
+        <p>Gérez les médecins de votre clinique</p>
+      </div>
+
+      <button class="primary-btn" routerLink="/admin/add-medecin">
+        + Ajouter un médecin
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input
+          type="text"
+          placeholder="Rechercher un médecin..."
+        />
+      </div>
+
+      <div *ngIf="loading()" class="state">Chargement...</div>
+
+      <div *ngIf="!loading() && medecins().length === 0" class="state">
+        Aucun médecin trouvé
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading() && medecins().length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Spécialité</th>
+              <th>Service</th>
+              <th>Statut</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let m of filteredMedecins()">
+              <td>
+                <div class="doctor">
+                  <div class="avatar">
+                    {{ m.utilisateur.prenom.charAt(0) }}{{ m.utilisateur.nom.charAt(0) }}
+                  </div>
+
+                  <div>
+                    <strong>
+                      Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}
+                    </strong>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                {{ m.specialite?.nom || 'Non définie' }}
+              </td>
+
+              <td>
+                {{ m.serviceMedical?.nom || 'Non défini' }}
+              </td>
+
+              <td>
+                <span class="status"
+                  [class.active]="m.disponible"
+                  [class.inactive]="!m.disponible">
+                  {{ m.disponible ? 'Disponible' : 'Indisponible' }}
+                </span>
+              </td>
+
+              <td>{{ m.utilisateur.email }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,285 @@
+<div class="doctor-page">
+  <div class="doctor-wrapper">
+
+    <form (ngSubmit)="onSubmit()" class="global-card">
+      <div class="page-header">
+        <h1>Ajouter un médecin</h1>
+        <p>Créer un nouveau profil médecin dans la plateforme</p>
+      </div>
+
+      <div class="top-tabs">
+        <button
+          type="button"
+          class="top-tab"
+          [class.active]="activeTab === 'personnel'"
+          (click)="setTab('personnel')">
+          Informations personnelles
+        </button>
+
+        <button
+          type="button"
+          class="top-tab"
+          [class.active]="activeTab === 'professionnel'"
+          (click)="setTab('professionnel')">
+          Détails professionnels
+        </button>
+      </div>
+
+      <!-- CADRE INTERNE -->
+      <div class="inner-card">
+
+        <!-- ONGLET INFORMATIONS PERSONNELLES -->
+        <div *ngIf="activeTab === 'personnel'" class="tab-panel">
+          <div class="section-title">
+            <h2>Informations personnelles</h2>
+            <p>Saisissez les informations personnelles du médecin.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Prénom</label>
+              <input
+                type="text"
+                [(ngModel)]="form.prenom"
+                name="prenom"
+                placeholder="Entrez le prénom"
+                required>
+            </div>
+
+            <div class="field">
+              <label>Nom</label>
+              <input
+                type="text"
+                [(ngModel)]="form.nom"
+                name="nom"
+                placeholder="Entrez le nom"
+                required>
+            </div>
+
+            <div class="field">
+              <label>Date de naissance</label>
+              <input
+                type="date"
+                [(ngModel)]="form.dateNaissance"
+                name="dateNaissance">
+            </div>
+
+            <div class="field">
+              <label>Sexe</label>
+              <select [(ngModel)]="form.sexe" name="sexe">
+                <option value="">Sélectionner le sexe</option>
+                <option value="HOMME">Homme</option>
+                <option value="FEMME">Femme</option>
+              </select>
+            </div>
+
+            <div class="field field-full">
+              <label>Adresse</label>
+              <input
+                type="text"
+                [(ngModel)]="form.adresse"
+                name="adresse"
+                placeholder="Entrez l'adresse">
+            </div>
+
+            <div class="field">
+              <label>Ville</label>
+              <input
+                type="text"
+                [(ngModel)]="form.ville"
+                name="ville"
+                placeholder="Entrez la ville">
+            </div>
+
+            <div class="field">
+              <label>Gouvernorat / Région</label>
+              <input
+                type="text"
+                [(ngModel)]="form.gouvernorat"
+                name="gouvernorat"
+                placeholder="Entrez la région">
+            </div>
+
+            <div class="field">
+              <label>Code postal</label>
+              <input
+                type="text"
+                [(ngModel)]="form.codePostal"
+                name="codePostal"
+                placeholder="Entrez le code postal">
+            </div>
+          </div>
+
+          <div class="sub-section">
+            <h3>Informations de contact</h3>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Adresse e-mail</label>
+                <input
+                  type="email"
+                  [(ngModel)]="form.email"
+                  name="email"
+                  placeholder="Entrez l'adresse e-mail"
+                  required>
+              </div>
+
+              <div class="field">
+                <label>Numéro de téléphone</label>
+                <input
+                  type="text"
+                  [(ngModel)]="form.telephone"
+                  name="telephone"
+                  placeholder="Entrez le numéro de téléphone">
+              </div>
+
+              <div class="field">
+                <label>Nom du contact d'urgence</label>
+                <input
+                  type="text"
+                  name="contactUrgenceNom"
+                  placeholder="Entrez le nom du contact d'urgence">
+              </div>
+
+              <div class="field">
+                <label>Téléphone du contact d'urgence</label>
+                <input
+                  type="text"
+                  name="contactUrgenceTelephone"
+                  placeholder="Entrez le téléphone du contact d'urgence">
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-section">
+            <h3>Photo de profil</h3>
+
+            <div class="photo-block">
+              <div class="photo-box">
+                <div class="photo-icon">↑</div>
+              </div>
+
+              <div class="photo-actions">
+                <button type="button" class="upload-btn">
+                  Télécharger une photo
+                </button>
+                <p>Téléchargez une photo de profil (JPG, PNG ou GIF – max 2 Mo).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ONGLET DETAILS PROFESSIONNELS -->
+        <div *ngIf="activeTab === 'professionnel'" class="tab-panel">
+          <div class="section-title">
+            <h2>Détails professionnels</h2>
+            <p>Saisissez les informations professionnelles du médecin.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Spécialité principale</label>
+              <select [(ngModel)]="form.specialite" name="specialite">
+                <option value="">Sélectionner la spécialité</option>
+                <option value="Cardiologie">Cardiologie</option>
+                <option value="Neurologie">Neurologie</option>
+                <option value="Pédiatrie">Pédiatrie</option>
+                <option value="Dermatologie">Dermatologie</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Numéro de licence médicale</label>
+              <input
+                type="text"
+                [(ngModel)]="form.numeroLicence"
+                name="numeroLicence"
+                placeholder="Entrez le numéro de licence">
+            </div>
+
+            <div class="field">
+              <label>Qualifications</label>
+              <input
+                type="text"
+                [(ngModel)]="form.qualifications"
+                name="qualifications"
+                placeholder="Entrez les qualifications (MD, PhD, etc.)">
+            </div>
+
+            <div class="field">
+              <label>Années d’expérience</label>
+              <input
+                type="number"
+                [(ngModel)]="form.experienceAnnees"
+                name="experienceAnnees"
+                placeholder="Entrez le nombre d’années d’expérience">
+            </div>
+          </div>
+
+          <div class="sub-section">
+            <h3>Formation & Certifications</h3>
+
+            <div class="form-grid single-grid">
+              <div class="field field-full">
+                <label>Formation</label>
+                <input
+                  type="text"
+                  [(ngModel)]="form.formation"
+                  name="formation"
+                  placeholder="Entrez la formation">
+              </div>
+
+              <div class="field field-full">
+                <label>Certifications</label>
+                <input
+                  type="text"
+                  [(ngModel)]="form.certifications"
+                  name="certifications"
+                  placeholder="Entrez les certifications">
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-section">
+            <h3>Département & Fonction</h3>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Département</label>
+                <select [(ngModel)]="form.departement" name="departement">
+                  <option value="">Sélectionner le département</option>
+                  <option value="Médecine générale">Médecine générale</option>
+                  <option value="Cardiologie">Cardiologie</option>
+                  <option value="Radiologie">Radiologie</option>
+                  <option value="Pédiatrie">Pédiatrie</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Position</label>
+                <select [(ngModel)]="form.position" name="position">
+                  <option value="">Sélectionner la position</option>
+                  <option value="Médecin spécialiste">Médecin spécialiste</option>
+                  <option value="Chef de service">Chef de service</option>
+                  <option value="Médecin assistant">Médecin assistant</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bottom-actions">
+        <button type="button" class="btn-cancel" (click)="goBack()">
+          Annuler
+        </button>
+
+        <button type="submit" class="btn-save">
+          Enregistrer le médecin
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

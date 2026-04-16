@@ -1,0 +1,64 @@
+<div class="page">
+  <div class="card">
+    <h1 class="app-title">MediChat</h1>
+
+    <ng-container *ngIf="!showForm; else loginForm">
+      <h3 class="welcome">Bienvenue</h3>
+      <p class="desc">
+        Connectez-vous pour accéder<br />
+        à votre application
+      </p>
+
+      <button type="button" class="btn-main" (click)="showLoginForm()">
+        Connexion
+      </button>
+
+      <div class="divider">
+        <span>ou</span>
+      </div>
+
+      <h4 class="new-user">Nouvel utilisateur ?</h4>
+      <a class="link" [routerLink]="['/register']">Créer mon compte</a>
+
+      <div class="line"></div>
+
+      <a class="link" href="#">Installer l’application MediChat</a>
+    </ng-container>
+
+    <ng-template #loginForm>
+      <h3 class="welcome">Connexion</h3>
+      <p class="desc">
+        Entrez votre email et votre mot de passe pour vous connecter.
+      </p>
+
+      <form class="login-form" (ngSubmit)="onLogin()" novalidate>
+        <input
+          class="input-field"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="Email"
+          required
+        />
+        <input
+          class="input-field"
+          type="password"
+          [(ngModel)]="motDePasse"
+          name="motDePasse"
+          placeholder="Mot de passe"
+          required
+        />
+        <div *ngIf="errorMessage" class="error-msg">
+          {{ errorMessage }}
+        </div>
+        <button type="submit" class="btn-main">
+          Se connecter
+        </button>
+      </form>
+
+      <a class="forgot-link" [routerLink]="['/forgot-password']">
+        Mot de passe oublié ?
+      </a>
+    </ng-template>
+  </div>
+</div>

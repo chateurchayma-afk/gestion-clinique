@@ -1,0 +1,77 @@
+<div class="page-wrapper">
+  <div class="global-card">
+
+    <div class="page-header">
+      <div>
+        <h1>Patients</h1>
+        <p>Gérez vos patients et leurs dossiers médicaux.</p>
+      </div>
+
+      <button class="primary-btn" routerLink="/admin/add-patient">
+        + Ajouter un patient
+      </button>
+    </div>
+
+    <div class="inner-header">
+      <h2>Liste des patients</h2>
+      <p>Liste de tous les patients avec leurs informations.</p>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input
+          type="text"
+          placeholder="Rechercher..."
+          #search
+          (input)="onSearch(search.value)"
+        />
+      </div>
+
+      <div *ngIf="loading()" class="state">Chargement...</div>
+
+      <div *ngIf="!loading() && filteredPatients().length === 0" class="state">
+        Aucun patient trouvé
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading() && filteredPatients().length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Situation</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Méthode contact</th>
+              <th>N° dossier</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let p of filteredPatients()">
+              <td>
+                <div class="patient-cell">
+                  <div class="avatar">
+                    {{ p.utilisateur.prenom.charAt(0) }}{{ p.utilisateur.nom.charAt(0) }}
+                  </div>
+
+                  <div>
+                    <strong>
+                      {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
+                    </strong>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ p.situationMatrimoniale || 'Non définie' }}</td>
+              <td>{{ p.utilisateur.email || '—' }}</td>
+              <td>{{ p.utilisateur.telephone || '—' }}</td>
+              <td>{{ p.methodeContactPreferee || '—' }}</td>
+              <td>{{ p.numeroDossier || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,158 @@
+* {
+  box-sizing: border-box;
+}
+
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 16px;
+  background: linear-gradient(135deg, #eef3f8 0%, #f5f7fb 50%, #e8eef5 100%);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 760px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 34px 34px;
+  box-shadow: 0 14px 35px rgba(28, 76, 114, 0.12);
+  border: 1px solid #e7edf4;
+}
+
+.top-bar {
+  margin-bottom: 10px;
+}
+
+.back-link {
+  text-decoration: none;
+  font-size: 14px;
+  color: #2d6fb3;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.header-box {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.header-box h1 {
+  font-size: 38px;
+  color: #0f172a;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.header-box p {
+  font-size: 18px;
+  color: #5b6470;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.row.two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #16324f;
+}
+
+.form-group input {
+  height: 50px;
+  border: 1px solid #d6dee8;
+  border-radius: 14px;
+  padding: 0 16px;
+  font-size: 14px;
+  background: #f9fbfd;
+  outline: none;
+  transition: 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: #2f678d;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(47, 103, 141, 0.12);
+}
+
+.info-box {
+  background: #eef5ff;
+  border: 1px solid #cfe0f5;
+  color: #335a7d;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 52px;
+  margin-top: 6px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2f678d, #3a88b3);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(47, 103, 141, 0.2);
+}
+
+.bottom-text {
+  text-align: center;
+  font-size: 16px;
+  color: #374151;
+  margin-top: 8px;
+}
+
+.bottom-text a {
+  color: #2d6fb3;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.bottom-text a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .register-card {
+    padding: 24px 20px 28px;
+  }
+
+  .row.two-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .header-box h1 {
+    font-size: 30px;
+  }
+
+  .header-box p {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,188 @@
+<div class="patient-page">
+  <div class="patient-wrapper">
+    <form (ngSubmit)="onSubmit()" class="global-card">
+
+      <div class="page-header">
+        <h1>AJOUTER UN PATIENT</h1>
+        <p>Enregistrer un nouveau patient</p>
+      </div>
+
+      <div class="inner-card">
+        <div class="section-title">
+          <h2>Informations personnelles</h2>
+          <p>Saisissez les informations personnelles du patient.</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Prénom</label>
+            <input
+              type="text"
+              [(ngModel)]="form.prenom"
+              name="prenom"
+              placeholder="Entrez le prénom"
+              required>
+          </div>
+
+          <div class="field">
+            <label>Nom</label>
+            <input
+              type="text"
+              [(ngModel)]="form.nom"
+              name="nom"
+              placeholder="Entrez le Nom"
+              required>
+          </div>
+
+          <div class="field">
+            <label>Date de naissance</label>
+            <input
+              type="date"
+              [(ngModel)]="form.dateNaissance"
+              name="dateNaissance">
+          </div>
+
+          <div class="field">
+            <label>Sexe</label>
+            <select [(ngModel)]="form.sexe" name="sexe">
+              <option value="">Sélectionner le sexe</option>
+              <option value="HOMME">Homme</option>
+              <option value="FEMME">Femme</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Situation matrimoniale</label>
+            <select [(ngModel)]="form.situationMatrimoniale" name="situationMatrimoniale">
+              <option value="">Sélectionner la situation</option>
+              <option value="Célibataire">Célibataire</option>
+              <option value="Marié(e)">Marié(e)</option>
+              <option value="Divorcé(e)">Divorcé(e)</option>
+              <option value="Veuf(ve)">Veuf(ve)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Ville</label>
+            <input
+              type="text"
+              [(ngModel)]="form.ville"
+              name="ville"
+              placeholder="Entrez la ville">
+          </div>
+
+          <div class="field field-full">
+            <label>Adresse</label>
+            <input
+              type="text"
+              [(ngModel)]="form.adresse"
+              name="adresse"
+              placeholder="Entrez l'adresse">
+          </div>
+
+          <div class="field">
+            <label>Gouvernorat / Région</label>
+            <input
+              type="text"
+              [(ngModel)]="form.gouvernorat"
+              name="gouvernorat"
+              placeholder="Entrez la région">
+          </div>
+
+          <div class="field">
+            <label>Code postal</label>
+            <input
+              type="text"
+              [(ngModel)]="form.codePostal"
+              name="codePostal"
+              placeholder="Entrez le Code postal">
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3>Informations de contact</h3>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Adresse e-mail</label>
+              <input
+                type="email"
+                [(ngModel)]="form.email"
+                name="email"
+                placeholder="Entrez l'adresse e-mail"
+                required>
+            </div>
+
+            <div class="field">
+              <label>Numéro de téléphone</label>
+              <input
+                type="text"
+                [(ngModel)]="form.telephone"
+                name="telephone"
+                placeholder="Entrez le Numéro de téléphone">
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3>Méthode de contact préférée</h3>
+
+          <div class="radio-group">
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="methodeContactPreferee"
+                [(ngModel)]="form.methodeContactPreferee"
+                value="TELEPHONE">
+              <span>Téléphone</span>
+            </label>
+
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="methodeContactPreferee"
+                [(ngModel)]="form.methodeContactPreferee"
+                value="EMAIL">
+              <span>E-mail</span>
+            </label>
+
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="methodeContactPreferee"
+                [(ngModel)]="form.methodeContactPreferee"
+                value="SMS">
+              <span>SMS</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3>PHOTO DE PROFIL</h3>
+
+          <div class="photo-block">
+            <div class="photo-box">
+              <div class="photo-icon">↑</div>
+            </div>
+
+            <div class="photo-actions">
+              <button type="button" class="upload-btn">Télécharger une photo</button>
+              <p>Téléchargez une photo de profil (JPG, PNG ou GIF – max 2 Mo).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-actions">
+        <button type="button" class="btn-cancel" (click)="goBack()">
+          Annuler
+        </button>
+
+        <button type="submit" class="btn-save">
+          Enregistrer le patient
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
