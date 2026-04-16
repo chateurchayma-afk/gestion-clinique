@@ -40,6 +40,27 @@
   font-size: 14px;
 }
 
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.field-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+input.error, select.error {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
 .top-tabs {
   display: flex;
   gap: 10px;

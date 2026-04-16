@@ -46,6 +46,7 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Builder.Default
     private Boolean actif = true;
 
     private LocalDateTime dateCreation;

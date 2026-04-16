@@ -1,10 +1,13 @@
 <div class="doctor-page">
   <div class="doctor-wrapper">
 
-    <form (ngSubmit)="onSubmit()" class="global-card">
+    <form [formGroup]="medecinForm" (ngSubmit)="onSubmit()" class="global-card">
       <div class="page-header">
         <h1>Ajouter un médecin</h1>
         <p>Créer un nouveau profil médecin dans la plateforme</p>
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
       </div>
 
       <div class="top-tabs">
@@ -40,33 +43,35 @@
               <label>Prénom</label>
               <input
                 type="text"
-                [(ngModel)]="form.prenom"
+                formControlName="prenom"
                 name="prenom"
                 placeholder="Entrez le prénom"
-                required>
+                [class.error]="getFieldError('prenom')">
+              <div *ngIf="getFieldError('prenom')" class="field-error">{{ getFieldError('prenom') }}</div>
             </div>
 
             <div class="field">
               <label>Nom</label>
               <input
                 type="text"
-                [(ngModel)]="form.nom"
+                formControlName="nom"
                 name="nom"
                 placeholder="Entrez le nom"
-                required>
+                [class.error]="getFieldError('nom')">
+              <div *ngIf="getFieldError('nom')" class="field-error">{{ getFieldError('nom') }}</div>
             </div>
 
             <div class="field">
               <label>Date de naissance</label>
               <input
                 type="date"
-                [(ngModel)]="form.dateNaissance"
+                formControlName="dateNaissance"
                 name="dateNaissance">
             </div>
 
             <div class="field">
               <label>Sexe</label>
-              <select [(ngModel)]="form.sexe" name="sexe">
+              <select formControlName="sexe" name="sexe">
                 <option value="">Sélectionner le sexe</option>
                 <option value="HOMME">Homme</option>
                 <option value="FEMME">Femme</option>
@@ -77,7 +82,7 @@
               <label>Adresse</label>
               <input
                 type="text"
-                [(ngModel)]="form.adresse"
+                formControlName="adresse"
                 name="adresse"
                 placeholder="Entrez l'adresse">
             </div>
@@ -86,7 +91,7 @@
               <label>Ville</label>
               <input
                 type="text"
-                [(ngModel)]="form.ville"
+                formControlName="ville"
                 name="ville"
                 placeholder="Entrez la ville">
             </div>
@@ -95,7 +100,7 @@
               <label>Gouvernorat / Région</label>
               <input
                 type="text"
-                [(ngModel)]="form.gouvernorat"
+                formControlName="gouvernorat"
                 name="gouvernorat"
                 placeholder="Entrez la région">
             </div>
@@ -104,7 +109,7 @@
               <label>Code postal</label>
               <input
                 type="text"
-                [(ngModel)]="form.codePostal"
+                formControlName="codePostal"
                 name="codePostal"
                 placeholder="Entrez le code postal">
             </div>
@@ -118,35 +123,33 @@
                 <label>Adresse e-mail</label>
                 <input
                   type="email"
-                  [(ngModel)]="form.email"
+                  formControlName="email"
                   name="email"
                   placeholder="Entrez l'adresse e-mail"
-                  required>
+                  [class.error]="getFieldError('email')">
+                <div *ngIf="getFieldError('email')" class="field-error">{{ getFieldError('email') }}</div>
               </div>
 
               <div class="field">
                 <label>Numéro de téléphone</label>
                 <input
                   type="text"
-                  [(ngModel)]="form.telephone"
+                  formControlName="telephone"
                   name="telephone"
-                  placeholder="Entrez le numéro de téléphone">
+                  placeholder="Entrez le numéro de téléphone"
+                  [class.error]="getFieldError('telephone')">
+                <div *ngIf="getFieldError('telephone')" class="field-error">{{ getFieldError('telephone') }}</div>
               </div>
 
               <div class="field">
-                <label>Nom du contact d'urgence</label>
+                <label>Mot de passe</label>
                 <input
-                  type="text"
-                  name="contactUrgenceNom"
-                  placeholder="Entrez le nom du contact d'urgence">
-              </div>
-
-              <div class="field">
-                <label>Téléphone du contact d'urgence</label>
-                <input
-                  type="text"
-                  name="contactUrgenceTelephone"
-                  placeholder="Entrez le téléphone du contact d'urgence">
+                  type="password"
+                  formControlName="motDePasse"
+                  name="motDePasse"
+                  placeholder="Entrez le mot de passe"
+                  [class.error]="getFieldError('motDePasse')">
+                <div *ngIf="getFieldError('motDePasse')" class="field-error">{{ getFieldError('motDePasse') }}</div>
               </div>
             </div>
           </div>
@@ -179,12 +182,12 @@
           <div class="form-grid">
             <div class="field">
               <label>Spécialité principale</label>
-              <select [(ngModel)]="form.specialite" name="specialite">
+              <select formControlName="specialite" name="specialite">
                 <option value="">Sélectionner la spécialité</option>
-                <option value="Cardiologie">Cardiologie</option>
-                <option value="Neurologie">Neurologie</option>
-                <option value="Pédiatrie">Pédiatrie</option>
-                <option value="Dermatologie">Dermatologie</option>
+                <option value="1">Cardiologie</option>
+                <option value="2">Neurologie</option>
+                <option value="3">Pédiatrie</option>
+                <option value="4">Dermatologie</option>
               </select>
             </div>
 
@@ -192,7 +195,7 @@
               <label>Numéro de licence médicale</label>
               <input
                 type="text"
-                [(ngModel)]="form.numeroLicence"
+                formControlName="numeroLicence"
                 name="numeroLicence"
                 placeholder="Entrez le numéro de licence">
             </div>
@@ -201,18 +204,20 @@
               <label>Qualifications</label>
               <input
                 type="text"
-                [(ngModel)]="form.qualifications"
+                formControlName="qualifications"
                 name="qualifications"
                 placeholder="Entrez les qualifications (MD, PhD, etc.)">
             </div>
 
             <div class="field">
-              <label>Années d’expérience</label>
+              <label>Années d'expérience</label>
               <input
                 type="number"
-                [(ngModel)]="form.experienceAnnees"
+                formControlName="experienceAnnees"
                 name="experienceAnnees"
-                placeholder="Entrez le nombre d’années d’expérience">
+                placeholder="Entrez le nombre d'années d'expérience"
+                [class.error]="getFieldError('experienceAnnees')">
+              <div *ngIf="getFieldError('experienceAnnees')" class="field-error">{{ getFieldError('experienceAnnees') }}</div>
             </div>
           </div>
 
@@ -224,7 +229,7 @@
                 <label>Formation</label>
                 <input
                   type="text"
-                  [(ngModel)]="form.formation"
+                  formControlName="formation"
                   name="formation"
                   placeholder="Entrez la formation">
               </div>
@@ -233,7 +238,7 @@
                 <label>Certifications</label>
                 <input
                   type="text"
-                  [(ngModel)]="form.certifications"
+                  formControlName="certifications"
                   name="certifications"
                   placeholder="Entrez les certifications">
               </div>
@@ -246,7 +251,7 @@
             <div class="form-grid">
               <div class="field">
                 <label>Département</label>
-                <select [(ngModel)]="form.departement" name="departement">
+                <select formControlName="departement" name="departement">
                   <option value="">Sélectionner le département</option>
                   <option value="Médecine générale">Médecine générale</option>
                   <option value="Cardiologie">Cardiologie</option>
@@ -257,7 +262,7 @@
 
               <div class="field">
                 <label>Position</label>
-                <select [(ngModel)]="form.position" name="position">
+                <select formControlName="position" name="position">
                   <option value="">Sélectionner la position</option>
                   <option value="Médecin spécialiste">Médecin spécialiste</option>
                   <option value="Chef de service">Chef de service</option>
@@ -275,8 +280,8 @@
           Annuler
         </button>
 
-        <button type="submit" class="btn-save">
-          Enregistrer le médecin
+        <button type="submit" class="btn-save" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer le médecin' }}
         </button>
       </div>
     </form>
