@@ -6,7 +6,7 @@
       <p>Inscrivez-vous en tant que médecin</p>
     </div>
 
-    <form class="register-form" (ngSubmit)="onRegister()">
+    <form class="register-form" (ngSubmit)="onRegister()" autocomplete="off">
       <div class="row two-cols">
         <div class="form-group">
           <label for="nom">Nom</label>
@@ -47,14 +47,18 @@
 
       <div class="row two-cols">
         <div class="form-group">
-          <label for="specialite">Spécialité</label>
-          <input
-            type="text"
-            id="specialite"
-            name="specialite"
-            placeholder="Ex : Cardiologie"
-            [(ngModel)]="specialite"
-          />
+          <label for="specialiteId">Spécialité</label>
+          <select
+            id="specialiteId"
+            name="specialiteId"
+            [(ngModel)]="specialiteId"
+            required>
+            <option value="">— Choisir une spécialité —</option>
+            <option *ngFor="let s of specialitesSelect()" [value]="s.id">{{ s.nom }}</option>
+          </select>
+          <p *ngIf="specialitesSelect().length === 0" class="field-hint">
+            Aucune spécialité disponible. Réessayez plus tard ou contactez l’administration.
+          </p>
         </div>
 
         <div class="form-group">
@@ -88,6 +92,7 @@
           name="motDePasse"
           placeholder="Entrez votre mot de passe"
           [(ngModel)]="motDePasse"
+          autocomplete="new-password"
           required
         />
       </div>
@@ -100,6 +105,7 @@
           name="adresse"
           placeholder="Entrez votre adresse"
           [(ngModel)]="adresse"
+          autocomplete="off"
         />
       </div>
 

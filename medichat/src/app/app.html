@@ -1,1 +1,10 @@
+@if (toast.messageReadonly(); as msg) {
+  <div
+    class="app-toast"
+    role="status"
+    [attr.data-type]="toast.typeReadonly()"
+    (click)="toast.dismiss()">
+    {{ msg }}
+  </div>
+}
 <router-outlet></router-outlet>

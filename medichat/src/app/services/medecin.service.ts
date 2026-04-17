@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../core/api-base';
 
 export interface UtilisateurMedecin {
   id: number;
@@ -39,9 +40,21 @@ export interface Medecin {
 })
 export class MedecinService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8081/api/medecins';
+  private apiUrl = `${API_BASE_URL}/api/medecins`;
 
   getAllMedecins(): Observable<Medecin[]> {
     return this.http.get<Medecin[]>(this.apiUrl);
+  }
+
+  getMedecinsEnAttente(): Observable<Medecin[]> {
+    return this.http.get<Medecin[]>(`${this.apiUrl}/en-attente`);
+  }
+
+  setValidationStatut(id: number, statut: 'VALIDE' | 'REFUSE'): Observable<Medecin> {
+    return this.http.patch<Medecin>(`${this.apiUrl}/${id}/validation`, { statut });
+  }
+
+  deleteMedecin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

@@ -107,6 +107,17 @@ textarea:focus {
   color: #4b5563;
 }
 
+.form-error {
+  color: #b91c1c;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.btn-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   :host {
     padding: 18px;

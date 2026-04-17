@@ -27,8 +27,9 @@ export class Login {
   }
 
   onLogin() {
+    this.errorMessage = '';
     const data = {
-      email: this.email,
+      email: this.email.trim().toLowerCase(),
       motDePasse: this.motDePasse
     };
 
@@ -36,19 +37,27 @@ export class Login {
       next: (response) => {
         localStorage.setItem('user', JSON.stringify(response));
 
-        if (response.role === 'ADMIN') {
-          this.router.navigate(['/admin-dashboard']);
-        } else if (response.role === 'MEDECIN') {
-          this.router.navigate(['/medecin-dashboard']);
-        } else if (response.role === 'PATIENT') {
-          this.router.navigate(['/patient-dashboard']);
+        const role = (response?.role ?? '').toString().trim().toUpperCase();
+        if (role === 'ADMIN') {
+          void this.router.navigate(['/admin-dashboard']);
+        } else if (role === 'MEDECIN') {
+          void this.router.navigate(['/medecin-dashboard']);
+        } else if (role === 'PATIENT') {
+          void this.router.navigate(['/patient-dashboard']);
         } else {
-          this.router.navigate(['/']);
+          void this.router.navigate(['/']);
         }
       },
       error: (error) => {
         console.error(error);
-        this.errorMessage = 'Email ou mot de passe incorrect';
+        const body = error?.error;
+        if (typeof body?.message === 'string') {
+          this.errorMessage = body.message;
+        } else if (typeof body === 'string' && body.trim()) {
+          this.errorMessage = body;
+        } else {
+          this.errorMessage = 'Email ou mot de passe incorrect';
+        }
       }
     });
   }

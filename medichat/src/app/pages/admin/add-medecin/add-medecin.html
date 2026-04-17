@@ -1,7 +1,7 @@
 <div class="doctor-page">
   <div class="doctor-wrapper">
 
-    <form [formGroup]="medecinForm" (ngSubmit)="onSubmit()" class="global-card">
+    <form [formGroup]="medecinForm" (ngSubmit)="onSubmit()" class="global-card" autocomplete="off">
       <div class="page-header">
         <h1>Ajouter un médecin</h1>
         <p>Créer un nouveau profil médecin dans la plateforme</p>
@@ -84,7 +84,8 @@
                 type="text"
                 formControlName="adresse"
                 name="adresse"
-                placeholder="Entrez l'adresse">
+                placeholder="Entrez l'adresse"
+                autocomplete="off">
             </div>
 
             <div class="field">
@@ -126,6 +127,7 @@
                   formControlName="email"
                   name="email"
                   placeholder="Entrez l'adresse e-mail"
+                  autocomplete="off"
                   [class.error]="getFieldError('email')">
                 <div *ngIf="getFieldError('email')" class="field-error">{{ getFieldError('email') }}</div>
               </div>
@@ -148,6 +150,7 @@
                   formControlName="motDePasse"
                   name="motDePasse"
                   placeholder="Entrez le mot de passe"
+                  autocomplete="new-password"
                   [class.error]="getFieldError('motDePasse')">
                 <div *ngIf="getFieldError('motDePasse')" class="field-error">{{ getFieldError('motDePasse') }}</div>
               </div>
@@ -184,11 +187,13 @@
               <label>Spécialité principale</label>
               <select formControlName="specialite" name="specialite">
                 <option value="">Sélectionner la spécialité</option>
-                <option value="1">Cardiologie</option>
-                <option value="2">Neurologie</option>
-                <option value="3">Pédiatrie</option>
-                <option value="4">Dermatologie</option>
+                <option *ngFor="let s of specialitesSelect()" [value]="s.id">
+                  {{ s.nom }}
+                </option>
               </select>
+              <p *ngIf="specialitesSelect().length === 0" class="field-hint">
+                Aucune spécialité disponible. Ajoutez-en depuis la liste des spécialités ou vérifiez l’API.
+              </p>
             </div>
 
             <div class="field">

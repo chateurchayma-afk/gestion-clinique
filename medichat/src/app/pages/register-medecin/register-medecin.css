@@ -77,7 +77,8 @@
   color: #16324f;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   height: 50px;
   border: 1px solid #d6dee8;
   border-radius: 14px;
@@ -88,10 +89,22 @@
   transition: 0.3s ease;
 }
 
-.form-group input:focus {
+.form-group select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.form-group input:focus,
+.form-group select:focus {
   border-color: #2f678d;
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(47, 103, 141, 0.12);
+}
+
+.field-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .info-box {

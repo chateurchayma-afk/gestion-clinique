@@ -17,7 +17,7 @@ public class Medecin {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "utilisateur_id", nullable = false, unique = true)
     private Utilisateur utilisateur;
 
@@ -33,11 +33,11 @@ public class Medecin {
     @Builder.Default
     private Boolean disponible = true;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "specialite_id")
     private Specialite specialite;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "service_medical_id")
     private ServiceMedical serviceMedical;
 }

@@ -1,0 +1,15 @@
+<div class="rh-wrap">
+  <div class="rh-card">
+    <p class="rh-badge">{{ title }}</p>
+    <h1>Bienvenue</h1>
+    <p class="rh-sub">{{ subtitle }}</p>
+    <p class="rh-hint">
+      Cet espace sera relié aux fonctionnalités métier (rendez-vous, dossiers, etc.).
+      En attendant, vous pouvez vous déconnecter ou retourner à l’accueil.
+    </p>
+    <div class="rh-actions">
+      <a routerLink="/" class="btn ghost">Accueil public</a>
+      <button type="button" class="btn primary" (click)="logout()">Déconnexion</button>
+    </div>
+  </div>
+</div>

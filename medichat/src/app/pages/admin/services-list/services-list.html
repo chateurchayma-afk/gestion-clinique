@@ -4,47 +4,52 @@
     <div class="page-header">
       <div>
         <h1>Services</h1>
-        <p>Gérez les services</p>
+        <p>Gérez les services médicaux.</p>
       </div>
 
-      <button class="primary-btn" routerLink="/admin/add-service">
+      <button type="button" class="primary-btn" routerLink="/admin/add-service">
         + Ajouter un service
       </button>
     </div>
 
     <div class="inner-header">
       <h2>Tous les services</h2>
-      <p>Consultez et gérez la liste complète des services médicaux.</p>
+      <p>Liste issue de l’API backend.</p>
     </div>
 
     <div class="card">
       <div class="toolbar">
-        <input type="text" placeholder="Rechercher un service..." />
+        <input
+          type="text"
+          placeholder="Rechercher un service..."
+          (input)="onSearch($any($event.target).value)">
       </div>
 
-      <div class="table-wrapper">
+      <div *ngIf="loading()" class="state">Chargement…</div>
+
+      <div *ngIf="!loading() && filteredServices().length === 0" class="state">
+        Aucun service à afficher.
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading() && filteredServices().length > 0">
         <table>
           <thead>
             <tr>
               <th>Nom du service</th>
               <th>Département</th>
               <th>Prix</th>
-              <th>Statut</th>
+              <th>Actions</th>
             </tr>
           </thead>
-
           <tbody>
-            <tr *ngFor="let s of services()">
+            <tr *ngFor="let s of filteredServices()">
               <td><strong>{{ s.nom }}</strong></td>
-              <td>{{ s.departement }}</td>
-              <td>{{ s.prix }}</td>
+              <td>{{ s.departement || '—' }}</td>
+              <td>{{ s.prix || '—' }}</td>
               <td>
-                <span
-                  class="status"
-                  [class.active]="s.statut === 'Actif'"
-                  [class.inactive]="s.statut === 'Inactif'">
-                  {{ s.statut }}
-                </span>
+                <button type="button" class="link-danger" (click)="deleteOne(s, $event)">
+                  Supprimer
+                </button>
               </td>
             </tr>
           </tbody>

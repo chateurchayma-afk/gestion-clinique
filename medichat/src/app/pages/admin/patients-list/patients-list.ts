@@ -1,7 +1,8 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PatientService, Patient } from '../../../services/patient.service';
+import { ToastService } from '../../../core/toast.service';
 
 @Component({
   selector: 'app-patients-list',
@@ -11,6 +12,8 @@ import { PatientService, Patient } from '../../../services/patient.service';
   styleUrl: './patients-list.css'
 })
 export class PatientsList implements OnInit {
+  private readonly toast = inject(ToastService);
+
   patients = signal<Patient[]>([]);
   loading = signal(true);
   searchTerm = signal('');
@@ -26,6 +29,7 @@ export class PatientsList implements OnInit {
       error: (err) => {
         console.error('Erreur API patients :', err);
         this.loading.set(false);
+        this.toast.show('Impossible de charger la liste des patients.', 'error');
       }
     });
   }
@@ -57,4 +61,22 @@ export class PatientsList implements OnInit {
       );
     });
   });
+
+  deletePatient(p: Patient, event: Event): void {
+    event.stopPropagation();
+    const name = `${p.utilisateur?.prenom ?? ''} ${p.utilisateur?.nom ?? ''}`.trim();
+    if (!confirm(`Supprimer le patient ${name || '(sans nom)'} ?`)) {
+      return;
+    }
+    this.patientService.deletePatient(p.id).subscribe({
+      next: () => {
+        this.toast.show('Patient supprimé.', 'success');
+        this.patients.set(this.patients().filter((x) => x.id !== p.id));
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.show('Suppression impossible.', 'error');
+      }
+    });
+  }
 }

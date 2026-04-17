@@ -1,7 +1,8 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MedecinService, Medecin } from '../../../services/medecin.service';
+import { ToastService } from '../../../core/toast.service';
 
 @Component({
   selector: 'app-medecins-list',
@@ -11,6 +12,8 @@ import { MedecinService, Medecin } from '../../../services/medecin.service';
   styleUrl: './medecins-list.css',
 })
 export class MedecinsList implements OnInit {
+  private readonly toast = inject(ToastService);
+
   medecins = signal<Medecin[]>([]);
   loading = signal(true);
   searchTerm = signal('');
@@ -26,6 +29,7 @@ export class MedecinsList implements OnInit {
       error: (err) => {
         console.error('Erreur API médecins :', err);
         this.loading.set(false);
+        this.toast.show('Impossible de charger la liste des médecins.', 'error');
       }
     });
   }
@@ -57,4 +61,22 @@ export class MedecinsList implements OnInit {
       );
     });
   });
+
+  deleteMedecin(m: Medecin, event: Event): void {
+    event.stopPropagation();
+    const name = `${m.utilisateur.prenom} ${m.utilisateur.nom}`.trim();
+    if (!confirm(`Supprimer le médecin Dr. ${name} ?`)) {
+      return;
+    }
+    this.medecinService.deleteMedecin(m.id).subscribe({
+      next: () => {
+        this.toast.show('Médecin supprimé.', 'success');
+        this.medecins.set(this.medecins().filter((x) => x.id !== m.id));
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.show('Suppression impossible.', 'error');
+      }
+    });
+  }
 }

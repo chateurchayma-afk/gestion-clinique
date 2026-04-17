@@ -4,6 +4,7 @@
     <div class="page-header">
       <h1>Ajouter un service</h1>
       <p>Créer un nouveau service médical</p>
+      <p *ngIf="errorMessage" class="form-error">{{ errorMessage }}</p>
     </div>
 
     <div class="inner-card">
@@ -45,8 +46,8 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="btn-save" (click)="onSubmit()">
-        Enregistrer le service
+      <button type="button" class="btn-save" [disabled]="isSubmitting" (click)="onSubmit()">
+        {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer le service' }}
       </button>
 
       <button type="button" class="btn-cancel" (click)="goBack()">

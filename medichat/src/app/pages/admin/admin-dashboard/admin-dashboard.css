@@ -328,6 +328,139 @@ tbody tr:hover {
   color: #1d4ed8;
 }
 
+.validation-card {
+  margin-bottom: 22px;
+}
+
+.card-intro {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.empty-pending {
+  padding: 12px 0 4px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.data-table th {
+  color: #64748b;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.btn-ok,
+.btn-no {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  margin-right: 8px;
+}
+
+.btn-ok {
+  background: #16a34a;
+  color: #fff;
+}
+
+.btn-no {
+  background: #f1f5f9;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pill-wait {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.roles-card {
+  margin-bottom: 22px;
+}
+
+.role-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.role-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.role-name {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.role-count {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.role-track {
+  height: 12px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.role-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.role-fill.admin {
+  background: linear-gradient(90deg, #7c3aed, #5b21b6);
+}
+
+.role-fill.med {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+
+.role-fill.pat {
+  background: linear-gradient(90deg, #059669, #047857);
+}
+
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../../core/api-base';
+import { ToastService } from '../../../core/toast.service';
+import { Specialite, SpecialiteService } from '../../../services/specialite.service';
 
 @Component({
   selector: 'app-add-medecin',
@@ -11,7 +14,13 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './add-medecin.html',
   styleUrls: ['./add-medecin.css']
 })
-export class AddMedecin {
+export class AddMedecin implements OnInit {
+  private readonly toast = inject(ToastService);
+  private readonly specialiteService = inject(SpecialiteService);
+
+  /** Jusqu’à 10 spécialités (triées par nom), chargées depuis l’API */
+  readonly specialitesSelect = signal<Specialite[]>([]);
+
   activeTab: 'personnel' | 'professionnel' = 'personnel';
   medecinForm: FormGroup;
   isSubmitting = false;
@@ -44,12 +53,27 @@ export class AddMedecin {
     });
   }
 
+  ngOnInit(): void {
+    this.specialiteService.getAll().subscribe({
+      next: (list) => {
+        const sorted = [...list].sort((a, b) =>
+          a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' })
+        );
+        this.specialitesSelect.set(sorted.slice(0, 10));
+      },
+      error: () => {
+        this.toast.show('Impossible de charger la liste des spécialités.', 'error');
+        this.specialitesSelect.set([]);
+      }
+    });
+  }
+
   setTab(tab: 'personnel' | 'professionnel'): void {
     this.activeTab = tab;
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/medecins']);
+    void this.router.navigate(['/admin/medecins']);
   }
 
   onSubmit(): void {
@@ -79,27 +103,31 @@ export class AddMedecin {
       experienceAnnees: formValue.experienceAnnees,
       matricule: formValue.numeroLicence?.trim() || null,
       biographie: null, // Peut être étendu plus tard
-      specialiteId: formValue.specialite ? parseInt(formValue.specialite) : null,
+      specialiteId:
+        formValue.specialite !== '' && formValue.specialite != null
+          ? parseInt(String(formValue.specialite), 10)
+          : null,
       serviceMedicalId: null, // Peut être étendu plus tard
       disponible: true
     };
 
-    this.http.post('http://localhost:8081/api/auth/register-medecin', payload)
-      .subscribe({
-        next: () => {
-          alert('Médecin ajouté avec succès');
-          this.router.navigate(['/admin/medecins']);
-        },
-        error: (err) => {
-          this.isSubmitting = false;
-          console.error(err);
-          if (err.error && typeof err.error === 'string') {
-            this.errorMessage = err.error;
-          } else {
-            this.errorMessage = 'Erreur lors de l’ajout du médecin. Vérifiez les données saisies.';
-          }
+    this.http.post(`${API_BASE_URL}/api/auth/register-medecin`, payload).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.toast.show('Médecin ajouté avec succès.', 'success');
+        void this.router.navigate(['/admin/medecins']);
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        console.error(err);
+        if (err.error && typeof err.error === 'string') {
+          this.errorMessage = err.error;
+        } else {
+          this.errorMessage = 'Erreur lors de l’ajout du médecin. Vérifiez les données saisies.';
         }
-      });
+        this.toast.show(this.errorMessage, 'error', 5500);
+      }
+    });
   }
 
   private markFormGroupTouched(): void {

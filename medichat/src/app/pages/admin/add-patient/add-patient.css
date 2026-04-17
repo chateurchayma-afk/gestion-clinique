@@ -41,6 +41,20 @@
   font-size: 14px;
 }
 
+.form-error-banner {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.btn-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .inner-card {
   background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
   border: 1px solid #dfe9fb;

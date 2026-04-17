@@ -2,30 +2,39 @@
 
   <div class="page-header">
     <h1>Ajouter une nouvelle spécialité</h1>
-    <p>Créer une nouvelle spécialité médicale</p>
+    <p>Créer une spécialité médicale côté serveur.</p>
+    <p *ngIf="errorMessage" class="form-error">{{ errorMessage }}</p>
   </div>
 
   <div class="form-group">
-    <label>Nom de la spécialité</label>
-    <input [(ngModel)]="form.nom" placeholder="Entrez le nom de la spécialité">
+    <label for="spec-nom">Nom de la spécialité</label>
+    <input
+      id="spec-nom"
+      [(ngModel)]="form.nom"
+      name="nom"
+      placeholder="Ex. Cardiologie"
+      autocomplete="off">
   </div>
 
   <div class="form-group">
-    <label>Département</label>
-    <input placeholder="Entrez le département">
-  </div>
-
-  <div class="form-group">
-    <label>Description</label>
-    <textarea [(ngModel)]="form.description" placeholder="Entrez la description"></textarea>
+    <label for="spec-desc">Description</label>
+    <textarea
+      id="spec-desc"
+      [(ngModel)]="form.description"
+      name="description"
+      placeholder="Description courte (optionnelle)"></textarea>
   </div>
 
   <div class="actions">
-    <button class="btn-save" (click)="onSubmit()">
-      Enregistrer la spécialité
+    <button
+      type="button"
+      class="btn-save"
+      [disabled]="isSubmitting"
+      (click)="onSubmit()">
+      {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer la spécialité' }}
     </button>
 
-    <button class="btn-cancel" (click)="goBack()">
+    <button type="button" class="btn-cancel" (click)="goBack()">
       Annuler
     </button>
   </div>

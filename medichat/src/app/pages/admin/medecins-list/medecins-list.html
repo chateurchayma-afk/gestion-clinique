@@ -17,16 +17,17 @@
         <input
           type="text"
           placeholder="Rechercher un médecin..."
+          (input)="onSearch($any($event.target).value)"
         />
       </div>
 
       <div *ngIf="loading()" class="state">Chargement...</div>
 
-      <div *ngIf="!loading() && medecins().length === 0" class="state">
+      <div *ngIf="!loading() && filteredMedecins().length === 0" class="state">
         Aucun médecin trouvé
       </div>
 
-      <div class="table-wrapper" *ngIf="!loading() && medecins().length > 0">
+      <div class="table-wrapper" *ngIf="!loading() && filteredMedecins().length > 0">
         <table>
           <thead>
             <tr>
@@ -35,6 +36,7 @@
               <th>Service</th>
               <th>Statut</th>
               <th>Email</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -71,6 +73,9 @@
               </td>
 
               <td>{{ m.utilisateur.email }}</td>
+              <td class="actions-cell">
+                <button type="button" class="link-danger" (click)="deleteMedecin(m, $event)">Supprimer</button>
+              </td>
             </tr>
           </tbody>
         </table>

@@ -12,7 +12,7 @@
   }
   
   .modal {
-    width: min(560px, 95%);
+    width: min(720px, 95%);
     background: #ffffff;
     border-radius: 8px;
     border: 1px solid rgba(0,0,0,0.12);
@@ -45,9 +45,15 @@
   
   .choices {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     padding: 10px 8px 14px;
+  }
+
+  @media (max-width: 640px) {
+    .choices {
+      grid-template-columns: 1fr;
+    }
   }
   
   .choice {
@@ -86,6 +92,26 @@
   
   .bar-med { background: #2f5f7a; }
   .bar-pat { background: #2f8f6a; }
+  .bar-admin { background: #5b21b6; }
+
+  .admin-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff;
+    font-size: 32px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   
   .footer {
     display: flex;

@@ -7,7 +7,7 @@
         <p>Gérez vos patients et leurs dossiers médicaux.</p>
       </div>
 
-      <button class="primary-btn" routerLink="/admin/add-patient">
+      <button type="button" class="primary-btn" routerLink="/admin/add-patient">
         + Ajouter un patient
       </button>
     </div>
@@ -43,6 +43,7 @@
               <th>Téléphone</th>
               <th>Méthode contact</th>
               <th>N° dossier</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -53,20 +54,20 @@
                   <div class="avatar">
                     {{ p.utilisateur.prenom.charAt(0) }}{{ p.utilisateur.nom.charAt(0) }}
                   </div>
-
                   <div>
-                    <strong>
-                      {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
-                    </strong>
+                    <strong>{{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}</strong>
                   </div>
                 </div>
               </td>
-
               <td>{{ p.situationMatrimoniale || 'Non définie' }}</td>
               <td>{{ p.utilisateur.email || '—' }}</td>
               <td>{{ p.utilisateur.telephone || '—' }}</td>
               <td>{{ p.methodeContactPreferee || '—' }}</td>
               <td>{{ p.numeroDossier || '—' }}</td>
+              <td class="actions-cell">
+                <a class="link-action" [routerLink]="['/admin/edit-patient', p.id]">Modifier</a>
+                <button type="button" class="link-danger" (click)="deletePatient(p, $event)">Supprimer</button>
+              </td>
             </tr>
           </tbody>
         </table>

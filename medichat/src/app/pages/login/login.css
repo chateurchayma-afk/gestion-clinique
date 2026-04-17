@@ -158,3 +158,20 @@
 .forgot-link:hover {
   text-decoration: underline;
 }
+
+.admin-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: #64748b;
+}
+
+.admin-hint .link {
+  color: #2d6fb3;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-hint .link:hover {
+  text-decoration: underline;
+}

@@ -10,7 +10,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/specialites")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 public class SpecialiteController {
 
     private final SpecialiteService specialiteService;

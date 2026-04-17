@@ -1,6 +1,7 @@
 package com.pfe.gestioncliniquebackend.service;
 
 import com.pfe.gestioncliniquebackend.dto.MedecinRequest;
+import com.pfe.gestioncliniquebackend.dto.MedecinValidationRequest;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.ServiceMedical;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
@@ -13,6 +14,7 @@ import com.pfe.gestioncliniquebackend.repository.SpecialiteRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +29,37 @@ public class MedecinService {
 
     public List<Medecin> getAllMedecins() {
         return medecinRepository.findAll();
+    }
+
+    public List<Medecin> getMedecinsEnAttente() {
+        return medecinRepository.findPendingValidationWithDetails(StatutValidationMedecin.EN_ATTENTE);
+    }
+
+    @Transactional
+    public Medecin updateStatutValidation(Long id, MedecinValidationRequest request) {
+        if (request.getStatut() == null || request.getStatut().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le statut est obligatoire");
+        }
+        StatutValidationMedecin nouveau;
+        try {
+            nouveau = StatutValidationMedecin.valueOf(request.getStatut().trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Statut invalide (VALIDE ou REFUSE attendu pour cette action)");
+        }
+        if (nouveau != StatutValidationMedecin.VALIDE && nouveau != StatutValidationMedecin.REFUSE) {
+            throw new IllegalArgumentException("Seuls VALIDE et REFUSE sont autorisés pour la validation");
+        }
+
+        Medecin medecin = medecinRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Médecin introuvable"));
+
+        StatutValidationMedecin actuel = medecin.getStatutValidation();
+        if (actuel != null && actuel != StatutValidationMedecin.EN_ATTENTE) {
+            throw new IllegalArgumentException("Ce médecin n'est plus en attente de validation");
+        }
+
+        medecin.setStatutValidation(nouveau);
+        return medecinRepository.save(medecin);
     }
 
     public Medecin ajouterMedecinComplet(MedecinRequest request) {

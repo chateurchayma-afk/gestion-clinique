@@ -1,188 +1,160 @@
-<div class="patient-page">
-  <div class="patient-wrapper">
-    <form (ngSubmit)="onSubmit()" class="global-card">
+<div class="doctor-page">
+  <div class="doctor-wrapper">
 
+    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()" class="global-card" autocomplete="off">
       <div class="page-header">
-        <h1>AJOUTER UN PATIENT</h1>
-        <p>Enregistrer un nouveau patient</p>
+        <h1>{{ isEdit ? 'Modifier un patient' : 'Ajouter un patient' }}</h1>
+        <p>
+          {{ isEdit ? 'Mettre à jour le profil patient' : 'Créer un nouveau profil patient dans la plateforme' }}
+        </p>
+        <div *ngIf="loadError" class="error-message">{{ loadError }}</div>
+        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+      </div>
+
+      <div class="top-tabs">
+        <button
+          type="button"
+          class="top-tab"
+          [class.active]="activeTab === 'personnel'"
+          (click)="setTab('personnel')">
+          Informations personnelles
+        </button>
+        <button
+          type="button"
+          class="top-tab"
+          [class.active]="activeTab === 'dossier'"
+          (click)="setTab('dossier')">
+          Dossier &amp; contact
+        </button>
       </div>
 
       <div class="inner-card">
-        <div class="section-title">
-          <h2>Informations personnelles</h2>
-          <p>Saisissez les informations personnelles du patient.</p>
-        </div>
-
-        <div class="form-grid">
-          <div class="field">
-            <label>Prénom</label>
-            <input
-              type="text"
-              [(ngModel)]="form.prenom"
-              name="prenom"
-              placeholder="Entrez le prénom"
-              required>
+        <div *ngIf="activeTab === 'personnel'" class="tab-panel">
+          <div class="section-title">
+            <h2>Informations personnelles</h2>
+            <p>Identité, coordonnées et accès au compte.</p>
           </div>
-
-          <div class="field">
-            <label>Nom</label>
-            <input
-              type="text"
-              [(ngModel)]="form.nom"
-              name="nom"
-              placeholder="Entrez le Nom"
-              required>
-          </div>
-
-          <div class="field">
-            <label>Date de naissance</label>
-            <input
-              type="date"
-              [(ngModel)]="form.dateNaissance"
-              name="dateNaissance">
-          </div>
-
-          <div class="field">
-            <label>Sexe</label>
-            <select [(ngModel)]="form.sexe" name="sexe">
-              <option value="">Sélectionner le sexe</option>
-              <option value="HOMME">Homme</option>
-              <option value="FEMME">Femme</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>Situation matrimoniale</label>
-            <select [(ngModel)]="form.situationMatrimoniale" name="situationMatrimoniale">
-              <option value="">Sélectionner la situation</option>
-              <option value="Célibataire">Célibataire</option>
-              <option value="Marié(e)">Marié(e)</option>
-              <option value="Divorcé(e)">Divorcé(e)</option>
-              <option value="Veuf(ve)">Veuf(ve)</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>Ville</label>
-            <input
-              type="text"
-              [(ngModel)]="form.ville"
-              name="ville"
-              placeholder="Entrez la ville">
-          </div>
-
-          <div class="field field-full">
-            <label>Adresse</label>
-            <input
-              type="text"
-              [(ngModel)]="form.adresse"
-              name="adresse"
-              placeholder="Entrez l'adresse">
-          </div>
-
-          <div class="field">
-            <label>Gouvernorat / Région</label>
-            <input
-              type="text"
-              [(ngModel)]="form.gouvernorat"
-              name="gouvernorat"
-              placeholder="Entrez la région">
-          </div>
-
-          <div class="field">
-            <label>Code postal</label>
-            <input
-              type="text"
-              [(ngModel)]="form.codePostal"
-              name="codePostal"
-              placeholder="Entrez le Code postal">
-          </div>
-        </div>
-
-        <div class="sub-section">
-          <h3>Informations de contact</h3>
 
           <div class="form-grid">
             <div class="field">
-              <label>Adresse e-mail</label>
-              <input
-                type="email"
-                [(ngModel)]="form.email"
-                name="email"
-                placeholder="Entrez l'adresse e-mail"
-                required>
+              <label>Prénom</label>
+              <input type="text" formControlName="prenom" placeholder="Entrez le prénom" [class.error]="getFieldError('prenom')">
+              <div *ngIf="getFieldError('prenom')" class="field-error">{{ getFieldError('prenom') }}</div>
             </div>
-
             <div class="field">
-              <label>Numéro de téléphone</label>
-              <input
-                type="text"
-                [(ngModel)]="form.telephone"
-                name="telephone"
-                placeholder="Entrez le Numéro de téléphone">
+              <label>Nom</label>
+              <input type="text" formControlName="nom" placeholder="Entrez le nom" [class.error]="getFieldError('nom')">
+              <div *ngIf="getFieldError('nom')" class="field-error">{{ getFieldError('nom') }}</div>
+            </div>
+            <div class="field">
+              <label>Date de naissance</label>
+              <input type="date" formControlName="dateNaissance">
+            </div>
+            <div class="field">
+              <label>Sexe</label>
+              <select formControlName="sexe">
+                <option value="">Sélectionner le sexe</option>
+                <option value="HOMME">Homme</option>
+                <option value="FEMME">Femme</option>
+              </select>
+            </div>
+            <div class="field field-full">
+              <label>Adresse</label>
+              <input type="text" formControlName="adresse" placeholder="Entrez l'adresse" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>Ville</label>
+              <input type="text" formControlName="ville" placeholder="Entrez la ville">
+            </div>
+            <div class="field">
+              <label>Gouvernorat / Région</label>
+              <input type="text" formControlName="gouvernorat" placeholder="Entrez la région">
+            </div>
+            <div class="field">
+              <label>Code postal</label>
+              <input type="text" formControlName="codePostal" placeholder="Code postal">
+            </div>
+          </div>
+
+          <div class="sub-section">
+            <h3>Connexion</h3>
+            <div class="form-grid">
+              <div class="field">
+                <label>Adresse e-mail</label>
+                <input type="email" formControlName="email" placeholder="E-mail" autocomplete="off" [class.error]="getFieldError('email')">
+                <div *ngIf="getFieldError('email')" class="field-error">{{ getFieldError('email') }}</div>
+              </div>
+              <div class="field">
+                <label>Téléphone</label>
+                <input type="text" formControlName="telephone" placeholder="Téléphone" [class.error]="getFieldError('telephone')">
+                <div *ngIf="getFieldError('telephone')" class="field-error">{{ getFieldError('telephone') }}</div>
+              </div>
+              <div class="field">
+                <label>Mot de passe {{ isEdit ? '(laisser vide pour ne pas changer)' : '' }}</label>
+                <input type="password" formControlName="motDePasse" placeholder="Au moins 6 caractères" autocomplete="new-password" [class.error]="getFieldError('motDePasse')">
+                <div *ngIf="getFieldError('motDePasse')" class="field-error">{{ getFieldError('motDePasse') }}</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="sub-section">
-          <h3>Méthode de contact préférée</h3>
-
-          <div class="radio-group">
-            <label class="radio-option">
-              <input
-                type="radio"
-                name="methodeContactPreferee"
-                [(ngModel)]="form.methodeContactPreferee"
-                value="TELEPHONE">
-              <span>Téléphone</span>
-            </label>
-
-            <label class="radio-option">
-              <input
-                type="radio"
-                name="methodeContactPreferee"
-                [(ngModel)]="form.methodeContactPreferee"
-                value="EMAIL">
-              <span>E-mail</span>
-            </label>
-
-            <label class="radio-option">
-              <input
-                type="radio"
-                name="methodeContactPreferee"
-                [(ngModel)]="form.methodeContactPreferee"
-                value="SMS">
-              <span>SMS</span>
-            </label>
+        <div *ngIf="activeTab === 'dossier'" class="tab-panel">
+          <div class="section-title">
+            <h2>Dossier patient</h2>
+            <p>Urgences, préférences et numéro de dossier.</p>
           </div>
-        </div>
 
-        <div class="sub-section">
-          <h3>PHOTO DE PROFIL</h3>
-
-          <div class="photo-block">
-            <div class="photo-box">
-              <div class="photo-icon">↑</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Situation matrimoniale</label>
+              <select formControlName="situationMatrimoniale">
+                <option value="">Sélectionner</option>
+                <option value="Célibataire">Célibataire</option>
+                <option value="Marié(e)">Marié(e)</option>
+                <option value="Divorcé(e)">Divorcé(e)</option>
+                <option value="Veuf(ve)">Veuf(ve)</option>
+              </select>
             </div>
+            <div class="field">
+              <label>N° dossier</label>
+              <input type="text" formControlName="numeroDossier" placeholder="Ex. PAT-001">
+            </div>
+            <div class="field">
+              <label>Contact urgence — nom</label>
+              <input type="text" formControlName="contactUrgenceNom" placeholder="Nom du contact">
+            </div>
+            <div class="field">
+              <label>Contact urgence — téléphone</label>
+              <input type="text" formControlName="contactUrgenceTelephone" placeholder="Téléphone">
+            </div>
+          </div>
 
-            <div class="photo-actions">
-              <button type="button" class="upload-btn">Télécharger une photo</button>
-              <p>Téléchargez une photo de profil (JPG, PNG ou GIF – max 2 Mo).</p>
+          <div class="sub-section">
+            <h3>Méthode de contact préférée</h3>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" formControlName="methodeContactPreferee" value="TELEPHONE">
+                <span>Téléphone</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" formControlName="methodeContactPreferee" value="EMAIL">
+                <span>E-mail</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" formControlName="methodeContactPreferee" value="SMS">
+                <span>SMS</span>
+              </label>
             </div>
           </div>
         </div>
       </div>
 
       <div class="bottom-actions">
-        <button type="button" class="btn-cancel" (click)="goBack()">
-          Annuler
-        </button>
-
-        <button type="submit" class="btn-save">
-          Enregistrer le patient
+        <button type="button" class="btn-cancel" (click)="goBack()">Annuler</button>
+        <button type="submit" class="btn-save" [disabled]="isSubmitting || !!loadError">
+          {{ isSubmitting ? 'Enregistrement…' : (isEdit ? 'Enregistrer les modifications' : 'Enregistrer le patient') }}
         </button>
       </div>
-
     </form>
   </div>
 </div>

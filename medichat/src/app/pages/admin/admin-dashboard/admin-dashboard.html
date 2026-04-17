@@ -11,18 +11,20 @@
       <div class="nav-section">
         <p class="nav-title">Médecins</p>
         <a class="nav-link" routerLink="/admin/medecins">Liste des médecins</a>
-        <a class="nav-link">Planning des médecins</a>
+        <a class="nav-link" routerLink="/admin/add-medecin">Ajouter un médecin</a>
+        <a class="nav-link" href="#" (click)="comingSoon($event)">Planning des médecins</a>
       </div>
 
       <div class="nav-section">
         <p class="nav-title">Patients</p>
         <a class="nav-link" routerLink="/admin/patients">Liste des patients</a>
+        <a class="nav-link" routerLink="/admin/add-patient">Ajouter un patient</a>
       </div>
 
       <div class="nav-section">
         <p class="nav-title">Rendez-vous</p>
-        <a class="nav-link">Tous les rendez-vous</a>
-        <a class="nav-link">Vue calendrier</a>
+        <a class="nav-link" href="#" (click)="comingSoon($event)">Tous les rendez-vous</a>
+        <a class="nav-link" href="#" (click)="comingSoon($event)">Vue calendrier</a>
       </div>
 
       <div class="nav-section">
@@ -37,77 +39,86 @@
     <header class="topbar">
       <div>
         <h1>Dashboard Admin</h1>
-        <p>Vue d’ensemble de la plateforme MediChat</p>
+        <p>Vue d’ensemble — validations et statistiques</p>
       </div>
-
       <div class="topbar-right">
-        <div class="admin-chip">SJ</div>
+        <div class="admin-chip">AD</div>
       </div>
     </header>
 
-    <section class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-label">Total Patients</span>
-        <h2>1,245</h2>
+    <section id="validations" class="card validation-card">
+      <div class="card-header">
+        <h3>Médecins en attente de validation</h3>
+        <span class="badge">{{ pendingMedecins().length }} demande(s)</span>
+      </div>
+      <p class="card-intro">Validez ou refusez les inscriptions médecins avant qu’ils accèdent pleinement à la plateforme.</p>
+
+      <div *ngIf="loadingPending()" class="muted">Chargement…</div>
+
+      <div *ngIf="!loadingPending() && pendingMedecins().length === 0" class="muted empty-pending">
+        Aucun médecin en attente.
       </div>
 
-      <div class="stat-card">
-        <span class="stat-label">RDV Aujourd’hui</span>
-        <h2>37</h2>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">Médecins Actifs</span>
-        <h2>15</h2>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">Services</span>
-        <h2>8</h2>
+      <div class="table-wrapper" *ngIf="!loadingPending() && pendingMedecins().length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Médecin</th>
+              <th>Email</th>
+              <th>Spécialité</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of pendingMedecins()">
+              <td><strong>Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</strong></td>
+              <td>{{ m.utilisateur.email }}</td>
+              <td>{{ m.specialite?.nom || '—' }}</td>
+              <td><span class="pill pill-wait">En attente</span></td>
+              <td class="actions">
+                <button type="button" class="btn-ok" (click)="valider(m)">Valider</button>
+                <button type="button" class="btn-no" (click)="refuser(m)">Refuser</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section class="dashboard-grid">
-      <div class="card chart-card large-card">
-        <div class="card-header">
-          <h3>Statistiques des rendez-vous</h3>
-          <span class="badge">Mensuel</span>
-        </div>
-
-        <div class="chart-placeholder bars">
-          <div class="bar" style="height: 45%"></div>
-          <div class="bar" style="height: 60%"></div>
-          <div class="bar" style="height: 72%"></div>
-          <div class="bar" style="height: 82%"></div>
-          <div class="bar" style="height: 68%"></div>
-          <div class="bar" style="height: 54%"></div>
-          <div class="bar" style="height: 88%"></div>
-          <div class="bar" style="height: 76%"></div>
-          <div class="bar" style="height: 90%"></div>
-          <div class="bar" style="height: 84%"></div>
-          <div class="bar" style="height: 79%"></div>
-          <div class="bar" style="height: 86%"></div>
-        </div>
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Utilisateurs</span>
+        <h2>{{ stats()?.totalUtilisateurs ?? '—' }}</h2>
       </div>
+      <div class="stat-card">
+        <span class="stat-label">Médecins en attente</span>
+        <h2>{{ stats()?.medecinsEnAttente ?? '—' }}</h2>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Médecins validés</span>
+        <h2>{{ stats()?.medecinsValides ?? '—' }}</h2>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Médecins refusés</span>
+        <h2>{{ stats()?.medecinsRefuses ?? '—' }}</h2>
+      </div>
+    </section>
 
-      <div class="card donut-card">
-        <div class="card-header">
-          <h3>Top départements</h3>
-          <span class="badge">Hebdomadaire</span>
-        </div>
-
-        <div class="donut-wrapper">
-          <div class="donut">
-            <div class="donut-center">
-              <strong>638</strong>
-              <span>Total</span>
-            </div>
+    <section class="card roles-card">
+      <div class="card-header">
+        <h3>Répartition des comptes par rôle</h3>
+        <span class="badge">% du total utilisateurs</span>
+      </div>
+      <div *ngIf="loadingStats()" class="muted">Chargement des statistiques…</div>
+      <div class="role-bars" *ngIf="!loadingStats() && stats() as s">
+        <div class="role-row" *ngFor="let r of s.repartitionRoles">
+          <div class="role-meta">
+            <span class="role-name">{{ labelRole(r.role) }}</span>
+            <span class="role-count">{{ r.count }} ({{ r.pourcentage }}%)</span>
           </div>
-
-          <div class="legend">
-            <div><span class="dot dot-blue"></span> Cardiologie</div>
-            <div><span class="dot dot-purple"></span> Dentaire</div>
-            <div><span class="dot dot-light"></span> Neurologie</div>
+          <div class="role-track">
+            <div class="role-fill" [class.admin]="r.role === 'ADMIN'" [class.med]="r.role === 'MEDECIN'" [class.pat]="r.role === 'PATIENT'" [style.width.%]="r.pourcentage"></div>
           </div>
         </div>
       </div>
@@ -115,60 +126,10 @@
 
     <section class="card table-card">
       <div class="card-header">
-        <h3>Tous les rendez-vous</h3>
-        <button class="view-btn">Voir tout</button>
+        <h3>Rendez-vous (aperçu)</h3>
+        <button type="button" class="view-btn" (click)="comingSoon($event)">Voir tout</button>
       </div>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Médecin</th>
-              <th>Patient</th>
-              <th>Date & Heure</th>
-              <th>Mode</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Dr. Julia Smith</td>
-              <td>Lucas Adams</td>
-              <td>29 May 2025 - 11:15</td>
-              <td>Online</td>
-              <td><span class="status confirmed">Confirmé</span></td>
-            </tr>
-            <tr>
-              <td>Dr. Lisa White</td>
-              <td>Ezra Belcher</td>
-              <td>29 May 2025 - 11:30</td>
-              <td>En personne</td>
-              <td><span class="status cancelled">Annulé</span></td>
-            </tr>
-            <tr>
-              <td>Dr. Patrick Brown</td>
-              <td>Olen Lentz</td>
-              <td>30 May 2025 - 09:30</td>
-              <td>Online</td>
-              <td><span class="status confirmed">Confirmé</span></td>
-            </tr>
-            <tr>
-              <td>Dr. Rachel Green</td>
-              <td>Bernard Griffith</td>
-              <td>30 May 2025 - 10:00</td>
-              <td>Offline</td>
-              <td><span class="status pending">En attente</span></td>
-            </tr>
-            <tr>
-              <td>Dr. Michael Smith</td>
-              <td>John Flakes</td>
-              <td>30 May 2025 - 11:00</td>
-              <td>Online</td>
-              <td><span class="status planned">Planifié</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <p class="muted card-intro">Module rendez-vous à brancher sur l’API.</p>
     </section>
   </main>
 </div>

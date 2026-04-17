@@ -31,6 +31,7 @@ public class Utilisateur {
     private String motDePasse;
 
     private String telephone;
+
     private String adresse;
     private String ville;
     private String gouvernorat;

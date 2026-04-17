@@ -3,15 +3,19 @@ package com.pfe.gestioncliniquebackend.service;
 import com.pfe.gestioncliniquebackend.dto.AuthResponse;
 import com.pfe.gestioncliniquebackend.dto.LoginRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinCreationRequest;
+import com.pfe.gestioncliniquebackend.dto.RegisterAdminRequest;
 import com.pfe.gestioncliniquebackend.dto.RegisterRequest;
+import com.pfe.gestioncliniquebackend.entity.Administrateur;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.ServiceMedical;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
+import com.pfe.gestioncliniquebackend.enums.MethodeContact;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
+import com.pfe.gestioncliniquebackend.repository.AdministrateurRepository;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
 import com.pfe.gestioncliniquebackend.repository.PatientRepository;
 import com.pfe.gestioncliniquebackend.repository.ServiceMedicalRepository;
@@ -20,6 +24,7 @@ import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import com.pfe.gestioncliniquebackend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -30,21 +35,52 @@ public class AuthService {
     private final UtilisateurRepository utilisateurRepository;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
+    private final AdministrateurRepository administrateurRepository;
     private final SpecialiteRepository specialiteRepository;
     private final ServiceMedicalRepository serviceMedicalRepository;
     private final JwtService jwtService;
 
     public String registerPatient(RegisterRequest request) {
-        if (utilisateurRepository.existsByEmail(request.getEmail())) {
+        String emailNorm = request.getEmail().trim().toLowerCase();
+        if (utilisateurRepository.existsByEmail(emailNorm)) {
             throw new IllegalArgumentException("Email déjà utilisé");
+        }
+
+        String numeroDossier = normalizeOptional(request.getNumeroDossier());
+        if (numeroDossier != null && patientRepository.existsByNumeroDossier(numeroDossier)) {
+            throw new IllegalArgumentException("Numéro de dossier déjà utilisé");
+        }
+
+        Sexe sexeEnum = null;
+        if (request.getSexe() != null && !request.getSexe().trim().isEmpty()) {
+            try {
+                sexeEnum = Sexe.valueOf(request.getSexe().trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Sexe invalide");
+            }
+        }
+
+        MethodeContact methode = null;
+        if (request.getMethodeContactPreferee() != null && !request.getMethodeContactPreferee().trim().isEmpty()) {
+            try {
+                methode = MethodeContact.valueOf(request.getMethodeContactPreferee().trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Méthode de contact invalide");
+            }
         }
 
         Utilisateur user = Utilisateur.builder()
                 .nom(request.getNom().trim())
                 .prenom(request.getPrenom().trim())
-                .email(request.getEmail().trim().toLowerCase())
+                .email(emailNorm)
                 .motDePasse(request.getMotDePasse())
                 .telephone(request.getTelephone() != null ? request.getTelephone().trim() : null)
+                .adresse(normalizeOptional(request.getAdresse()))
+                .ville(normalizeOptional(request.getVille()))
+                .gouvernorat(normalizeOptional(request.getGouvernorat()))
+                .codePostal(normalizeOptional(request.getCodePostal()))
+                .dateNaissance(request.getDateNaissance())
+                .sexe(sexeEnum)
                 .role(Role.PATIENT)
                 .actif(true)
                 .build();
@@ -53,6 +89,11 @@ public class AuthService {
 
         Patient patient = Patient.builder()
                 .utilisateur(savedUser)
+                .situationMatrimoniale(normalizeOptional(request.getSituationMatrimoniale()))
+                .contactUrgenceNom(normalizeOptional(request.getContactUrgenceNom()))
+                .contactUrgenceTelephone(normalizeOptional(request.getContactUrgenceTelephone()))
+                .methodeContactPreferee(methode)
+                .numeroDossier(numeroDossier)
                 .build();
 
         patientRepository.save(patient);
@@ -61,14 +102,15 @@ public class AuthService {
     }
 
     public String registerMedecin(RegisterRequest request) {
-        if (utilisateurRepository.existsByEmail(request.getEmail())) {
+        String emailNorm = request.getEmail().trim().toLowerCase();
+        if (utilisateurRepository.existsByEmail(emailNorm)) {
             throw new IllegalArgumentException("Email déjà utilisé");
         }
 
         Utilisateur user = Utilisateur.builder()
                 .nom(request.getNom().trim())
                 .prenom(request.getPrenom().trim())
-                .email(request.getEmail().trim().toLowerCase())
+                .email(emailNorm)
                 .motDePasse(request.getMotDePasse())
                 .telephone(request.getTelephone() != null ? request.getTelephone().trim() : null)
                 .role(Role.MEDECIN)
@@ -77,8 +119,17 @@ public class AuthService {
 
         Utilisateur savedUser = utilisateurRepository.save(user);
 
+        Specialite specialite = null;
+        if (request.getSpecialiteId() != null) {
+            specialite = specialiteRepository.findById(request.getSpecialiteId())
+                    .orElseThrow(() -> new IllegalArgumentException("Spécialité introuvable"));
+        }
+
         Medecin medecin = Medecin.builder()
                 .utilisateur(savedUser)
+                .specialite(specialite)
+                .statutValidation(StatutValidationMedecin.EN_ATTENTE)
+                .disponible(true)
                 .build();
 
         medecinRepository.save(medecin);
@@ -87,7 +138,8 @@ public class AuthService {
     }
 
     public String registerMedecinComplet(MedecinCreationRequest request) {
-        if (utilisateurRepository.existsByEmail(request.getEmail().trim().toLowerCase())) {
+        String emailNorm = request.getEmail().trim().toLowerCase();
+        if (utilisateurRepository.existsByEmail(emailNorm)) {
             throw new IllegalArgumentException("Email déjà utilisé");
         }
 
@@ -132,10 +184,10 @@ public class AuthService {
         Utilisateur user = Utilisateur.builder()
                 .nom(request.getNom().trim())
                 .prenom(request.getPrenom().trim())
-                .email(request.getEmail().trim().toLowerCase())
+                .email(emailNorm)
                 .motDePasse(request.getMotDePasse())
                 .telephone(request.getTelephone().trim())
-                .adresse(request.getAdresse() != null ? request.getAdresse().trim() : null)
+                .adresse(normalizeOptional(request.getAdresse()))
                 .ville(request.getVille() != null ? request.getVille().trim() : null)
                 .gouvernorat(request.getGouvernorat() != null ? request.getGouvernorat().trim() : null)
                 .codePostal(request.getCodePostal() != null ? request.getCodePostal().trim() : null)
@@ -163,8 +215,53 @@ public class AuthService {
         return "Médecin créé avec succès";
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public String registerAdmin(RegisterAdminRequest request) {
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("L'email est obligatoire");
+        }
+        String emailNorm = request.getEmail().trim().toLowerCase();
+        if (utilisateurRepository.existsByEmail(emailNorm)) {
+            throw new IllegalArgumentException(
+                    "Cet email est déjà utilisé. Connectez-vous ou choisissez un autre email.");
+        }
+        if (request.getNom() == null || request.getNom().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom est obligatoire");
+        }
+        if (request.getPrenom() == null || request.getPrenom().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le prénom est obligatoire");
+        }
+        if (request.getMotDePasse() == null || request.getMotDePasse().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le mot de passe est obligatoire");
+        }
+
+        Utilisateur user = Utilisateur.builder()
+                .nom(request.getNom().trim())
+                .prenom(request.getPrenom().trim())
+                .email(emailNorm)
+                .motDePasse(request.getMotDePasse())
+                .telephone(request.getTelephone() != null ? request.getTelephone().trim() : null)
+                .role(Role.ADMIN)
+                .actif(true)
+                .build();
+
+        Utilisateur saved = utilisateurRepository.save(user);
+
+        Administrateur administrateur = Administrateur.builder()
+                .utilisateur(saved)
+                .fonction(null)
+                .build();
+        administrateurRepository.save(administrateur);
+
+        return "Administrateur créé avec succès";
+    }
+
     public AuthResponse login(LoginRequest request) {
-        Optional<Utilisateur> userOptional = utilisateurRepository.findByEmail(request.getEmail());
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            return new AuthResponse("Email incorrect", null, null, null);
+        }
+        String emailNorm = request.getEmail().trim().toLowerCase();
+        Optional<Utilisateur> userOptional = utilisateurRepository.findByEmail(emailNorm);
 
         if (userOptional.isEmpty()) {
             return new AuthResponse("Email incorrect", null, null, null);
@@ -172,7 +269,8 @@ public class AuthService {
 
         Utilisateur user = userOptional.get();
 
-        if (!user.getMotDePasse().equals(request.getMotDePasse())) {
+        String pwdRequest = request.getMotDePasse() != null ? request.getMotDePasse() : "";
+        if (!user.getMotDePasse().equals(pwdRequest)) {
             return new AuthResponse("Mot de passe incorrect", null, null, null);
         }
 
@@ -184,5 +282,13 @@ public class AuthService {
                 user.getRole().name(),
                 user.getEmail()
         );
+    }
+
+    private static String normalizeOptional(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

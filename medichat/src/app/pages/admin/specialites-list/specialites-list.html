@@ -1,59 +1,56 @@
 <div class="page-wrapper">
   <div class="global-card">
 
-    <!-- HEADER -->
     <div class="page-header">
       <div>
         <h1>Spécialités</h1>
         <p>Gérer toutes les spécialités médicales.</p>
       </div>
 
-      <button class="primary-btn" routerLink="/admin/add-specialite">
+      <button type="button" class="primary-btn" routerLink="/admin/add-specialite">
         + Ajouter une spécialité
       </button>
     </div>
 
-    <!-- SOUS TITRE -->
     <div class="inner-header">
       <h2>Liste des spécialités</h2>
-      <p>Consultez et gérez toutes les spécialisations médicales.</p>
+      <p>Données synchronisées avec le serveur.</p>
     </div>
 
-    <!-- TABLE -->
     <div class="card">
-
       <div class="toolbar">
-        <input type="text" placeholder="Rechercher une spécialité...">
+        <input
+          type="text"
+          placeholder="Rechercher une spécialité..."
+          (input)="onSearch($any($event.target).value)">
       </div>
 
-      <table>
+      <div *ngIf="loading()" class="state">Chargement…</div>
+
+      <div *ngIf="!loading() && filteredSpecialites().length === 0" class="state">
+        Aucune spécialité à afficher.
+      </div>
+
+      <table *ngIf="!loading() && filteredSpecialites().length > 0">
         <thead>
           <tr>
             <th>Nom</th>
             <th>Description</th>
-            <th>Médecins</th>
-            <th>Département</th>
-            <th>Statut</th>
             <th>Actions</th>
           </tr>
         </thead>
-
         <tbody>
-          <tr *ngFor="let s of specialites()">
+          <tr *ngFor="let s of filteredSpecialites()">
             <td><strong>{{ s.nom }}</strong></td>
-            <td>{{ s.description }}</td>
-            <td>5</td>
-            <td>Médecine interne</td>
-
+            <td>{{ s.description || '—' }}</td>
             <td>
-              <span class="status active">Actif</span>
+              <button type="button" class="link-danger" (click)="deleteOne(s, $event)">
+                Supprimer
+              </button>
             </td>
-
-            <td>...</td>
           </tr>
         </tbody>
       </table>
-
     </div>
 
   </div>

@@ -152,6 +152,28 @@ td strong {
   color: #0369a1;
 }
 
+.state {
+  padding: 24px 12px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.link-danger {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 13px;
+}
+
+.link-danger:hover {
+  color: #7f1d1d;
+}
+
 @media (max-width: 768px) {
   :host {
     padding: 18px;
