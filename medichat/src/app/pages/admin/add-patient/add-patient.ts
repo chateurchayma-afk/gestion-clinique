@@ -67,7 +67,8 @@ export class AddPatient implements OnInit {
       contactUrgenceNom: [''],
       contactUrgenceTelephone: [''],
       methodeContactPreferee: ['TELEPHONE'],
-      numeroDossier: ['']
+      numeroDossier: [''],
+      photo: ['']
     });
   }
 
@@ -122,7 +123,8 @@ export class AddPatient implements OnInit {
       contactUrgenceNom: p.contactUrgenceNom ?? '',
       contactUrgenceTelephone: p.contactUrgenceTelephone ?? '',
       methodeContactPreferee: p.methodeContactPreferee ?? 'TELEPHONE',
-      numeroDossier: p.numeroDossier ?? ''
+      numeroDossier: p.numeroDossier ?? '',
+      photo: u.photo ?? ''
     });
   }
 
@@ -145,6 +147,10 @@ export class AddPatient implements OnInit {
     this.errorMessage = '';
 
     const v = this.patientForm.value;
+    const dateNaissance =
+      v.dateNaissance != null && String(v.dateNaissance).trim() !== ''
+        ? String(v.dateNaissance).trim()
+        : null;
 
     if (this.isEdit && this.patientId != null) {
       const payload = {
@@ -157,8 +163,9 @@ export class AddPatient implements OnInit {
         ville: v.ville?.trim() || null,
         gouvernorat: v.gouvernorat?.trim() || null,
         codePostal: v.codePostal?.trim() || null,
-        dateNaissance: v.dateNaissance || null,
+        dateNaissance,
         sexe: v.sexe || null,
+        photo: v.photo?.trim() || null,
         situationMatrimoniale: v.situationMatrimoniale?.trim() || null,
         contactUrgenceNom: v.contactUrgenceNom?.trim() || null,
         contactUrgenceTelephone: v.contactUrgenceTelephone?.trim() || null,
@@ -195,8 +202,9 @@ export class AddPatient implements OnInit {
       ville: v.ville?.trim() || null,
       gouvernorat: v.gouvernorat?.trim() || null,
       codePostal: v.codePostal?.trim() || null,
-      dateNaissance: v.dateNaissance || null,
+      dateNaissance,
       sexe: v.sexe || null,
+      photo: v.photo?.trim() || null,
       situationMatrimoniale: v.situationMatrimoniale?.trim() || null,
       contactUrgenceNom: v.contactUrgenceNom?.trim() || null,
       contactUrgenceTelephone: v.contactUrgenceTelephone?.trim() || null,
@@ -204,7 +212,9 @@ export class AddPatient implements OnInit {
       numeroDossier: v.numeroDossier?.trim() || null
     };
 
-    this.http.post(`${API_BASE_URL}/api/auth/register-patient`, payload).subscribe({
+    this.http
+      .post(`${API_BASE_URL}/api/auth/register-patient`, payload, { responseType: 'text' })
+      .subscribe({
       next: () => {
         this.isSubmitting = false;
         this.toast.show('Patient ajouté avec succès.', 'success');

@@ -1,5 +1,6 @@
 package com.pfe.gestioncliniquebackend.service;
 
+import com.pfe.gestioncliniquebackend.dto.MedecinFullUpdateRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinValidationRequest;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
@@ -7,11 +8,13 @@ import com.pfe.gestioncliniquebackend.entity.ServiceMedical;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.Role;
+import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
 import com.pfe.gestioncliniquebackend.repository.ServiceMedicalRepository;
 import com.pfe.gestioncliniquebackend.repository.SpecialiteRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
+import com.pfe.gestioncliniquebackend.util.ProfessionnelBio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,11 @@ public class MedecinService {
 
     public List<Medecin> getAllMedecins() {
         return medecinRepository.findAll();
+    }
+
+    public Medecin getMedecinById(Long id) {
+        return medecinRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Médecin introuvable"));
     }
 
     public List<Medecin> getMedecinsEnAttente() {
@@ -100,43 +108,96 @@ public class MedecinService {
         return medecinRepository.save(medecin);
     }
 
-    public Medecin updateMedecin(Long id, MedecinRequest request) {
+    @Transactional
+    public Medecin updateMedecin(Long id, MedecinFullUpdateRequest req) {
+        Medecin medecin = medecinRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Médecin introuvable"));
+        Utilisateur u = medecin.getUtilisateur();
+        if (u.getRole() != Role.MEDECIN) {
+            throw new IllegalArgumentException("Cet enregistrement n'est pas un médecin");
+        }
 
-    Medecin medecin = medecinRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Médecin introuvable"));
+        String emailNorm = req.getEmail().trim().toLowerCase();
+        if (utilisateurRepository.existsByEmailAndIdNot(emailNorm, u.getId())) {
+            throw new IllegalArgumentException("Email déjà utilisé");
+        }
 
-    if (request.getExperienceAnnees() != null) {
-        medecin.setExperienceAnnees(request.getExperienceAnnees());
-    }
+        if (req.getMotDePasse() != null && !req.getMotDePasse().trim().isEmpty()) {
+            if (req.getMotDePasse().trim().length() < 6) {
+                throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caractères");
+            }
+            u.setMotDePasse(req.getMotDePasse().trim());
+        }
 
-    if (request.getMatricule() != null) {
-        medecin.setMatricule(request.getMatricule());
-    }
+        Sexe sexeEnum = parseSexe(req.getSexe());
 
-    if (request.getBiographie() != null) {
-        medecin.setBiographie(request.getBiographie());
-    }
+        u.setNom(req.getNom().trim());
+        u.setPrenom(req.getPrenom().trim());
+        u.setEmail(emailNorm);
+        u.setTelephone(req.getTelephone().trim());
+        u.setAdresse(normalizeOptional(req.getAdresse()));
+        u.setVille(normalizeOptional(req.getVille()));
+        u.setGouvernorat(normalizeOptional(req.getGouvernorat()));
+        u.setCodePostal(normalizeOptional(req.getCodePostal()));
+        u.setDateNaissance(req.getDateNaissance());
+        u.setSexe(sexeEnum);
+        u.setPhoto(normalizeOptional(req.getPhoto()));
 
-    if (request.getDisponible() != null) {
-        medecin.setDisponible(request.getDisponible());
-    }
+        utilisateurRepository.save(u);
 
-    if (request.getSpecialiteId() != null) {
-        Specialite specialite = specialiteRepository.findById(request.getSpecialiteId())
-                .orElseThrow(() -> new RuntimeException("Spécialité introuvable"));
-        medecin.setSpecialite(specialite);
-    }
+        if (req.getSpecialiteId() != null) {
+            Specialite specialite = specialiteRepository.findById(req.getSpecialiteId())
+                    .orElseThrow(() -> new IllegalArgumentException("Spécialité introuvable"));
+            medecin.setSpecialite(specialite);
+        } else {
+            medecin.setSpecialite(null);
+        }
 
-    if (request.getServiceMedicalId() != null) {
-        ServiceMedical serviceMedical = serviceMedicalRepository.findById(request.getServiceMedicalId())
-                .orElseThrow(() -> new RuntimeException("Service médical introuvable"));
-        medecin.setServiceMedical(serviceMedical);
-    }
+        if (req.getServiceMedicalId() != null) {
+            ServiceMedical serviceMedical = serviceMedicalRepository.findById(req.getServiceMedicalId())
+                    .orElseThrow(() -> new IllegalArgumentException("Service médical introuvable"));
+            medecin.setServiceMedical(serviceMedical);
+        } else {
+            medecin.setServiceMedical(null);
+        }
 
-    return medecinRepository.save(medecin);
+        medecin.setExperienceAnnees(req.getExperienceAnnees());
+        medecin.setMatricule(normalizeOptional(req.getMatricule()));
+        medecin.setBiographie(ProfessionnelBio.merge(
+                req.getBiographie(),
+                req.getQualifications(),
+                req.getFormation(),
+                req.getCertifications(),
+                req.getDepartement(),
+                req.getPosition()
+        ));
+        if (req.getDisponible() != null) {
+            medecin.setDisponible(req.getDisponible());
+        }
+
+        return medecinRepository.save(medecin);
     }
 
     public void deleteMedecin(Long id) {
         medecinRepository.deleteById(id);
+    }
+
+    private static String normalizeOptional(String value) {
+        if (value == null) {
+            return null;
+        }
+        String t = value.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    private static Sexe parseSexe(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Sexe.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Sexe invalide");
+        }
     }
 }

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : ven. 17 avr. 2026 à 02:11
+-- Généré le : ven. 17 avr. 2026 à 18:30
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -38,7 +38,8 @@ CREATE TABLE `administrateur` (
 --
 
 INSERT INTO `administrateur` (`id`, `utilisateur_id`, `fonction`) VALUES
-(2, 19, 'Administrateur principal');
+(2, 19, 'Administrateur principal'),
+(3, 20, NULL);
 
 -- --------------------------------------------------------
 
@@ -126,10 +127,11 @@ CREATE TABLE `medecin` (
 INSERT INTO `medecin` (`id`, `utilisateur_id`, `specialite_id`, `service_medical_id`, `experience_annees`, `matricule`, `biographie`, `statut_validation`, `disponible`) VALUES
 (1, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (2, 7, 1, 2, 3, 'MED010', 'Test médecin', NULL, 1),
-(3, 9, NULL, NULL, NULL, NULL, NULL, NULL, 1),
+(3, 9, NULL, NULL, NULL, NULL, NULL, 'REFUSE', 1),
 (4, 10, NULL, NULL, NULL, NULL, NULL, NULL, 1),
-(7, 13, NULL, NULL, NULL, NULL, NULL, NULL, 1),
-(9, 18, 5, NULL, NULL, NULL, NULL, 'EN_ATTENTE', 1);
+(7, 13, NULL, NULL, NULL, NULL, NULL, 'VALIDE', 1),
+(9, 18, 5, NULL, NULL, NULL, NULL, 'VALIDE', 1),
+(17, 28, 1, NULL, 5, '15', 'aaaaaaaaaaaaaaaaaaaaaaa', 'VALIDE', 1);
 
 -- --------------------------------------------------------
 
@@ -199,7 +201,8 @@ INSERT INTO `patient` (`id`, `utilisateur_id`, `situation_matrimoniale`, `contac
 (1, 1, 'Célibataire', 'Contact Urgence', NULL, 'TELEPHONE', 'PAT-001'),
 (12, 5, NULL, NULL, NULL, NULL, NULL),
 (15, 7, 'Célibataire', 'Ali', '22111222', 'TELEPHONE', 'PAT007'),
-(18, 17, NULL, NULL, NULL, NULL, NULL);
+(18, 17, NULL, NULL, NULL, NULL, NULL),
+(19, 29, 'Célibataire', 'rahmarahma', '22444666', 'TELEPHONE', 'PAT-005');
 
 -- --------------------------------------------------------
 
@@ -314,7 +317,10 @@ INSERT INTO `utilisateur` (`id`, `nom`, `prenom`, `email`, `mot_de_passe`, `tele
 (16, 'hvjbkn', 'jhbknl,', 'test@test', '', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'PATIENT', 1, '2026-04-16 23:24:08', '2026-04-16 23:24:08'),
 (17, 'hvjbkn', 'jhbknl,', 'test@test.tn', '123456', '25252525', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'PATIENT', 1, '2026-04-16 23:24:33', '2026-04-16 23:24:33'),
 (18, 'amir', 'kh', 'amir@gmail.com', 'amir123', '21212121', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'MEDECIN', 1, '2026-04-16 23:35:37', '2026-04-16 23:35:37'),
-(19, 'Admin', 'Principal', 'admin@medichat.local', 'admin123', '00000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ADMIN', 1, '2026-04-17 00:01:11', '2026-04-17 00:01:11');
+(19, 'Admin', 'Principal', 'admin@medichat.local', 'admin123', '00000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ADMIN', 1, '2026-04-17 00:01:11', '2026-04-17 00:01:11'),
+(20, 'adddmin', 'add', 'admin@admin.tn', '123456', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ADMIN', 1, '2026-04-17 00:15:10', '2026-04-17 00:15:10'),
+(28, 'rayen', 'rayen', 'rayen123@gmail.com', 'rayen123', '55555555', 'kef', 'kef', 'kef', '8050', '2000-01-01', 'HOMME', NULL, 'MEDECIN', 1, '2026-04-17 16:27:08', '2026-04-17 16:27:08'),
+(29, 'rahma', 'rahma', 'rahma@gmail.com', 'rahma123', '22444666', 'nabeul', 'nabaul', 'nabeul', '3027', '1999-04-04', 'FEMME', NULL, 'PATIENT', 1, '2026-04-17 16:29:52', '2026-04-17 16:29:52');
 
 --
 -- Index pour les tables déchargées
@@ -433,7 +439,7 @@ ALTER TABLE `utilisateur`
 -- AUTO_INCREMENT pour la table `administrateur`
 --
 ALTER TABLE `administrateur`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `consultation`
@@ -457,7 +463,7 @@ ALTER TABLE `dossier_medical`
 -- AUTO_INCREMENT pour la table `medecin`
 --
 ALTER TABLE `medecin`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT pour la table `notification`
@@ -481,7 +487,7 @@ ALTER TABLE `ordonnance_ligne`
 -- AUTO_INCREMENT pour la table `patient`
 --
 ALTER TABLE `patient`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT pour la table `rendez_vous`
@@ -505,7 +511,7 @@ ALTER TABLE `specialite`
 -- AUTO_INCREMENT pour la table `utilisateur`
 --
 ALTER TABLE `utilisateur`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Contraintes pour les tables déchargées

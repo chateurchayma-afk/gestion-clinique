@@ -1,9 +1,11 @@
 package com.pfe.gestioncliniquebackend.controller;
 
+import com.pfe.gestioncliniquebackend.dto.MedecinFullUpdateRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinValidationRequest;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.service.MedecinService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,15 @@ public class MedecinController {
         return medecinService.getAllMedecins();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Medecin> getMedecin(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(medecinService.getMedecinById(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PatchMapping("/{id}/validation")
     public ResponseEntity<?> validerOuRefuser(@PathVariable Long id, @RequestBody MedecinValidationRequest body) {
         try {
@@ -47,7 +58,11 @@ public class MedecinController {
     }
 
     @PutMapping("/{id}")
-    public Medecin updateMedecin(@PathVariable Long id, @RequestBody MedecinRequest request) {
-        return medecinService.updateMedecin(id, request);
+    public ResponseEntity<?> updateMedecin(@PathVariable Long id, @Valid @RequestBody MedecinFullUpdateRequest request) {
+        try {
+            return ResponseEntity.ok(medecinService.updateMedecin(id, request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

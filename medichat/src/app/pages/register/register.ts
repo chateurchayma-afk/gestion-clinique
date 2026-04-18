@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../core/api-base';
 
 @Component({
   selector: 'app-register',
@@ -55,7 +56,8 @@ export class Register {
       telephone: this.telephone
     };
 
-    this.http.post('http://localhost:8081/api/auth/register-patient', body)
+    this.http
+      .post(`${API_BASE_URL}/api/auth/register-patient`, body, { responseType: 'text' })
       .subscribe({
         next: (response) => {
           console.log('Inscription réussie :', response);

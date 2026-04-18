@@ -94,6 +94,10 @@
                 <input type="password" formControlName="motDePasse" placeholder="Au moins 6 caractères" autocomplete="new-password" [class.error]="getFieldError('motDePasse')">
                 <div *ngIf="getFieldError('motDePasse')" class="field-error">{{ getFieldError('motDePasse') }}</div>
               </div>
+              <div class="field field-full">
+                <label>Photo (URL ou chemin)</label>
+                <input type="text" formControlName="photo" placeholder="https://… ou chemin relatif" autocomplete="off">
+              </div>
             </div>
           </div>
         </div>

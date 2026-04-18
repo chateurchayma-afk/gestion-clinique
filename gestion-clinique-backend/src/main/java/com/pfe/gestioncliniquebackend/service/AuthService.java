@@ -22,6 +22,7 @@ import com.pfe.gestioncliniquebackend.repository.ServiceMedicalRepository;
 import com.pfe.gestioncliniquebackend.repository.SpecialiteRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import com.pfe.gestioncliniquebackend.security.JwtService;
+import com.pfe.gestioncliniquebackend.util.ProfessionnelBio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,22 @@ public class AuthService {
     private final JwtService jwtService;
 
     public String registerPatient(RegisterRequest request) {
+        if (request.getNom() == null || request.getNom().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le nom est obligatoire");
+        }
+        if (request.getPrenom() == null || request.getPrenom().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le prénom est obligatoire");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("L'email est obligatoire");
+        }
+        if (request.getMotDePasse() == null || request.getMotDePasse().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le mot de passe est obligatoire");
+        }
+        if (request.getTelephone() == null || request.getTelephone().trim().isEmpty()) {
+            throw new IllegalArgumentException("Le téléphone est obligatoire");
+        }
+
         String emailNorm = request.getEmail().trim().toLowerCase();
         if (utilisateurRepository.existsByEmail(emailNorm)) {
             throw new IllegalArgumentException("Email déjà utilisé");
@@ -73,14 +90,15 @@ public class AuthService {
                 .nom(request.getNom().trim())
                 .prenom(request.getPrenom().trim())
                 .email(emailNorm)
-                .motDePasse(request.getMotDePasse())
-                .telephone(request.getTelephone() != null ? request.getTelephone().trim() : null)
+                .motDePasse(request.getMotDePasse().trim())
+                .telephone(request.getTelephone().trim())
                 .adresse(normalizeOptional(request.getAdresse()))
                 .ville(normalizeOptional(request.getVille()))
                 .gouvernorat(normalizeOptional(request.getGouvernorat()))
                 .codePostal(normalizeOptional(request.getCodePostal()))
                 .dateNaissance(request.getDateNaissance())
                 .sexe(sexeEnum)
+                .photo(normalizeOptional(request.getPhoto()))
                 .role(Role.PATIENT)
                 .actif(true)
                 .build();
@@ -163,7 +181,7 @@ public class AuthService {
         Sexe sexeEnum = null;
         if (request.getSexe() != null && !request.getSexe().trim().isEmpty()) {
             try {
-                sexeEnum = Sexe.valueOf(request.getSexe().toUpperCase());
+                sexeEnum = Sexe.valueOf(request.getSexe().trim().toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Sexe invalide");
             }
@@ -181,6 +199,15 @@ public class AuthService {
                     .orElseThrow(() -> new IllegalArgumentException("Service médical introuvable"));
         }
 
+        String biographie = ProfessionnelBio.merge(
+                request.getBiographie(),
+                request.getQualifications(),
+                request.getFormation(),
+                request.getCertifications(),
+                request.getDepartement(),
+                request.getPosition()
+        );
+
         Utilisateur user = Utilisateur.builder()
                 .nom(request.getNom().trim())
                 .prenom(request.getPrenom().trim())
@@ -188,11 +215,12 @@ public class AuthService {
                 .motDePasse(request.getMotDePasse())
                 .telephone(request.getTelephone().trim())
                 .adresse(normalizeOptional(request.getAdresse()))
-                .ville(request.getVille() != null ? request.getVille().trim() : null)
-                .gouvernorat(request.getGouvernorat() != null ? request.getGouvernorat().trim() : null)
-                .codePostal(request.getCodePostal() != null ? request.getCodePostal().trim() : null)
+                .ville(normalizeOptional(request.getVille()))
+                .gouvernorat(normalizeOptional(request.getGouvernorat()))
+                .codePostal(normalizeOptional(request.getCodePostal()))
                 .dateNaissance(request.getDateNaissance())
                 .sexe(sexeEnum)
+                .photo(normalizeOptional(request.getPhoto()))
                 .role(Role.MEDECIN)
                 .actif(true)
                 .build();
@@ -202,8 +230,8 @@ public class AuthService {
         Medecin medecin = Medecin.builder()
                 .utilisateur(savedUser)
                 .experienceAnnees(request.getExperienceAnnees())
-                .matricule(request.getMatricule() != null ? request.getMatricule().trim() : null)
-                .biographie(request.getBiographie() != null ? request.getBiographie().trim() : null)
+                .matricule(normalizeOptional(request.getMatricule()))
+                .biographie(biographie)
                 .statutValidation(StatutValidationMedecin.EN_ATTENTE)
                 .disponible(request.getDisponible() != null ? request.getDisponible() : true)
                 .specialite(specialite)

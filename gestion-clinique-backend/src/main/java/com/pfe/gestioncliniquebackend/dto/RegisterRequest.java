@@ -17,6 +17,8 @@ public class RegisterRequest {
     private String codePostal;
     private LocalDate dateNaissance;
     private String sexe;
+    /** URL ou chemin relatif si upload géré plus tard */
+    private String photo;
     private String situationMatrimoniale;
     private String contactUrgenceNom;
     private String contactUrgenceTelephone;

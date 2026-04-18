@@ -83,6 +83,7 @@ public class PatientService {
         u.setCodePostal(normalizeOptional(req.getCodePostal()));
         u.setDateNaissance(req.getDateNaissance());
         u.setSexe(sexeEnum);
+        u.setPhoto(normalizeOptional(req.getPhoto()));
 
         if (req.getMotDePasse() != null && !req.getMotDePasse().trim().isEmpty()) {
             if (req.getMotDePasse().trim().length() < 6) {

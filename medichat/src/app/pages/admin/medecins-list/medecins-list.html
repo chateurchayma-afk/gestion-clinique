@@ -74,6 +74,7 @@
 
               <td>{{ m.utilisateur.email }}</td>
               <td class="actions-cell">
+                <a class="link-edit" [routerLink]="['/admin/edit-medecin', m.id]">Modifier</a>
                 <button type="button" class="link-danger" (click)="deleteMedecin(m, $event)">Supprimer</button>
               </td>
             </tr>

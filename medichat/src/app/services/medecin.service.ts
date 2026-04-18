@@ -9,6 +9,13 @@ export interface UtilisateurMedecin {
   prenom: string;
   email: string;
   telephone: string | null;
+  dateNaissance?: string | null;
+  sexe?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+  gouvernorat?: string | null;
+  codePostal?: string | null;
+  photo?: string | null;
 }
 
 export interface Specialite {
@@ -35,6 +42,33 @@ export interface Medecin {
   serviceMedical: ServiceMedical | null;
 }
 
+/** Corps pour PUT /api/medecins/{id} (aligné sur MedecinFullUpdateRequest côté Java). */
+export interface MedecinFullUpdatePayload {
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  motDePasse?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+  gouvernorat?: string | null;
+  codePostal?: string | null;
+  dateNaissance?: string | null;
+  sexe?: string | null;
+  photo?: string | null;
+  experienceAnnees?: number | null;
+  matricule?: string | null;
+  biographie?: string | null;
+  specialiteId?: number | null;
+  serviceMedicalId?: number | null;
+  disponible?: boolean | null;
+  qualifications?: string | null;
+  formation?: string | null;
+  certifications?: string | null;
+  departement?: string | null;
+  position?: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -44,6 +78,14 @@ export class MedecinService {
 
   getAllMedecins(): Observable<Medecin[]> {
     return this.http.get<Medecin[]>(this.apiUrl);
+  }
+
+  getMedecinById(id: number): Observable<Medecin> {
+    return this.http.get<Medecin>(`${this.apiUrl}/${id}`);
+  }
+
+  updateMedecin(id: number, body: MedecinFullUpdatePayload): Observable<Medecin> {
+    return this.http.put<Medecin>(`${this.apiUrl}/${id}`, body);
   }
 
   getMedecinsEnAttente(): Observable<Medecin[]> {

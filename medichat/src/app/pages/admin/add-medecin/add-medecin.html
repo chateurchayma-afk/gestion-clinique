@@ -3,8 +3,8 @@
 
     <form [formGroup]="medecinForm" (ngSubmit)="onSubmit()" class="global-card" autocomplete="off">
       <div class="page-header">
-        <h1>Ajouter un médecin</h1>
-        <p>Créer un nouveau profil médecin dans la plateforme</p>
+        <h1>{{ isEdit ? 'Modifier un médecin' : 'Ajouter un médecin' }}</h1>
+        <p>{{ isEdit ? 'Mettre à jour le profil médecin' : 'Créer un nouveau profil médecin dans la plateforme' }}</p>
         <div *ngIf="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
@@ -144,7 +144,7 @@
               </div>
 
               <div class="field">
-                <label>Mot de passe</label>
+                <label>Mot de passe {{ isEdit ? '(laisser vide pour ne pas changer)' : '' }}</label>
                 <input
                   type="password"
                   formControlName="motDePasse"
@@ -154,24 +154,16 @@
                   [class.error]="getFieldError('motDePasse')">
                 <div *ngIf="getFieldError('motDePasse')" class="field-error">{{ getFieldError('motDePasse') }}</div>
               </div>
+              <div class="field field-full">
+                <label>Photo (URL ou chemin)</label>
+                <input type="text" formControlName="photo" placeholder="https://… ou chemin relatif" autocomplete="off">
+              </div>
             </div>
           </div>
 
           <div class="sub-section">
             <h3>Photo de profil</h3>
-
-            <div class="photo-block">
-              <div class="photo-box">
-                <div class="photo-icon">↑</div>
-              </div>
-
-              <div class="photo-actions">
-                <button type="button" class="upload-btn">
-                  Télécharger une photo
-                </button>
-                <p>Téléchargez une photo de profil (JPG, PNG ou GIF – max 2 Mo).</p>
-              </div>
-            </div>
+            <p class="field-hint">Indiquez une URL d’image dans le champ « Photo » ci-dessus (upload fichier à prévoir ultérieurement).</p>
           </div>
         </div>
 
@@ -276,6 +268,14 @@
               </div>
             </div>
           </div>
+
+          <div class="sub-section">
+            <h3>Biographie / notes professionnelles</h3>
+            <div class="field field-full">
+              <label>Texte libre (prioritaire sur les champs détaillés si rempli)</label>
+              <textarea formControlName="biographie" rows="4" placeholder="Résumé professionnel, publications, etc."></textarea>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -286,7 +286,7 @@
         </button>
 
         <button type="submit" class="btn-save" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer le médecin' }}
+          {{ isSubmitting ? 'Enregistrement...' : (isEdit ? 'Enregistrer les modifications' : 'Enregistrer le médecin') }}
         </button>
       </div>
     </form>

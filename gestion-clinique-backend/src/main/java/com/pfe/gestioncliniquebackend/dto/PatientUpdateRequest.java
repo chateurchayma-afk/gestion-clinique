@@ -18,6 +18,7 @@ public class PatientUpdateRequest {
     private String codePostal;
     private LocalDate dateNaissance;
     private String sexe;
+    private String photo;
     private String situationMatrimoniale;
     private String contactUrgenceNom;
     private String contactUrgenceTelephone;

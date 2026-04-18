@@ -165,6 +165,24 @@ tr:hover {
   font-weight: 600;
 }
 
+.actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.link-edit {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.link-edit:hover {
+  text-decoration: underline;
+}
+
 .link-danger {
   background: none;
   border: none;

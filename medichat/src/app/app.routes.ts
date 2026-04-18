@@ -30,6 +30,7 @@ export const routes: Routes = [
   { path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard] },
   { path: 'admin/medecins', component: MedecinsList, canActivate: [adminGuard] },
   { path: 'admin/add-medecin', component: AddMedecin, canActivate: [adminGuard] },
+  { path: 'admin/edit-medecin/:id', component: AddMedecin, canActivate: [adminGuard] },
   { path: 'admin/patients', component: PatientsList, canActivate: [adminGuard] },
   { path: 'admin/add-patient', component: AddPatient, canActivate: [adminGuard] },
   { path: 'admin/edit-patient/:id', component: AddPatient, canActivate: [adminGuard] },

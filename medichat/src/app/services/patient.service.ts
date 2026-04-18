@@ -15,6 +15,7 @@ export interface UtilisateurPatient {
   adresse?: string | null;
   gouvernorat?: string | null;
   codePostal?: string | null;
+  photo?: string | null;
 }
 
 export interface Patient {
@@ -44,6 +45,7 @@ export interface PatientUpdatePayload {
   contactUrgenceTelephone?: string | null;
   methodeContactPreferee?: string | null;
   numeroDossier?: string | null;
+  photo?: string | null;
 }
 
 @Injectable({
