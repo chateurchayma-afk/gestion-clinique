@@ -1,0 +1,133 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #f4f7fb;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1f2937;
+}
+
+.patient-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0d9488;
+  margin-bottom: 6px;
+}
+
+.role-tag {
+  margin: 0 0 24px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0;
+  padding-left: 6px;
+}
+
+.nav-link {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.2s ease;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.nav-link:hover {
+  background: #ecfdf5;
+  color: #0f766e;
+}
+
+.nav-link.active {
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  color: white;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25);
+}
+
+.nav-link.ghost {
+  background: #f1f5f9;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-logout {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-logout:hover {
+  background: #fee2e2;
+}
+
+.main-content {
+  padding: 28px;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .patient-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: relative;
+    height: auto;
+  }
+}

@@ -33,6 +33,9 @@ public class Medecin {
     @Builder.Default
     private Boolean disponible = true;
 
+    /** Note affichée (0–5). Nullable si pas encore renseignée. */
+    private Double noteMoyenne;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "specialite_id")
     private Specialite specialite;

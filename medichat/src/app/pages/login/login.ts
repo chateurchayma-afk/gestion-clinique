@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
 
 @Component({
@@ -11,16 +11,32 @@ import { AuthService } from '../../services/auth';
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
-export class Login {
+export class Login implements OnInit {
   showForm = false;
   email = '';
   motDePasse = '';
   errorMessage = '';
+  /** Cible après connexion admin (provenant de la garde). */
+  private returnUrl = '';
+  /** Message si l’accès admin a été refusé faute de session. */
+  guardHint = '';
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((q) => {
+      this.returnUrl = (q.get('returnUrl') ?? '').trim();
+      if (q.get('needAdmin') === '1') {
+        this.guardHint =
+          'L’administration requiert un compte administrateur. Connectez-vous avec un compte ADMIN.';
+        this.showForm = true;
+      }
+    });
+  }
 
   showLoginForm() {
     this.showForm = true;
@@ -39,7 +55,12 @@ export class Login {
 
         const role = (response?.role ?? '').toString().trim().toUpperCase();
         if (role === 'ADMIN') {
-          void this.router.navigate(['/admin-dashboard']);
+          const ru = this.returnUrl;
+          if (ru && /^[a-zA-Z0-9/_-]+$/.test(ru)) {
+            void this.router.navigateByUrl('/' + ru);
+          } else {
+            void this.router.navigate(['/admin-dashboard']);
+          }
         } else if (role === 'MEDECIN') {
           void this.router.navigate(['/medecin-dashboard']);
         } else if (role === 'PATIENT') {

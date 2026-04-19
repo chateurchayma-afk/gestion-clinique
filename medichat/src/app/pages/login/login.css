@@ -35,6 +35,18 @@
   margin-bottom: 14px;
 }
 
+.guard-hint {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+
 .desc {
   font-size: 15px;
   color: #5b6470;

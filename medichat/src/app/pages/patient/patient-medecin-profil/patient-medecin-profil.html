@@ -1,0 +1,64 @@
+<div class="page">
+  <a class="back" routerLink="/patient-dashboard/medecins">← Retour à l’annuaire</a>
+
+  @if (loading()) {
+    <p class="muted">Chargement…</p>
+  } @else if (!medecin()) {
+    <p class="muted">Profil introuvable.</p>
+  } @else {
+    <article class="profile card">
+      <div class="profile-head">
+        <div class="avatar" [class.has-photo]="photoUrl(medecin()!)">
+          @if (photoUrl(medecin()!); as url) {
+            <img [src]="url" alt="" />
+          } @else {
+            <span>{{ initiales(medecin()!) }}</span>
+          }
+        </div>
+        <div class="head-text">
+          <h1>{{ medecin()!.utilisateur.prenom }} {{ medecin()!.utilisateur.nom }}</h1>
+          <p class="spec">{{ medecin()!.specialite?.nom ?? 'Spécialité' }}</p>
+          @if (medecin()!.serviceMedical?.nom) {
+            <p class="svc">{{ medecin()!.serviceMedical!.nom }}</p>
+          }
+          <div class="row">
+            <span class="dispo" [class.off]="!estDisponible(medecin()!)">
+              {{ estDisponible(medecin()!) ? 'Disponible pour rendez-vous' : 'Occupé / indisponible' }}
+            </span>
+            @if (medecin()!.experienceAnnees != null) {
+              <span class="exp">{{ medecin()!.experienceAnnees }} ans d’expérience</span>
+            }
+          </div>
+          <div class="stars" [attr.title]="aNoteReelle(medecin()!) ? 'Note patients' : 'Indication'">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <span
+                class="star"
+                [class.on]="i <= etoilesPleines(medecin()!)"
+                [class.half]="etoileDemi(medecin()!) && i === etoilesPleines(medecin()!) + 1"
+                >★</span>
+            }
+            <span class="star-note">{{ noteAffichee(medecin()!).toFixed(1) }}</span>
+          </div>
+        </div>
+      </div>
+
+      @if (medecin()!.biographie) {
+        <section class="bio">
+          <h2>Présentation</h2>
+          <p>{{ medecin()!.biographie }}</p>
+        </section>
+      }
+
+      <div class="actions">
+        <a class="btn ghost" routerLink="/patient-dashboard/medecins">Fermer</a>
+        @if (estDisponible(medecin()!)) {
+          <a class="btn primary" [routerLink]="['/patient-dashboard/rendez-vous/nouveau']" [queryParams]="{ medecinId: medecin()!.id }">
+            Prendre rendez-vous
+          </a>
+        } @else {
+          <span class="btn primary disabled">Réservation indisponible</span>
+        }
+      </div>
+    </article>
+  }
+</div>

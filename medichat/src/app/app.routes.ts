@@ -17,7 +17,14 @@ import { ServicesList } from './pages/admin/services-list/services-list';
 import { AddService } from './pages/admin/add-service/add-service';
 import { NotFound } from './pages/not-found/not-found';
 import { RoleHome } from './pages/role-home/role-home';
+import { PatientShell } from './pages/patient/patient-shell/patient-shell';
+import { PatientHome } from './pages/patient/patient-home/patient-home';
+import { PatientMedecins } from './pages/patient/patient-medecins/patient-medecins';
+import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-list';
+import { PatientRdvNew } from './pages/patient/patient-rdv-new/patient-rdv-new';
+import { PatientMedecinProfil } from './pages/patient/patient-medecin-profil/patient-medecin-profil';
 import { adminGuard } from './core/admin.guard';
+import { patientGuard } from './core/patient.guard';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -27,6 +34,7 @@ export const routes: Routes = [
   { path: 'register/patient', component: RegisterPatient },
   { path: 'register/admin', component: RegisterAdmin },
   { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'admindashboard', redirectTo: 'admin-dashboard', pathMatch: 'full' },
   { path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard] },
   { path: 'admin/medecins', component: MedecinsList, canActivate: [adminGuard] },
   { path: 'admin/add-medecin', component: AddMedecin, canActivate: [adminGuard] },
@@ -48,11 +56,16 @@ export const routes: Routes = [
   },
   {
     path: 'patient-dashboard',
-    component: RoleHome,
-    data: {
-      title: 'Espace patient',
-      subtitle: 'Retrouvez ici prochainement vos rendez-vous et messages.'
-    }
+    component: PatientShell,
+    canActivate: [patientGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'accueil' },
+      { path: 'accueil', component: PatientHome },
+      { path: 'medecins/profil/:id', component: PatientMedecinProfil },
+      { path: 'medecins', component: PatientMedecins },
+      { path: 'rendez-vous/nouveau', component: PatientRdvNew },
+      { path: 'rendez-vous', component: PatientRdvList }
+    ]
   },
   { path: '**', component: NotFound }
 ];

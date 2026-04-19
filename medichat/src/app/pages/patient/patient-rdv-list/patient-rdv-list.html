@@ -1,0 +1,62 @@
+<div class="page">
+  <header class="page-head">
+    <div>
+      <h1>Mes rendez-vous</h1>
+      <p>Consultez l’historique et annulez un rendez-vous si votre situation change.</p>
+    </div>
+    <a class="btn secondary" routerLink="/patient-dashboard/medecins">Nouveau rendez-vous</a>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Chargement…</p>
+  } @else if (rdvs().length === 0) {
+    <div class="empty card">
+      <p>Vous n’avez pas encore de rendez-vous.</p>
+      <a class="btn" routerLink="/patient-dashboard/medecins">Voir les médecins</a>
+    </div>
+  } @else {
+    <div class="table-wrap card">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Horaire</th>
+            <th>Médecin</th>
+            <th>Spécialité</th>
+            <th>Mode</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rdvs(); track r.id) {
+            <tr>
+              <td>{{ r.dateRendezVous }}</td>
+              <td>{{ formatHeure(r.heureDebut) }} – {{ formatHeure(r.heureFin) }}</td>
+              <td>{{ r.medecinPrenom }} {{ r.medecinNom }}</td>
+              <td>{{ r.specialiteNom ?? '—' }}</td>
+              <td>{{ labelMode(r.modeConsultation) }}</td>
+              <td>
+                <span class="pill" [class.pill-warn]="r.statut === 'EN_ATTENTE'" [class.pill-muted]="r.statut === 'ANNULE'">
+                  {{ labelStatut(r.statut) }}
+                </span>
+              </td>
+              <td class="actions">
+                @if (peutAnnuler(r)) {
+                  <button
+                    type="button"
+                    class="btn-danger"
+                    [disabled]="cancellingId() === r.id"
+                    (click)="annuler(r)"
+                  >
+                    {{ cancellingId() === r.id ? 'Annulation…' : 'Annuler' }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

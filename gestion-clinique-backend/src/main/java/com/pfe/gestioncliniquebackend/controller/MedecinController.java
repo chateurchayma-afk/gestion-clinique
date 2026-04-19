@@ -1,15 +1,21 @@
 package com.pfe.gestioncliniquebackend.controller;
 
+import com.pfe.gestioncliniquebackend.dto.CatalogueHighlightsResponse;
+import com.pfe.gestioncliniquebackend.dto.CreneauJourResponse;
 import com.pfe.gestioncliniquebackend.dto.MedecinFullUpdateRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinValidationRequest;
+import com.pfe.gestioncliniquebackend.dto.ProchainCreneauResponse;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
+import com.pfe.gestioncliniquebackend.service.MedecinCatalogueService;
 import com.pfe.gestioncliniquebackend.service.MedecinService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -18,10 +24,58 @@ import java.util.List;
 public class MedecinController {
 
     private final MedecinService medecinService;
+    private final MedecinCatalogueService medecinCatalogueService;
 
     @GetMapping("/en-attente")
     public List<Medecin> getMedecinsEnAttente() {
         return medecinService.getMedecinsEnAttente();
+    }
+
+    @GetMapping("/catalogue/highlights")
+    public CatalogueHighlightsResponse catalogueHighlights() {
+        return medecinCatalogueService.getHighlights();
+    }
+
+    /**
+     * Catalogue public : filtres {@code specialiteId}, {@code serviceMedicalId}, {@code q} (nom / prénom),
+     * {@code disponible} (true / false, omis = tous), {@code sort} = nom | experience | disponible.
+     */
+    @GetMapping("/catalogue")
+    public List<Medecin> getCatalogue(
+            @RequestParam(required = false) Long specialiteId,
+            @RequestParam(required = false) Long serviceMedicalId,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Boolean disponible,
+            @RequestParam(required = false) String sort
+    ) {
+        return medecinCatalogueService.getCatalogue(specialiteId, serviceMedicalId, q, disponible, sort);
+    }
+
+    @GetMapping("/catalogue/{id}/creneaux")
+    public List<CreneauJourResponse> catalogueCreneaux(
+            @PathVariable Long id,
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) Integer days
+    ) {
+        return medecinCatalogueService.getCreneaux(id, from, days);
+    }
+
+    @GetMapping("/catalogue/{id}/prochain-creneau")
+    public ResponseEntity<ProchainCreneauResponse> catalogueProchainCreneau(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(medecinCatalogueService.getProchainCreneau(id));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/catalogue/{id}")
+    public ResponseEntity<Medecin> getCatalogueMedecin(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(medecinCatalogueService.getCatalogueMedecinPublic(id));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping

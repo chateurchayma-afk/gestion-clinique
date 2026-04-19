@@ -1,0 +1,93 @@
+<div class="page">
+  <header class="page-head">
+    <h1>Nouveau rendez-vous</h1>
+    <p>Choisissez un jour puis un créneau libre, ou laissez-vous guider par la suggestion automatique.</p>
+  </header>
+
+  @if (loadingMed()) {
+    <p class="muted">Chargement du médecin…</p>
+  } @else if (!medecin()) {
+    <div class="card warn">
+      <p>Médecin non précisé ou absent du catalogue.</p>
+      <a routerLink="/patient-dashboard/medecins" class="link">Retour à l’annuaire</a>
+    </div>
+  } @else {
+    <div class="layout">
+      <aside class="side card">
+        <div class="med-block">
+          <h2>{{ medecin()!.utilisateur.prenom }} {{ medecin()!.utilisateur.nom }}</h2>
+          <p class="meta">{{ medecin()!.specialite?.nom ?? 'Spécialité' }}</p>
+        </div>
+        <button
+          type="button"
+          class="btn-suggest"
+          (click)="appliquerProchainCreneau()"
+          [disabled]="prochainLoading() || medecin()!.disponible === false"
+        >
+          {{ prochainLoading() ? 'Recherche…' : 'Prochain créneau disponible' }}
+        </button>
+        <p class="hint-suggest">Remplit automatiquement la première plage libre sur les prochaines semaines.</p>
+      </aside>
+
+      <div class="card form-card">
+        <form (ngSubmit)="submit()">
+          <div class="cal-block">
+            <label class="field">
+              <span>Date</span>
+              <input type="date" name="date" [(ngModel)]="dateRendezVous" (ngModelChange)="onDateChange()" required />
+            </label>
+          </div>
+
+          @if (loadingCreneaux()) {
+            <p class="muted small">Chargement des créneaux…</p>
+          } @else if (dateRendezVous && slotsJour().length === 0) {
+            <p class="muted small">Aucun créneau standard libre ce jour-là (agenda plein ou jour passé). Vous pouvez saisir une heure manuellement ci-dessous.</p>
+          } @else if (dateRendezVous && slotsJour().length > 0) {
+            <div class="slots">
+              <span class="slots-label">Créneaux disponibles (30 min)</span>
+              <div class="slot-chips">
+                @for (h of slotsJour(); track $index) {
+                  <button
+                    type="button"
+                    class="slot"
+                    [class.active]="heureDebut === formatHeureChip(h)"
+                    (click)="choisirCreneau(h)"
+                  >
+                    {{ formatHeureChip(h) }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <label class="field">
+            <span>Heure de début</span>
+            <input type="time" name="debut" [(ngModel)]="heureDebut" required />
+          </label>
+          <label class="field">
+            <span>Heure de fin (optionnel)</span>
+            <input type="time" name="fin" [(ngModel)]="heureFin" />
+          </label>
+          <label class="field">
+            <span>Mode de consultation</span>
+            <select name="mode" [(ngModel)]="modeConsultation">
+              <option value="PRESENTIEL">Présentiel</option>
+              <option value="ONLINE">En ligne</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Motif (optionnel)</span>
+            <textarea name="motif" rows="3" [(ngModel)]="motif" placeholder="Courte description du motif…"></textarea>
+          </label>
+
+          <div class="actions">
+            <a class="btn ghost" routerLink="/patient-dashboard/medecins">Annuler</a>
+            <button type="submit" class="btn primary" [disabled]="submitting() || medecin()!.disponible === false">
+              {{ submitting() ? 'Envoi…' : 'Confirmer la demande' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

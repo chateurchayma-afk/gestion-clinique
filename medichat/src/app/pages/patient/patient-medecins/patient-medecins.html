@@ -1,0 +1,143 @@
+<div class="page">
+  <header class="hero">
+    <h1>Annuaire des médecins</h1>
+    <p>Profils vérifiés par la clinique, disponibilité en temps réel et prise de rendez-vous en ligne.</p>
+  </header>
+
+  <section class="filters card">
+    <div class="filters-grid">
+      <label class="field">
+        <span>Recherche</span>
+        <input
+          type="search"
+          [(ngModel)]="searchNom"
+          (ngModelChange)="reloadMedecins()"
+          name="searchNom"
+          placeholder="Nom ou prénom…"
+        />
+      </label>
+      <label class="field">
+        <span>Spécialité</span>
+        <select name="spec" [(ngModel)]="specialiteFilter" (ngModelChange)="reloadMedecins()">
+          <option value="">Toutes</option>
+          @for (s of specialites(); track s.id) {
+            <option [ngValue]="s.id">{{ s.nom }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>Service médical</span>
+        <select name="svc" [(ngModel)]="serviceFilter" (ngModelChange)="reloadMedecins()">
+          <option value="">Tous</option>
+          @for (sv of services(); track sv.id) {
+            <option [ngValue]="sv.id">{{ sv.nom }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>Disponibilité</span>
+        <select name="dispo" [(ngModel)]="disponibleFilter" (ngModelChange)="reloadMedecins()">
+          <option value="">Tous</option>
+          <option value="true">Accepte des RDV</option>
+          <option value="false">Indisponible / complet</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Tri</span>
+        <select name="sort" [(ngModel)]="sortKey" (ngModelChange)="reloadMedecins()">
+          <option value="nom">Par nom</option>
+          <option value="experience">Par expérience</option>
+          <option value="disponible">Par disponibilité</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  @if (!loading() && medecinsDispoAujourdhui().length > 0) {
+    <section class="band">
+      <h2 class="band-title">Disponibles aujourd’hui</h2>
+      <p class="band-sub">Créneaux restants selon l’agenda (max. {{ medecinsDispoAujourdhui().length }} praticiens).</p>
+      <div class="chips">
+        @for (m of medecinsDispoAujourdhui(); track m.id) {
+          <a class="chip" [routerLink]="['/patient-dashboard/medecins/profil', m.id]">
+            {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  @if (!loading() && medecinsPopulaires().length > 0) {
+    <section class="band band-pop">
+      <h2 class="band-title">Médecins populaires</h2>
+      <p class="band-sub">Les praticiens les plus sollicités ces dernières semaines.</p>
+      <div class="chips">
+        @for (m of medecinsPopulaires(); track m.id) {
+          <a class="chip chip-pop" [routerLink]="['/patient-dashboard/medecins/profil', m.id]">
+            {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="muted">Chargement…</p>
+  } @else if (medecins().length === 0) {
+    <p class="muted">Aucun médecin ne correspond à ces critères.</p>
+  } @else {
+    <h2 class="list-title">Tous les résultats ({{ medecins().length }})</h2>
+    <div class="cards">
+      @for (m of medecins(); track m.id) {
+        <article class="doc-card">
+          <div class="doc-head">
+            <div class="avatar" [class.has-photo]="photoUrl(m)">
+              @if (photoUrl(m); as url) {
+                <img [src]="url" alt="" />
+              } @else {
+                <span class="avatar-initials">{{ initiales(m) }}</span>
+              }
+            </div>
+            <div class="badges">
+              @if (isPopular(m)) {
+                <span class="badge badge-pop">Populaire</span>
+              }
+              @if (isDispoAujourdhui(m)) {
+                <span class="badge badge-today">Dispo aujourd’hui</span>
+              }
+            </div>
+          </div>
+          <h3 class="doc-name">{{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</h3>
+          <p class="doc-spec">{{ m.specialite?.nom ?? 'Spécialité à préciser' }}</p>
+          @if (m.serviceMedical) {
+            <p class="doc-svc">{{ m.serviceMedical.nom }}</p>
+          }
+          <div class="doc-meta">
+            <span class="dispo" [class.off]="!estDisponible(m)">{{ libelleDisponibilite(m) }}</span>
+            @if (m.experienceAnnees != null) {
+              <span class="exp">{{ m.experienceAnnees }} ans d’exp.</span>
+            }
+          </div>
+          <div class="stars" [attr.title]="aNoteReelle(m) ? 'Note patients' : 'Indication visuelle'">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <span class="star" [class.on]="i <= etoilesPleines(m)" [class.half]="i === etoilesPleines(m) + 1 && etoileDemi(m)">★</span>
+            }
+            <span class="star-note">{{ noteAffichee(m).toFixed(1) }}</span>
+          </div>
+          <div class="doc-actions">
+            <a class="btn ghost" [routerLink]="['/patient-dashboard/medecins/profil', m.id]">Voir profil</a>
+            @if (estDisponible(m)) {
+              <a class="btn primary" [routerLink]="['/patient-dashboard/rendez-vous/nouveau']" [queryParams]="{ medecinId: m.id }">
+                Prendre rendez-vous
+              </a>
+            } @else {
+              <span class="btn primary disabled" title="Ce médecin n’accepte pas de nouveaux rendez-vous pour le moment.">
+                Prendre rendez-vous
+              </span>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

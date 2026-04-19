@@ -31,6 +31,7 @@
       <p class="desc">
         Entrez votre email et votre mot de passe pour vous connecter.
       </p>
+      <p *ngIf="guardHint" class="guard-hint">{{ guardHint }}</p>
 
       <form class="login-form" (ngSubmit)="onLogin()" novalidate>
         <input
