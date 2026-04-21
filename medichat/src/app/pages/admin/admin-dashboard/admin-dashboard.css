@@ -6,6 +6,11 @@
   color: #1f2937;
 }
 
+.admin-page-lead {
+  margin: 0 0 20px;
+  font-size: 15px;
+}
+
 .admin-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -268,6 +273,13 @@
   border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
+}
+
+a.view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .table-wrapper {

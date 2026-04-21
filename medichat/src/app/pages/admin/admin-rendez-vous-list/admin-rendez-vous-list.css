@@ -1,0 +1,80 @@
+.admin-rdv-page {
+  display: block;
+}
+
+.cell-motif {
+  max-width: 220px;
+  font-size: 13px;
+  color: #475569;
+  word-break: break-word;
+}
+
+.admin-page-lead {
+  margin: 0 0 20px;
+  font-size: 15px;
+}
+
+.rdv-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.rdv-filter span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.rdv-filter select {
+  min-width: 160px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  background: #fff;
+}
+
+.rdv-statut-select {
+  margin-left: 10px;
+  min-width: 140px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pill.pill-ok {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.pill.pill-bad {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pill.pill-done {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.rdv-lock-hint {
+  margin: 4px 0 0;
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 1.4;
+}

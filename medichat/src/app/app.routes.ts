@@ -15,15 +15,20 @@ import { SpecialitesList } from './pages/admin/specialites-list/specialites-list
 import { AddSpecialite } from './pages/admin/add-specialite/add-specialite';
 import { ServicesList } from './pages/admin/services-list/services-list';
 import { AddService } from './pages/admin/add-service/add-service';
+import { PlanningMedecins } from './pages/admin/planning-medecins/planning-medecins';
+import { AdminRendezVousList } from './pages/admin/admin-rendez-vous-list/admin-rendez-vous-list';
+import { DashboardShell } from './layout/dashboard-shell';
+import { ADMIN_SHELL, MEDECIN_SHELL, PATIENT_SHELL } from './layout/dashboard-shell.config';
 import { NotFound } from './pages/not-found/not-found';
 import { RoleHome } from './pages/role-home/role-home';
-import { PatientShell } from './pages/patient/patient-shell/patient-shell';
 import { PatientHome } from './pages/patient/patient-home/patient-home';
 import { PatientMedecins } from './pages/patient/patient-medecins/patient-medecins';
 import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-list';
 import { PatientRdvNew } from './pages/patient/patient-rdv-new/patient-rdv-new';
 import { PatientMedecinProfil } from './pages/patient/patient-medecin-profil/patient-medecin-profil';
+import { PatientProfil } from './pages/patient/patient-profil/patient-profil';
 import { adminGuard } from './core/admin.guard';
+import { medecinGuard } from './core/medecin.guard';
 import { patientGuard } from './core/patient.guard';
 
 export const routes: Routes = [
@@ -34,33 +39,57 @@ export const routes: Routes = [
   { path: 'register/patient', component: RegisterPatient },
   { path: 'register/admin', component: RegisterAdmin },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'admindashboard', redirectTo: 'admin-dashboard', pathMatch: 'full' },
-  { path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard] },
-  { path: 'admin/medecins', component: MedecinsList, canActivate: [adminGuard] },
-  { path: 'admin/add-medecin', component: AddMedecin, canActivate: [adminGuard] },
-  { path: 'admin/edit-medecin/:id', component: AddMedecin, canActivate: [adminGuard] },
-  { path: 'admin/patients', component: PatientsList, canActivate: [adminGuard] },
-  { path: 'admin/add-patient', component: AddPatient, canActivate: [adminGuard] },
-  { path: 'admin/edit-patient/:id', component: AddPatient, canActivate: [adminGuard] },
-  { path: 'admin/specialites', component: SpecialitesList, canActivate: [adminGuard] },
-  { path: 'admin/add-specialite', component: AddSpecialite, canActivate: [adminGuard] },
-  { path: 'admin/services', component: ServicesList, canActivate: [adminGuard] },
-  { path: 'admin/add-service', component: AddService, canActivate: [adminGuard] },
+  { path: 'admindashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  { path: 'admin-dashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  {
+    path: 'admin',
+    component: DashboardShell,
+    canActivate: [adminGuard],
+    data: { shell: ADMIN_SHELL },
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: 'dashboard', component: AdminDashboard },
+      { path: 'medecins', component: MedecinsList },
+      { path: 'add-medecin', component: AddMedecin },
+      { path: 'edit-medecin/:id', component: AddMedecin },
+      { path: 'patients', component: PatientsList },
+      { path: 'add-patient', component: AddPatient },
+      { path: 'edit-patient/:id', component: AddPatient },
+      { path: 'specialites', component: SpecialitesList },
+      { path: 'add-specialite', component: AddSpecialite },
+      { path: 'services', component: ServicesList },
+      { path: 'add-service', component: AddService },
+      { path: 'planning-medecins', component: PlanningMedecins },
+      { path: 'rendez-vous', pathMatch: 'full', redirectTo: 'rdv' },
+      { path: 'rdv', component: AdminRendezVousList }
+    ]
+  },
   {
     path: 'medecin-dashboard',
-    component: RoleHome,
-    data: {
-      title: 'Espace médecin',
-      subtitle: 'Votre tableau de bord sera enrichi au fil du projet.'
-    }
+    component: DashboardShell,
+    canActivate: [medecinGuard],
+    data: { shell: MEDECIN_SHELL },
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'accueil' },
+      {
+        path: 'accueil',
+        component: RoleHome,
+        data: {
+          title: 'Espace médecin',
+          subtitle: 'Votre tableau de bord sera enrichi au fil du projet.'
+        }
+      }
+    ]
   },
   {
     path: 'patient-dashboard',
-    component: PatientShell,
+    component: DashboardShell,
     canActivate: [patientGuard],
+    data: { shell: PATIENT_SHELL },
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'accueil' },
       { path: 'accueil', component: PatientHome },
+      { path: 'profil', component: PatientProfil },
       { path: 'medecins/profil/:id', component: PatientMedecinProfil },
       { path: 'medecins', component: PatientMedecins },
       { path: 'rendez-vous/nouveau', component: PatientRdvNew },

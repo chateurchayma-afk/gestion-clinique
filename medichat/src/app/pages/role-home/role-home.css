@@ -1,74 +1,58 @@
-.rh-wrap {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: #f8fafc;
+.role-home {
+  max-width: 720px;
 }
 
-.rh-card {
-  max-width: 480px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 36px 32px;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
-  border: 1px solid #e2e8f0;
-}
-
-.rh-badge {
-  margin: 0 0 12px;
+.role-home-kicker {
+  margin: 0 0 8px;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #2563eb;
+  color: #4f6fa8;
 }
 
-.rh-card h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  color: #0f172a;
+.role-home-title {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  font-weight: 800;
+  color: #111827;
 }
 
-.rh-sub {
-  margin: 0 0 16px;
-  color: #64748b;
+.role-home-sub {
+  margin: 0 0 12px;
   font-size: 15px;
+  color: #64748b;
+  line-height: 1.5;
 }
 
-.rh-hint {
-  margin: 0 0 28px;
+.role-home-hint {
+  margin: 0 0 20px;
   font-size: 14px;
   line-height: 1.55;
-  color: #475569;
 }
 
-.rh-actions {
+.role-home-actions {
   display: flex;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
-.btn {
-  border: none;
-  cursor: pointer;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
+.btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #334155;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none !important;
 }
 
-.btn.primary {
-  background: #2563eb;
-  color: #fff;
-}
-
-.btn.ghost {
-  background: #f1f5f9;
-  color: #0f172a;
+.btn-ghost:hover {
+  border-color: #bfdbfe;
+  color: #315ea8;
+  background: #f8fafc;
 }

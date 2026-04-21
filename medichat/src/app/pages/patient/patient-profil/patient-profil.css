@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  min-height: auto;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: transparent;
+  color: #1f2937;
+}
+
+.profil-page.doctor-page {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.profil-page .doctor-wrapper {
+  max-width: 100%;
+  padding: 0;
+}
+
+.profil-page .global-card {
+  margin: 0;
+}
+
+.profil-page .bottom-actions .btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}

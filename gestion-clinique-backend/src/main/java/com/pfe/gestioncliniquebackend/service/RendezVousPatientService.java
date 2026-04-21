@@ -99,6 +99,7 @@ public class RendezVousPatientService {
         }
 
         rdv.setStatut(StatutRendezVous.ANNULE);
+        rdv.setAnnuleParPatient(true);
         return toResponse(rendezVousRepository.save(rdv));
     }
 

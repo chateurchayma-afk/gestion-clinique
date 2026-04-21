@@ -4,7 +4,7 @@
       <h1>Mes rendez-vous</h1>
       <p>Consultez l’historique et annulez un rendez-vous si votre situation change.</p>
     </div>
-    <a class="btn secondary" routerLink="/patient-dashboard/medecins">Nouveau rendez-vous</a>
+    <a class="btn secondary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Nouveau rendez-vous</a>
   </header>
 
   @if (loading()) {

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : ven. 17 avr. 2026 à 18:30
+-- Généré le : mar. 21 avr. 2026 à 17:50
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -117,21 +117,22 @@ CREATE TABLE `medecin` (
   `matricule` varchar(255) DEFAULT NULL,
   `biographie` varchar(255) DEFAULT NULL,
   `statut_validation` enum('EN_ATTENTE','VALIDE','REFUSE') DEFAULT 'EN_ATTENTE',
-  `disponible` tinyint(1) DEFAULT 1
+  `disponible` tinyint(1) DEFAULT 1,
+  `note_moyenne` double DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `medecin`
 --
 
-INSERT INTO `medecin` (`id`, `utilisateur_id`, `specialite_id`, `service_medical_id`, `experience_annees`, `matricule`, `biographie`, `statut_validation`, `disponible`) VALUES
-(1, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(2, 7, 1, 2, 3, 'MED010', 'Test médecin', NULL, 1),
-(3, 9, NULL, NULL, NULL, NULL, NULL, 'REFUSE', 1),
-(4, 10, NULL, NULL, NULL, NULL, NULL, NULL, 1),
-(7, 13, NULL, NULL, NULL, NULL, NULL, 'VALIDE', 1),
-(9, 18, 5, NULL, NULL, NULL, NULL, 'VALIDE', 1),
-(17, 28, 1, NULL, 5, '15', 'aaaaaaaaaaaaaaaaaaaaaaa', 'VALIDE', 1);
+INSERT INTO `medecin` (`id`, `utilisateur_id`, `specialite_id`, `service_medical_id`, `experience_annees`, `matricule`, `biographie`, `statut_validation`, `disponible`, `note_moyenne`) VALUES
+(1, 3, NULL, NULL, NULL, NULL, NULL, 'VALIDE', NULL, NULL),
+(2, 7, 1, 2, 3, 'MED010', 'Test médecin', 'VALIDE', 1, NULL),
+(3, 9, NULL, NULL, NULL, NULL, NULL, 'REFUSE', 1, NULL),
+(4, 10, NULL, NULL, NULL, NULL, NULL, 'VALIDE', 1, NULL),
+(7, 13, NULL, NULL, NULL, NULL, NULL, 'VALIDE', 1, NULL),
+(9, 18, 5, NULL, NULL, NULL, NULL, 'VALIDE', 1, NULL),
+(17, 28, 1, NULL, 5, '15', 'aaaaaaaaaaaaaaaaaaaaaaa', 'VALIDE', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -221,6 +222,14 @@ CREATE TABLE `rendez_vous` (
   `motif` text DEFAULT NULL,
   `statut` enum('EN_ATTENTE','CONFIRME','ANNULE','TERMINE') DEFAULT 'EN_ATTENTE'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `rendez_vous`
+--
+
+INSERT INTO `rendez_vous` (`id`, `patient_id`, `medecin_id`, `date_rendez_vous`, `heure_debut`, `heure_fin`, `mode_consultation`, `motif`, `statut`) VALUES
+(1, 19, 7, '2026-04-21', '08:00:00', '08:30:00', 'PRESENTIEL', NULL, 'EN_ATTENTE'),
+(2, 19, 9, '2026-05-01', '10:00:00', '10:30:00', 'PRESENTIEL', NULL, 'EN_ATTENTE');
 
 -- --------------------------------------------------------
 
@@ -493,7 +502,7 @@ ALTER TABLE `patient`
 -- AUTO_INCREMENT pour la table `rendez_vous`
 --
 ALTER TABLE `rendez_vous`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `service_medical`

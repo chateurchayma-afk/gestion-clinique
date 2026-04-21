@@ -47,4 +47,33 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
                     + "AND r.statut <> :annule"
     )
     long countRdvMedecinJour(@Param("mid") Long medecinId, @Param("d") LocalDate d, @Param("annule") StatutRendezVous annule);
+
+    @Query(
+            "SELECT r FROM RendezVous r JOIN FETCH r.patient p JOIN FETCH p.utilisateur pu "
+                    + "JOIN FETCH r.medecin m JOIN FETCH m.utilisateur mu "
+                    + "WHERE r.dateRendezVous BETWEEN :start AND :end "
+                    + "AND (:mid IS NULL OR m.id = :mid) "
+                    + "AND r.statut <> :annule "
+                    + "AND (:statutExact IS NULL OR r.statut = :statutExact) "
+                    + "ORDER BY r.dateRendezVous ASC, r.heureDebut ASC"
+    )
+    List<RendezVous> findForPlanning(
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("mid") Long medecinId,
+            @Param("annule") StatutRendezVous annule,
+            @Param("statutExact") StatutRendezVous statutExact
+    );
+
+    @Query(
+            "SELECT DISTINCT r FROM RendezVous r JOIN FETCH r.patient p JOIN FETCH p.utilisateur JOIN FETCH r.medecin m "
+                    + "JOIN FETCH m.utilisateur ORDER BY r.dateRendezVous DESC, r.heureDebut DESC"
+    )
+    List<RendezVous> findAllGestionOrdered();
+
+    @Query(
+            "SELECT DISTINCT r FROM RendezVous r JOIN FETCH r.patient p JOIN FETCH p.utilisateur JOIN FETCH r.medecin m "
+                    + "JOIN FETCH m.utilisateur WHERE r.statut = :statut ORDER BY r.dateRendezVous DESC, r.heureDebut DESC"
+    )
+    List<RendezVous> findAllGestionByStatutOrdered(@Param("statut") StatutRendezVous statut);
 }

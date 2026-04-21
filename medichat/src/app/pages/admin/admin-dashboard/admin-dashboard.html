@@ -1,50 +1,5 @@
-<div class="admin-layout">
-  <aside class="sidebar">
-    <div class="brand">MediChat</div>
-
-    <nav class="sidebar-nav">
-      <div class="nav-section">
-        <p class="nav-title">Dashboard</p>
-        <a class="nav-link active" routerLink="/admin-dashboard">Admin Dashboard</a>
-      </div>
-
-      <div class="nav-section">
-        <p class="nav-title">Médecins</p>
-        <a class="nav-link" routerLink="/admin/medecins">Liste des médecins</a>
-        <a class="nav-link" routerLink="/admin/add-medecin">Ajouter un médecin</a>
-        <a class="nav-link" href="#" (click)="comingSoon($event)">Planning des médecins</a>
-      </div>
-
-      <div class="nav-section">
-        <p class="nav-title">Patients</p>
-        <a class="nav-link" routerLink="/admin/patients">Liste des patients</a>
-        <a class="nav-link" routerLink="/admin/add-patient">Ajouter un patient</a>
-      </div>
-
-      <div class="nav-section">
-        <p class="nav-title">Rendez-vous</p>
-        <a class="nav-link" href="#" (click)="comingSoon($event)">Tous les rendez-vous</a>
-        <a class="nav-link" href="#" (click)="comingSoon($event)">Vue calendrier</a>
-      </div>
-
-      <div class="nav-section">
-        <p class="nav-title">Services</p>
-        <a class="nav-link" routerLink="/admin/services">Liste des services</a>
-        <a class="nav-link" routerLink="/admin/specialites">Liste des spécialités</a>
-      </div>
-    </nav>
-  </aside>
-
-  <main class="main-content">
-    <header class="topbar">
-      <div>
-        <h1>Dashboard Admin</h1>
-        <p>Vue d’ensemble — validations et statistiques</p>
-      </div>
-      <div class="topbar-right">
-        <div class="admin-chip">AD</div>
-      </div>
-    </header>
+<div class="admin-dashboard-page">
+    <p class="admin-page-lead muted">Vue d’ensemble — validations et statistiques de la clinique.</p>
 
     <section id="validations" class="card validation-card">
       <div class="card-header">
@@ -79,6 +34,55 @@
               <td class="actions">
                 <button type="button" class="btn-ok" (click)="valider(m)">Valider</button>
                 <button type="button" class="btn-no" (click)="refuser(m)">Refuser</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="rdv-attente" class="card validation-card">
+      <div class="card-header">
+        <h3>Rendez-vous en attente de confirmation</h3>
+        <span class="badge">{{ pendingRdvs().length }} demande(s)</span>
+      </div>
+      <p class="card-intro">
+        Créneaux réservés par les patients (statut « en attente »). Confirmez-les pour qu’ils apparaissent dans le
+        planning des médecins (seuls les rendez-vous <strong>confirmés</strong> y sont affichés). Vous pouvez aussi
+        modifier les statuts depuis la
+        <a routerLink="/admin/rdv">liste complète</a>.
+      </p>
+
+      <div *ngIf="loadingRdvPending()" class="muted">Chargement…</div>
+
+      <div *ngIf="!loadingRdvPending() && pendingRdvs().length === 0" class="muted empty-pending">
+        Aucun rendez-vous en attente.
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loadingRdvPending() && pendingRdvs().length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Médecin</th>
+              <th>Date &amp; heure</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of pendingRdvs()">
+              <td><strong>{{ r.patientPrenom }} {{ r.patientNom }}</strong></td>
+              <td>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</td>
+              <td>{{ dateRdv(r) }}<br /><span class="muted">{{ heureRdv(r) }}</span></td>
+              <td class="actions">
+                <button
+                  type="button"
+                  class="btn-ok"
+                  (click)="confirmerRdv(r)"
+                  [disabled]="savingRdvId() === r.id"
+                >
+                  Confirmer
+                </button>
               </td>
             </tr>
           </tbody>
@@ -127,9 +131,8 @@
     <section class="card table-card">
       <div class="card-header">
         <h3>Rendez-vous (aperçu)</h3>
-        <button type="button" class="view-btn" (click)="comingSoon($event)">Voir tout</button>
+        <a class="view-btn" routerLink="/admin/rdv">Voir tout</a>
       </div>
-      <p class="muted card-intro">Module rendez-vous à brancher sur l’API.</p>
+      <p class="muted card-intro">Consultez et modifiez le statut de chaque rendez-vous (en attente, confirmé, annulé, terminé).</p>
     </section>
-  </main>
 </div>

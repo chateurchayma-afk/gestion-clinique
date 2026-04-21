@@ -1,15 +1,11 @@
-<div class="rh-wrap">
-  <div class="rh-card">
-    <p class="rh-badge">{{ title }}</p>
-    <h1>Bienvenue</h1>
-    <p class="rh-sub">{{ subtitle }}</p>
-    <p class="rh-hint">
-      Cet espace sera relié aux fonctionnalités métier (rendez-vous, dossiers, etc.).
-      En attendant, vous pouvez vous déconnecter ou retourner à l’accueil.
-    </p>
-    <div class="rh-actions">
-      <a routerLink="/" class="btn ghost">Accueil public</a>
-      <button type="button" class="btn primary" (click)="logout()">Déconnexion</button>
-    </div>
+<div class="role-home">
+  <p class="role-home-kicker">{{ title }}</p>
+  <h1 class="role-home-title">Bienvenue</h1>
+  <p class="role-home-sub">{{ subtitle }}</p>
+  <p class="role-home-hint muted">
+    Cet espace sera relié aux fonctionnalités métier (rendez-vous, dossiers patients, etc.).
+  </p>
+  <div class="role-home-actions">
+    <a class="btn-ghost" routerLink="/">Site public</a>
   </div>
 </div>

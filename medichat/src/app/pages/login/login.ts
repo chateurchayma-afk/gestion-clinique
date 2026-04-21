@@ -35,6 +35,11 @@ export class Login implements OnInit {
           'L’administration requiert un compte administrateur. Connectez-vous avec un compte ADMIN.';
         this.showForm = true;
       }
+      if (q.get('needMedecin') === '1') {
+        this.guardHint =
+          'Cet espace requiert un compte médecin. Connectez-vous avec un compte MEDECIN.';
+        this.showForm = true;
+      }
     });
   }
 
@@ -59,12 +64,17 @@ export class Login implements OnInit {
           if (ru && /^[a-zA-Z0-9/_-]+$/.test(ru)) {
             void this.router.navigateByUrl('/' + ru);
           } else {
-            void this.router.navigate(['/admin-dashboard']);
+            void this.router.navigate(['/admin/dashboard']);
           }
         } else if (role === 'MEDECIN') {
-          void this.router.navigate(['/medecin-dashboard']);
+          const ru = this.returnUrl;
+          if (ru && /^[a-zA-Z0-9/_-]+$/.test(ru)) {
+            void this.router.navigateByUrl('/' + ru);
+          } else {
+            void this.router.navigate(['/medecin-dashboard/accueil']);
+          }
         } else if (role === 'PATIENT') {
-          void this.router.navigate(['/patient-dashboard']);
+          void this.router.navigate(['/patient-dashboard', 'accueil']);
         } else {
           void this.router.navigate(['/']);
         }

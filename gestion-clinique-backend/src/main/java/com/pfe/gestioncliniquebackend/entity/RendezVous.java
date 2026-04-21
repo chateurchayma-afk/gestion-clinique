@@ -48,4 +48,9 @@ public class RendezVous {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private StatutRendezVous statut = StatutRendezVous.EN_ATTENTE;
+
+    /** {@code true} si le patient a annulé depuis l’espace patient — l’admin ne peut pas réactiver ce RDV. */
+    @Column(name = "annule_par_patient", nullable = false)
+    @Builder.Default
+    private boolean annuleParPatient = false;
 }

@@ -1,0 +1,279 @@
+<div class="planning-root planning-main">
+    <header class="planning-top">
+      <div>
+        <h1 class="planning-title">Planning des médecins</h1>
+        <p class="planning-subtitle">
+          Affichage des rendez-vous <strong>confirmés</strong> uniquement (réservations patient une fois validées sur le
+          tableau de bord admin). À l’ouverture, la semaine se cale sur le prochain créneau confirmé à venir.
+        </p>
+      </div>
+      <div class="planning-top-actions">
+        <div class="export-wrap">
+          <button type="button" class="btn-export" (click)="toggleExportMenu()">
+            <span class="export-icon" aria-hidden="true">⬇</span>
+            Export
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
+          @if (exportMenuOpen()) {
+            <div class="export-menu" role="menu">
+              <button type="button" role="menuitem" (click)="exportCsv()">Télécharger CSV</button>
+            </div>
+          }
+        </div>
+        <select
+          class="sel-date"
+          [ngModel]="headerMonth()"
+          (ngModelChange)="headerMonth.set($event); onHeaderDateApply()"
+        >
+          @for (m of monthNames; track $index) {
+            <option [ngValue]="$index">{{ m }}</option>
+          }
+        </select>
+        <select
+          class="sel-date"
+          [ngModel]="headerYear()"
+          (ngModelChange)="headerYear.set($event); onHeaderDateApply()"
+        >
+          @for (y of headerYears; track y) {
+            <option [ngValue]="y">{{ y }}</option>
+          }
+        </select>
+      </div>
+    </header>
+
+    <div class="planning-body">
+      <aside class="planning-sidebar">
+        <div class="mini-cal">
+          <div class="mini-cal-head">
+            <button type="button" class="mini-nav" (click)="miniPrevMonth()" aria-label="Mois précédent">‹</button>
+            <span class="mini-cal-title">{{ monthNames[calendarMonth()] }} {{ calendarYear() }}</span>
+            <button type="button" class="mini-nav" (click)="miniNextMonth()" aria-label="Mois suivant">›</button>
+          </div>
+          <div class="mini-dow">
+            <span>Di</span><span>Lu</span><span>Ma</span><span>Me</span><span>Je</span><span>Ve</span><span>Sa</span>
+          </div>
+          <div class="mini-grid">
+            @for (c of miniCalendarCells(); track $index) {
+              @if (c.day != null) {
+                <button
+                  type="button"
+                  class="mini-cell"
+                  [class.mini-cell--in-week]="isMiniSelected(c.day)"
+                  (click)="pickMiniDay(c.day)"
+                >
+                  {{ c.day }}
+                </button>
+              } @else {
+                <span class="mini-cell mini-cell--empty"></span>
+              }
+            }
+          </div>
+        </div>
+
+        <label class="filter-label">Filtrer par médecin</label>
+        <select
+          class="filter-select"
+          [ngModel]="filterMedecinId()"
+          (ngModelChange)="onSelectMedecinFilter($event)"
+        >
+          <option [ngValue]="null">Tous les médecins</option>
+          @for (m of medecins(); track m.id) {
+            <option [ngValue]="m.id">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</option>
+          }
+        </select>
+
+        <button type="button" class="btn-add-rdv" (click)="openAddModal()">+ Ajouter un rendez-vous</button>
+      </aside>
+
+      <section class="planning-week">
+        <div class="week-nav">
+          <button type="button" class="week-nav-btn week-nav-btn--prev" (click)="prevWeek()">
+            <span aria-hidden="true">‹</span> Semaine précédente
+          </button>
+          <button type="button" class="week-nav-btn week-nav-btn--today" (click)="goToThisWeek()">Cette semaine</button>
+          <button type="button" class="week-nav-btn week-nav-btn--next" (click)="nextWeek()">
+            Semaine suivante <span aria-hidden="true">›</span>
+          </button>
+        </div>
+
+        @if (loadingRdvs()) {
+          <p class="muted planning-loading">Chargement du planning…</p>
+        }
+
+        <div class="week-grid" [class.week-grid--dim]="loadingRdvs()">
+          <div class="week-corner"></div>
+          @for (d of weekDays(); track d.iso) {
+            <div class="week-col-head">
+              <span class="week-dow">{{ d.label }}</span>
+              <span class="week-dom">{{ d.date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }) }}</span>
+            </div>
+          }
+
+          <div class="time-rail">
+            @for (h of hourTicks; track trackHour(h)) {
+              <div class="time-slot">{{ formatHourLabel(h) }}</div>
+            }
+          </div>
+
+          @for (d of weekDays(); track d.iso) {
+            <div class="week-col">
+              <div class="week-col-bg">
+                @for (h of hourTicks; track trackHour(h)) {
+                  <div class="hour-line"></div>
+                }
+              </div>
+              <div class="week-col-events">
+                @for (lay of layoutDay(d.iso); track lay.raw.id) {
+                  <button
+                    type="button"
+                    class="appt-card"
+                    [class.appt-card--mini]="slotHeightPercent(lay.raw) < 9"
+                    [style.background]="cardColor(lay.raw.medecinId)"
+                    [style.border-left-color]="accentColor(lay.raw.medecinId)"
+                    [ngStyle]="eventStyle(lay.raw, lay.lane, lay.lanes)"
+                    [title]="
+                      normalizeHeureAffichage(lay.raw.heureDebut) +
+                      ' – ' +
+                      normalizeHeureAffichage(lay.raw.heureFin) +
+                      ' · ' +
+                      lay.raw.patientPrenom +
+                      ' ' +
+                      lay.raw.patientNom
+                    "
+                    (click)="openRdvDetails(lay.raw)"
+                  >
+                    <div class="appt-card-head">
+                      <span class="appt-statut" [class.appt-statut--wait]="lay.raw.statut === 'EN_ATTENTE'">{{
+                        labelStatutRdv(lay.raw.statut)
+                      }}</span>
+                    </div>
+                    <div class="appt-time appt-time--lead">
+                      {{ normalizeHeureAffichage(lay.raw.heureDebut) }} – {{ normalizeHeureAffichage(lay.raw.heureFin) }}
+                    </div>
+                    <div class="appt-name">{{ lay.raw.patientPrenom }} {{ lay.raw.patientNom }}</div>
+                    <div class="appt-doc">
+                      <span class="appt-doc-ico" aria-hidden="true">🩺</span>
+                      <span class="appt-doc-txt">Dr. {{ lay.raw.medecinPrenom }} {{ lay.raw.medecinNom }}</span>
+                    </div>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (!loadingRdvs() && rdvCountWeek() === 0) {
+          <p class="planning-empty-hint muted">
+            Aucun rendez-vous sur cette semaine. Les réservations faites par les patients (espace patient) sont les mêmes
+            que celles du planning : elles s’affichent ici dès que la date tombe dans la semaine affichée. Utilisez
+            <strong>Cette semaine</strong> ou le mini-calendrier pour vous placer sur la bonne semaine.
+          </p>
+        }
+      </section>
+    </div>
+</div>
+
+@if (selectedRdv(); as rdv) {
+  <div class="modal-backdrop" (click)="closeRdvDetails()"></div>
+  <div
+    class="modal-panel modal-panel--detail"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rdv-detail-title"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 id="rdv-detail-title">Rendez-vous</h2>
+    <button type="button" class="modal-close" (click)="closeRdvDetails()" aria-label="Fermer">×</button>
+    <div class="rdv-detail">
+      <div class="rdv-detail-hero">
+        <p class="rdv-detail-date">{{ formatDateLong(rdv) }}</p>
+        <p class="rdv-detail-slot">
+          {{ normalizeHeureAffichage(rdv.heureDebut) }} – {{ normalizeHeureAffichage(rdv.heureFin) }}
+        </p>
+        <span class="appt-statut" [class.appt-statut--wait]="rdv.statut === 'EN_ATTENTE'">{{
+          labelStatutRdv(rdv.statut)
+        }}</span>
+      </div>
+      <dl class="rdv-detail-grid">
+        <div>
+          <dt>Patient</dt>
+          <dd>{{ rdv.patientPrenom }} {{ rdv.patientNom }}</dd>
+        </div>
+        <div>
+          <dt>Médecin</dt>
+          <dd>Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd>
+        </div>
+        <div>
+          <dt>Mode</dt>
+          <dd>{{ labelMode(rdv.modeConsultation) }}</dd>
+        </div>
+        <div>
+          <dt>Référence</dt>
+          <dd class="muted">#{{ rdv.id }}</dd>
+        </div>
+      </dl>
+      <div class="rdv-detail-motif">
+        <span class="rdv-detail-motif-label">Motif</span>
+        <p>{{ motifOuDefaut(rdv.motif) }}</p>
+      </div>
+    </div>
+    <div class="modal-actions modal-actions--detail">
+      <button type="button" class="btn-primary" (click)="closeRdvDetails()">Fermer</button>
+    </div>
+  </div>
+}
+
+@if (showAddModal()) {
+  <div class="modal-backdrop" (click)="closeAddModal()"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-rdv-title">
+    <h2 id="modal-rdv-title">Nouveau rendez-vous</h2>
+    <button type="button" class="modal-close" (click)="closeAddModal()" aria-label="Fermer">×</button>
+    <div class="modal-form">
+      <label>
+        Patient
+        <select [(ngModel)]="formPatientId" name="patientId">
+          @for (p of patients(); track p.id) {
+            <option [ngValue]="p.id">{{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Médecin
+        <select [(ngModel)]="formMedecinId" name="medecinId">
+          @for (m of medecinsPlanningOptions(); track m.id) {
+            <option [ngValue]="m.id">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Date
+        <input type="date" [(ngModel)]="formDate" name="dateRdv" />
+      </label>
+      <label>
+        Heure début
+        <input type="time" [(ngModel)]="formHeureDebut" name="hDebut" />
+      </label>
+      <label>
+        Heure fin (optionnel)
+        <input type="time" [(ngModel)]="formHeureFin" name="hFin" />
+      </label>
+      <label>
+        Mode
+        <select [(ngModel)]="formMode" name="mode">
+          <option value="PRESENTIEL">Présentiel</option>
+          <option value="ONLINE">En ligne</option>
+        </select>
+      </label>
+      <label>
+        Motif (optionnel)
+        <input type="text" [(ngModel)]="formMotif" name="motif" />
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="closeAddModal()">Annuler</button>
+      <button type="button" class="btn-primary" [disabled]="submitting()" (click)="submitAdd()">
+        {{ submitting() ? 'Enregistrement…' : 'Créer' }}
+      </button>
+    </div>
+  </div>
+}

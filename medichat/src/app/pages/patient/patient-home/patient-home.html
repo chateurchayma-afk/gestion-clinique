@@ -1,17 +1,144 @@
-<div class="page">
-  <header class="page-head">
-    <h1>Bienvenue</h1>
-    <p>Consultez les médecins disponibles, prenez un rendez-vous et suivez vos consultations.</p>
-  </header>
+<div class="dash">
+  @if (loading()) {
+    <div class="dash-loading">Chargement de votre espace…</div>
+  } @else {
+    <header class="dash-hero">
+      <div>
+        <p class="dash-kicker">Vue d’ensemble</p>
+        <h1>Tableau de bord</h1>
+        <p class="dash-lead">
+          Suivez vos rendez-vous, retrouvez vos médecins habituels et prenez un nouveau créneau en quelques clics.
+        </p>
+      </div>
+      <div class="dash-hero-actions">
+        <a class="btn-primary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Nouveau rendez-vous</a>
+        <a class="btn-ghost" [routerLink]="['/patient-dashboard', 'medecins']">Annuaire médecins</a>
+      </div>
+    </header>
 
-  <div class="cards">
-    <a class="card" routerLink="/patient-dashboard/medecins">
-      <h2>Médecins</h2>
-      <p>Parcourir le catalogue et filtrer par spécialité.</p>
-    </a>
-    <a class="card" routerLink="/patient-dashboard/rendez-vous">
-      <h2>Rendez-vous</h2>
-      <p>Voir ou annuler vos rendez-vous à venir.</p>
-    </a>
-  </div>
+    <div class="dash-grid">
+      <section class="panel panel--doctors">
+        <div class="panel-head">
+          <div>
+            <h2>Vos médecins</h2>
+            <p class="panel-sub">Basé sur vos rendez-vous et le catalogue clinique</p>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-value">{{ totalRdvs() }}</span>
+            <span class="stat-pill-label">RDV enregistrés</span>
+            <span class="stat-pill-trend">{{ trendText() }}</span>
+          </div>
+        </div>
+        <ul class="doctor-list">
+          @for (row of medecinsAffiches(); track row.medecin.id) {
+            <li class="doctor-row">
+              <a class="doctor-link" [routerLink]="['/patient-dashboard/medecins/profil', row.medecin.id]">
+                <span class="doctor-avatar" [class.has-photo]="!!photoUrl(row.medecin)">
+                  @if (photoUrl(row.medecin)) {
+                    <img [src]="photoUrl(row.medecin)!" alt="" />
+                  } @else {
+                    {{ initials(row.medecin) }}
+                  }
+                </span>
+                <span class="doctor-meta">
+                  <span class="doctor-name">Dr. {{ row.medecin.utilisateur.prenom }} {{ row.medecin.utilisateur.nom }}</span>
+                  <span class="doctor-spec">{{ specialiteLabel(row.medecin) }}</span>
+                </span>
+                <span class="doctor-badge">{{ row.bookings }} RDV</span>
+              </a>
+            </li>
+          } @empty {
+            <li class="doctor-empty muted">Aucun médecin à afficher pour le moment.</li>
+          }
+        </ul>
+      </section>
+
+      <div class="dash-col-right">
+        <section class="panel panel--stat">
+          <div class="stat-card-icon" aria-hidden="true">📅</div>
+          <div>
+            <p class="stat-card-label">Total rendez-vous</p>
+            <p class="stat-card-value">{{ totalRdvs() }}</p>
+          </div>
+        </section>
+
+        <section class="panel panel--next">
+          @if (prochainRdv(); as nx) {
+            <p class="next-kicker">Prochain rendez-vous</p>
+            <div class="next-doc">
+              <span class="next-avatar" aria-hidden="true">🩺</span>
+              <div>
+                <p class="next-name">Dr. {{ nx.medecinPrenom }} {{ nx.medecinNom }}</p>
+                <p class="next-spec">{{ nx.specialiteNom || 'Consultation' }}</p>
+              </div>
+            </div>
+            <p class="next-when">{{ formatLongDate(nx.dateRendezVous) }}</p>
+            <p class="next-slot">{{ formatHeureRange(nx) }}</p>
+            <div class="next-actions">
+              <a class="btn-next-outline" [routerLink]="['/patient-dashboard', 'rendez-vous']">Voir mes RDV</a>
+            </div>
+          } @else {
+            <p class="next-kicker">Prochain rendez-vous</p>
+            <p class="next-empty">Aucun rendez-vous à venir.</p>
+            <a class="btn-next-solid" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Prendre un rendez-vous</a>
+          }
+        </section>
+      </div>
+    </div>
+
+    <section class="panel panel--table">
+      <div class="panel-head panel-head--row">
+        <h2>Rendez-vous récents</h2>
+        <a class="link-all" [routerLink]="['/patient-dashboard', 'rendez-vous']">Voir tout</a>
+      </div>
+      <div class="table-wrap">
+        <table class="rdv-table">
+          <thead>
+            <tr>
+              <th>Médecin</th>
+              <th>Date &amp; heure</th>
+              <th>Mode</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of recentRdvs(); track r.id) {
+              <tr>
+                <td>
+                  <div class="cell-doc">
+                    <span class="cell-avatar">{{ (r.medecinPrenom || '?').charAt(0) }}{{ (r.medecinNom || '?').charAt(0) }}</span>
+                    <div>
+                      <div class="cell-name">Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</div>
+                      <div class="cell-spec muted">{{ r.specialiteNom || '—' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-date">{{ r.dateRendezVous }}</div>
+                  <div class="cell-time muted">{{ formatHeureRange(r) }}</div>
+                </td>
+                <td>{{ labelMode(r.modeConsultation) }}</td>
+                <td>
+                  <span class="pill" [ngClass]="statutClass(r.statut)">{{ labelStatut(r.statut) }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="muted table-empty">Aucun rendez-vous pour l’instant.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel panel--account" id="compte">
+      <h2>Mon compte</h2>
+      <p class="muted">
+        Mettez à jour vos coordonnées, votre dossier et votre mot de passe depuis la page profil, comme pour un dossier
+        patient en clinique.
+      </p>
+      <a class="btn-ghost" [routerLink]="['/patient-dashboard', 'profil']">Modifier mes informations</a>
+    </section>
+  }
 </div>
