@@ -1,0 +1,34 @@
+# Environment variables - NEVER commit these!
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backend
+gestion-clinique-backend/target/
+gestion-clinique-backend/.settings/
+gestion-clinique-backend/.classpath
+gestion-clinique-backend/.project
+gestion-clinique-backend/.metadata/
+
+# Frontend
+medichat/node_modules/
+medichat/dist/
+medichat/.angular/
+medichat/.env
+
+# OS
+Thumbs.db
+.DS_Store
+*.log
+
+# Build outputs
+*.jar
+*.war

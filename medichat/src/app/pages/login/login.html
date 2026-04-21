@@ -2,7 +2,7 @@
   <div class="card">
     <h1 class="app-title">MediChat</h1>
 
-    <ng-container *ngIf="!showForm; else loginForm">
+    <ng-container *ngIf="!showForm(); else loginForm">
       <h3 class="welcome">Bienvenue</h3>
       <p class="desc">
         Connectez-vous pour accéder<br />
@@ -12,6 +12,12 @@
       <button type="button" id="login-welcome-btn" class="btn-main" (click)="showLoginForm()">
         Connexion
       </button>
+
+      <div class="divider">
+        <span>ou</span>
+      </div>
+
+      <div id="google-gsi-button-host" class="google-gsi-host" aria-label="Connexion avec Google"></div>
 
       <div class="divider">
         <span>ou</span>

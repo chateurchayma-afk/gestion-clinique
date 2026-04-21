@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { GoogleAuthService, GOOGLE_GSI_BUTTON_HOST_ID } from '../../services/google-auth.service';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-register-admin',
@@ -11,9 +13,13 @@ import { AuthService } from '../../services/auth';
   templateUrl: './register-admin.html',
   styleUrls: ['../register-patient/register-patient.css', './register-admin.css']
 })
-export class RegisterAdmin {
+export class RegisterAdmin implements OnInit, AfterViewInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly googleAuth = inject(GoogleAuthService);
+  private readonly toast = inject(ToastService);
+
+  readonly googleLoading = signal(false);
 
   nom = '';
   prenom = '';
@@ -23,6 +29,41 @@ export class RegisterAdmin {
   confirmPassword = '';
   message = '';
   errorMessage = '';
+
+  private googleSignupMounted = false;
+
+  ngOnInit(): void {
+    void this.googleAuth.ensureScriptLoaded().catch(() => {});
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.tryMountGoogleSignup(), 150);
+  }
+
+  private tryMountGoogleSignup(): void {
+    if (this.googleSignupMounted) {
+      return;
+    }
+    if (!document.getElementById(GOOGLE_GSI_BUTTON_HOST_ID)) {
+      return;
+    }
+
+    void this.googleAuth
+      .renderOfficialGoogleButton(
+        (token: string) => this.authenticateWithGoogle(token),
+        { buttonText: 'signup_with' }
+      )
+      .then(() => {
+        this.googleSignupMounted = true;
+      })
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof Error ? err.message : "Erreur lors de l'initialisation de Google";
+        this.errorMessage = msg;
+        this.toast.show(msg, 'error');
+        console.error('Google init error:', err);
+      });
+  }
 
   onRegister(): void {
     this.errorMessage = '';
@@ -62,6 +103,28 @@ export class RegisterAdmin {
           this.errorMessage = err.message?.trim() || 'Erreur lors de la création du compte';
         }
       }
+    });
+  }
+
+  private authenticateWithGoogle(googleToken: string): void {
+    this.googleLoading.set(true);
+    this.googleAuth.authenticateWithGoogle(googleToken).subscribe({
+      next: (response) => {
+        this.googleLoading.set(false);
+        localStorage.setItem('jwt_token', response.token);
+        void this.router.navigate(['/admin/dashboard']);
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.googleLoading.set(false);
+        console.error('Erreur authentification Google :', error);
+        const backendMsg = error?.error?.message;
+        this.toast.show(
+          typeof backendMsg === 'string' && backendMsg.trim()
+            ? backendMsg
+            : "Erreur lors de l'inscription avec Google",
+          'error'
+        );
+      },
     });
   }
 }

@@ -1,15 +1,18 @@
 package com.pfe.gestioncliniquebackend.controller;
 
 import com.pfe.gestioncliniquebackend.dto.AuthResponse;
+import com.pfe.gestioncliniquebackend.dto.GoogleAuthRequest;
 import com.pfe.gestioncliniquebackend.dto.LoginRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinCreationRequest;
 import com.pfe.gestioncliniquebackend.dto.RegisterAdminRequest;
 import com.pfe.gestioncliniquebackend.dto.RegisterRequest;
 import com.pfe.gestioncliniquebackend.service.AuthService;
+import com.pfe.gestioncliniquebackend.service.GoogleAuthService;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
 
     @PostMapping("/register-patient")
     public ResponseEntity<String> registerPatient(@Valid @RequestBody RegisterRequest request) {
@@ -76,6 +80,35 @@ public class AuthController {
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new AuthResponse(e.getMessage(), null, null, null, null, null, null));
+        }
+    }
+
+    /**
+     * Endpoint pour l'authentification Google OAuth
+     * POST /api/auth/google
+     * Body: { "token": "google_id_token" }
+     */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> authenticateGoogle(@RequestBody GoogleAuthRequest request) {
+        try {
+            if (request.getToken() == null || request.getToken().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(new AuthResponse());
+            }
+
+            AuthResponse response = googleAuthService.authenticateWithGoogle(request.getToken());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new AuthResponse(e.getMessage(), null, null, null, null, null, null));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new AuthResponse(e.getMessage(), null, null, null, null, null, null));
+        } catch (SecurityException e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "Token Google invalide";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse(msg, null, null, null, null, null, null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponse());
         }
     }
 }

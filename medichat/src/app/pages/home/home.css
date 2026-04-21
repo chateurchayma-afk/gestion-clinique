@@ -153,6 +153,10 @@
   text-transform: capitalize;
 }
 
+.hero-title-white {
+  color: #ffffff;
+}
+
 .hero-text p {
   max-width: 700px;
   margin: 0 auto 30px;

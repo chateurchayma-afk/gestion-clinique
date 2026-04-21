@@ -184,3 +184,18 @@ textarea::placeholder {
   color: var(--text-muted);
   font-weight: var(--font-weight-regular);
 }
+
+/* Hôte du bouton officiel Google (renderButton) — évite le flux One Tap / gsi/issue */
+.google-gsi-hint {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0.25rem;
+  text-align: center;
+}
+
+.google-gsi-host {
+  display: flex;
+  justify-content: center;
+  margin: 0.25rem 0 0.75rem;
+  min-height: 42px;
+}
