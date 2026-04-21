@@ -118,6 +118,37 @@
   background: #fffbeb;
 }
 
+.card.pick {
+  border-color: #c7d2fe;
+  background: #f8fafc;
+}
+
+.pick-title {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-heading, #2f4a72);
+}
+
+.pick-lead {
+  margin: 0 0 18px;
+  font-size: 0.875rem;
+}
+
+.pick-field {
+  margin-bottom: 12px;
+}
+
+.select-medecin {
+  width: 100%;
+  max-width: 100%;
+}
+
+.pick-alt {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
 .med-block h2 {
   margin: 0 0 4px;
   font-size: 20px;

@@ -29,6 +29,7 @@ public class RendezVousPatientService {
     public List<RendezVousResponse> listerPourPatientConnecte() {
         Patient patient = patientAccessService.requireCurrentPatient();
         return rendezVousRepository.findAllByPatientIdOrdered(patient.getId()).stream()
+                .filter(r -> r.getStatut() != StatutRendezVous.ANNULE)
                 .map(this::toResponse)
                 .toList();
     }
@@ -85,22 +86,21 @@ public class RendezVousPatientService {
         return toResponse(rendezVousRepository.save(rdv));
     }
 
+    /**
+     * Annulation côté patient : suppression définitive du rendez-vous (comme retiré de la base),
+     * ce qui libère immédiatement le créneau pour un autre patient.
+     */
     @Transactional
-    public RendezVousResponse annuler(Long rendezVousId) {
+    public void annuler(Long rendezVousId) {
         Patient patient = patientAccessService.requireCurrentPatient();
         RendezVous rdv = rendezVousRepository.findByIdAndPatient_Id(rendezVousId, patient.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Rendez-vous introuvable"));
 
-        if (rdv.getStatut() == StatutRendezVous.ANNULE) {
-            throw new IllegalArgumentException("Ce rendez-vous est déjà annulé");
-        }
         if (rdv.getStatut() == StatutRendezVous.TERMINE) {
             throw new IllegalArgumentException("Un rendez-vous terminé ne peut pas être annulé");
         }
 
-        rdv.setStatut(StatutRendezVous.ANNULE);
-        rdv.setAnnuleParPatient(true);
-        return toResponse(rendezVousRepository.save(rdv));
+        rendezVousRepository.delete(rdv);
     }
 
     private RendezVousResponse toResponse(RendezVous r) {

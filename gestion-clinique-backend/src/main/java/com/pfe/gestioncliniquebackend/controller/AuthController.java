@@ -75,7 +75,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new AuthResponse(e.getMessage(), null, null, null));
+            return ResponseEntity.badRequest().body(new AuthResponse(e.getMessage(), null, null, null, null, null, null));
         }
     }
 }

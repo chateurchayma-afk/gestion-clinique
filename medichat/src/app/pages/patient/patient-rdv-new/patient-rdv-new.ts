@@ -25,7 +25,11 @@ export class PatientRdvNew implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly medecin = signal<Medecin | null>(null);
-  readonly loadingMed = signal(true);
+  readonly loadingMed = signal(false);
+  /** Chargement du catalogue quand aucun medecinId dans l’URL (true au 1er rendu jusqu’à résolution des params). */
+  readonly catalogueLoading = signal(true);
+  readonly catalogueMedecins = signal<Medecin[]>([]);
+  readonly catalogueError = signal(false);
   readonly submitting = signal(false);
   readonly creneaux = signal<CreneauJour[]>([]);
   readonly loadingCreneaux = signal(false);
@@ -55,11 +59,46 @@ export class PatientRdvNew implements OnInit {
         this.loadingMed.set(false);
         this.medecin.set(null);
         this.medecinId = null;
+        this.catalogueLoading.set(true);
+        this.loadCatalogueForChoice();
         return;
       }
+      this.catalogueLoading.set(false);
       this.medecinId = id;
+      this.catalogueMedecins.set([]);
+      this.catalogueError.set(false);
       this.loadMedecin(id);
     });
+  }
+
+  /** Permet d’arriver sur « Nouveau rendez-vous » sans query : choix du médecin sur la page. */
+  private loadCatalogueForChoice(): void {
+    this.catalogueLoading.set(true);
+    this.catalogueError.set(false);
+    this.medecinService.getCatalogue({ sort: 'nom', disponible: true }).subscribe({
+      next: (list) => {
+        const rows = list.filter((m) => m.statutValidation === 'VALIDE' && m.disponible !== false);
+        this.catalogueMedecins.set(rows);
+        this.catalogueLoading.set(false);
+      },
+      error: () => {
+        this.catalogueMedecins.set([]);
+        this.catalogueError.set(true);
+        this.catalogueLoading.set(false);
+      }
+    });
+  }
+
+  choisirMedecinDepuisListe(id: number): void {
+    if (!Number.isFinite(id) || id < 1) {
+      return;
+    }
+    void this.router.navigate(['/patient-dashboard/rendez-vous/nouveau'], { queryParams: { medecinId: id } });
+  }
+
+  libelleMedecinOption(m: Medecin): string {
+    const spec = m.specialite?.nom?.trim();
+    return spec ? ` — ${spec}` : '';
   }
 
   private loadMedecin(id: number): void {
@@ -74,6 +113,7 @@ export class PatientRdvNew implements OnInit {
         this.medecin.set(null);
         this.loadingMed.set(false);
         this.toast.show('Médecin introuvable ou non publié au catalogue.', 'error');
+        void this.router.navigate(['/patient-dashboard/rendez-vous/nouveau'], { replaceUrl: true, queryParams: {} });
       }
     });
   }

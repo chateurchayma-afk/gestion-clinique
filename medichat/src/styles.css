@@ -1,1 +1,186 @@
-/* You can add global styles to this file, and also import other style files */
+/* -------------------------------------------------------------------------- */
+/* Typographie globale — texte en déclinaisons de bleu (réf. ~#5C7CBA)      */
+/* Titres plus foncés (#2f4a72) pour le contraste ; liens = bleu référence    */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Couleurs de texte — bleu type #5C7CBA, plus foncé pour titres / contraste */
+  --text-blue: #5c7cba;
+  --text-heading: #2f4a72;
+  --text-primary: #3d5f90;
+  --text-secondary: #5a6d85;
+  --text-muted: #8896ad;
+  --text-meta: #7a889e;
+
+  /* Échelle typographique */
+  --text-display: clamp(1.875rem, 2.2vw + 1rem, 2.25rem);
+  --text-card-title: 1.25rem;
+  --text-lead: 1rem;
+  --text-body: 0.9375rem;
+  --text-small: 0.8125rem;
+  --text-meta-size: 0.6875rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  --leading-body: 1.55;
+  --leading-tight: 1.2;
+  --letter-tight: -0.02em;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-body);
+  color: var(--text-primary);
+}
+
+/* Titres — gros titre type « Good morning », cartes, sections */
+h1,
+.h1 {
+  margin: 0 0 0.35em;
+  font-family: var(--font-sans);
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--letter-tight);
+  color: var(--text-heading);
+}
+
+h2,
+.h2 {
+  margin: 0 0 0.4em;
+  font-family: var(--font-sans);
+  font-size: clamp(1.125rem, 1vw + 1rem, 1.375rem);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-heading);
+}
+
+h3,
+.h3 {
+  margin: 0 0 0.4em;
+  font-family: var(--font-sans);
+  font-size: var(--text-card-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-heading);
+}
+
+h4,
+h5,
+h6 {
+  margin: 0 0 0.35em;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+}
+
+h4 {
+  font-size: 1.0625rem;
+}
+h5 {
+  font-size: var(--text-body);
+}
+h6 {
+  font-size: var(--text-small);
+}
+
+p {
+  margin: 0 0 0.75em;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-body);
+  color: var(--text-primary);
+}
+
+/* Sous-titre / accroche au-dessus d’un titre (ex. « Hi …, ») */
+.text-kicker,
+.lead-muted {
+  font-family: var(--font-sans);
+  font-size: var(--text-lead);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-body);
+  color: var(--text-secondary);
+}
+
+/* Labels de métriques, légendes */
+.text-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-body);
+  color: var(--text-secondary);
+}
+
+/* Valeurs chiffrées mises en avant */
+.text-value {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-tight);
+  color: var(--text-heading);
+}
+
+/* Méta (dates, jours, « Update … ») */
+small,
+.text-meta {
+  font-family: var(--font-sans);
+  font-size: var(--text-meta-size);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  color: var(--text-meta);
+}
+
+strong,
+b {
+  font-weight: var(--font-weight-bold);
+  color: var(--text-heading);
+}
+
+a {
+  font-family: inherit;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-blue);
+}
+
+a:visited {
+  color: #4a6ba3;
+}
+
+label {
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+}
+
+button {
+  font-weight: var(--font-weight-semibold);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  font-weight: var(--font-weight-regular);
+}

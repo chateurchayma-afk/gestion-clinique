@@ -9,7 +9,7 @@
         à votre application
       </p>
 
-      <button type="button" class="btn-main" (click)="showLoginForm()">
+      <button type="button" id="login-welcome-btn" class="btn-main" (click)="showLoginForm()">
         Connexion
       </button>
 
@@ -19,7 +19,6 @@
 
       <h4 class="new-user">Nouvel utilisateur ?</h4>
       <a class="link" [routerLink]="['/register']">Créer mon compte</a>
-      <p class="admin-hint"><a class="link" [routerLink]="['/register/admin']">Créer un compte administrateur</a></p>
 
       <div class="line"></div>
 
@@ -35,19 +34,23 @@
 
       <form class="login-form" (ngSubmit)="onLogin()" novalidate>
         <input
+          id="login-email"
           class="input-field"
           type="email"
           [(ngModel)]="email"
           name="email"
           placeholder="Email"
+          autocomplete="username"
           required
         />
         <input
+          id="login-password"
           class="input-field"
           type="password"
           [(ngModel)]="motDePasse"
           name="motDePasse"
           placeholder="Mot de passe"
+          autocomplete="current-password"
           required
         />
         <div *ngIf="errorMessage" class="error-msg">

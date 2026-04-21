@@ -42,7 +42,7 @@ export class RendezVousPatientService {
     return this.http.post<RendezVousPatient>(this.url, body);
   }
 
-  annuler(id: number): Observable<RendezVousPatient> {
-    return this.http.patch<RendezVousPatient>(`${this.url}/${id}/annuler`, {});
+  annuler(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.url}/${id}/annuler`, {});
   }
 }

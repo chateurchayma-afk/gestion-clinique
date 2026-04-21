@@ -39,6 +39,7 @@ export const ADMIN_SHELL: DashboardShellConfig = {
       title: null,
       items: [
         { label: 'Tableau de bord', path: '/admin/dashboard', exact: true },
+        { label: 'Mon profil', path: '/admin/mon-profil', exact: true },
         { label: 'Liste des médecins', path: '/admin/medecins' },
         { label: 'Ajouter un médecin', path: '/admin/add-medecin' },
         { label: 'Planning des médecins', path: '/admin/planning-medecins' },
@@ -58,7 +59,10 @@ export const MEDECIN_SHELL: DashboardShellConfig = {
   navSections: [
     {
       title: null,
-      items: [{ label: 'Accueil', path: '/medecin-dashboard/accueil', exact: true }]
+      items: [
+        { label: 'Accueil', path: '/medecin-dashboard/accueil', exact: true },
+        { label: 'Mon profil', path: '/medecin-dashboard/mon-profil', exact: true }
+      ]
     }
   ]
 };

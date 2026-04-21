@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: linear-gradient(180deg, #eef4ff 0%, #f7faff 100%);
   padding: 30px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* CADRE GLOBAL */

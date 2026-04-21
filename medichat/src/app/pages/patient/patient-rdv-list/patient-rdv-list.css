@@ -43,7 +43,7 @@
 
 .btn.secondary {
   background: #f1f5f9;
-  color: #0f172a;
+  color: var(--text-heading, #2f4a72);
   border: 1px solid #e2e8f0;
 }
 

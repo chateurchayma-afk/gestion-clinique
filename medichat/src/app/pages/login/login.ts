@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,12 +25,37 @@ export class Login implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((q) => {
       this.returnUrl = (q.get('returnUrl') ?? '').trim();
+
+      /** Depuis inscription : afficher directement email + mot de passe. */
+      if (q.get('form') === '1') {
+        this.showForm = true;
+        this.guardHint = '';
+        this.errorMessage = '';
+        this.email = '';
+        this.motDePasse = '';
+        this.location.replaceState('/login');
+        setTimeout(() => document.getElementById('login-email')?.focus(), 0);
+        return;
+      }
+
+      if (q.get('welcome') === '1') {
+        this.showForm = false;
+        this.guardHint = '';
+        this.errorMessage = '';
+        this.email = '';
+        this.motDePasse = '';
+        this.location.replaceState('/login');
+        setTimeout(() => document.getElementById('login-welcome-btn')?.focus(), 0);
+        return;
+      }
+
       if (q.get('needAdmin') === '1') {
         this.guardHint =
           'L’administration requiert un compte administrateur. Connectez-vous avec un compte ADMIN.';

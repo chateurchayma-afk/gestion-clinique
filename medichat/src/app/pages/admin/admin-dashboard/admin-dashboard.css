@@ -2,13 +2,425 @@
   display: block;
   min-height: 100vh;
   background: #f4f7fb;
-  font-family: Arial, Helvetica, sans-serif;
-  color: #1f2937;
+  font-family: var(--font-sans);
+  color: var(--text-heading, #2f4a72);
 }
 
-.admin-page-lead {
-  margin: 0 0 20px;
-  font-size: 15px;
+.dashboard-pro {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.dashboard-section {
+  margin-bottom: 32px;
+}
+
+.dashboard-section--flush {
+  margin-bottom: 0;
+}
+
+.dashboard-section-title {
+  margin: 0 0 14px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+/* Bandeau KPI unique : chiffre dominant, libellé discret, code couleur par indicateur */
+.kpi-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.kpi-board--loading {
+  opacity: 0.72;
+}
+
+.kpi-cell {
+  position: relative;
+  padding: 22px 18px 20px;
+  border-right: 1px solid #f1f5f9;
+  min-width: 0;
+}
+
+.kpi-cell:last-child {
+  border-right: none;
+}
+
+.kpi-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 0;
+}
+
+.kpi-cell--users::before {
+  background: linear-gradient(90deg, #475569, #64748b);
+}
+
+.kpi-cell--pending::before {
+  background: linear-gradient(90deg, #c2410c, #ea580c);
+}
+
+.kpi-cell--ok::before {
+  background: linear-gradient(90deg, #15803d, #22c55e);
+}
+
+.kpi-cell--refused::before {
+  background: linear-gradient(90deg, #be123c, #e11d48);
+}
+
+.kpi-value {
+  display: block;
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-value--muted {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.kpi-label {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+@media (max-width: 960px) {
+  .kpi-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .kpi-cell {
+    border-right: none;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  }
+}
+
+@media (max-width: 520px) {
+  .kpi-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cartes files d’attente : validations médecin puis créneaux RDV (empilées) */
+.dashboard-workqueues {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.card.queue-card {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.queue-card--med {
+  border-top: 3px solid #4f6fa8;
+}
+
+.queue-card--rdv {
+  border-top: 3px solid #0d9488;
+}
+
+.queue-pane-head {
+  padding: 18px 20px 14px;
+  background: linear-gradient(180deg, #fafbfd 0%, #ffffff 100%);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.queue-pane-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.queue-pane-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading, #1e3a5f);
+  letter-spacing: -0.02em;
+}
+
+.queue-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #312e81;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+}
+
+.queue-count--teal {
+  color: #115e59;
+  background: #ecfdf5;
+  border-color: #ccfbf1;
+}
+
+.queue-pane-hint {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #64748b;
+  max-width: 52ch;
+}
+
+.queue-pane-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.queue-status {
+  padding: 16px 20px;
+}
+
+.queue-empty {
+  margin: 20px 16px 24px;
+  padding: 20px 16px;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px dashed #e2e8f0;
+  background: #f8fafc;
+}
+
+.queue-empty-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.queue-empty-desc {
+  display: block;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.queue-table-wrap {
+  flex: 1;
+  padding: 0 12px 14px;
+  overflow-x: auto;
+}
+
+.queue-table thead th {
+  background: #f8fafc;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.queue-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.queue-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.queue-th-actions,
+.queue-td-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.btn-queue {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.queue-date {
+  display: block;
+  font-weight: 600;
+  color: #334155;
+}
+
+.queue-time {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.roles-insight--pro {
+  margin: 0;
+  border-radius: 16px;
+  border: 1px solid #e8edf3;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  padding: 22px 22px 20px;
+}
+
+.roles-insight--pro .roles-insight-head {
+  border-bottom: 1px solid #eef2f7;
+  padding-bottom: 16px;
+  margin-bottom: 0;
+}
+
+.roles-insight-intro h3 {
+  margin: 0 0 6px;
+}
+
+.roles-insight--pro .roles-insight-sub {
+  max-width: 48ch;
+}
+
+.roles-total-cap {
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.roles-detail-col--bars {
+  padding-top: 2px;
+}
+
+.role-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.role-bar-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.role-bar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.role-bar-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.role-bar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.role-bar-dot.dot-patient {
+  background: #0d9488;
+}
+
+.role-bar-dot.dot-medecin {
+  background: #2563eb;
+}
+
+.role-bar-dot.dot-admin {
+  background: #6d28d9;
+}
+
+.role-bar-name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--text-heading, #1e293b);
+}
+
+.role-bar-nums {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.role-bar-count {
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.role-bar-pct {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 3.25rem;
+  text-align: right;
+}
+
+.role-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef2f7;
+  overflow: hidden;
+}
+
+.role-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 0;
+  transition: width 0.45s ease;
+}
+
+.role-bar-fill.seg-patient {
+  background: linear-gradient(90deg, #14b8a6, #0d9488);
+}
+
+.role-bar-fill.seg-medecin {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.role-bar-fill.seg-admin {
+  background: linear-gradient(90deg, #8b5cf6, #6d28d9);
 }
 
 .admin-layout {
@@ -92,7 +504,7 @@
   margin: 0;
   font-size: 30px;
   font-weight: 800;
-  color: #111827;
+  color: var(--text-heading, #2f4a72);
 }
 
 .topbar p {
@@ -225,7 +637,7 @@
 
 .donut-center strong {
   font-size: 24px;
-  color: #111827;
+  color: var(--text-heading, #2f4a72);
 }
 
 .donut-center span {
@@ -259,27 +671,6 @@
 
 .dot-light {
   background: #cbd5e1;
-}
-
-.table-card {
-  overflow: hidden;
-}
-
-.view-btn {
-  border: none;
-  background: #eef4ff;
-  color: #315ea8;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-a.view-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
 }
 
 .table-wrapper {
@@ -351,8 +742,9 @@ tbody tr:hover {
 }
 
 .muted {
-  color: #94a3b8;
-  font-size: 14px;
+  color: var(--text-secondary, #64748b);
+  font-size: 0.875rem;
+  font-weight: 500;
   padding: 8px 0;
 }
 
@@ -420,57 +812,163 @@ tbody tr:hover {
   color: #b45309;
 }
 
-.roles-card {
+.roles-insight {
   margin-bottom: 22px;
 }
 
-.role-bars {
+.roles-insight-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.roles-insight-intro {
+  flex: 1;
+  min-width: 0;
+}
+
+.roles-insight-head h3 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-heading, #2f4a72);
+}
+
+.roles-insight-sub {
+  margin: 0;
+  max-width: 560px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #5a6d85);
+}
+
+.roles-total-pill {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: flex-end;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f0f9ff, #eef2ff);
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
-.role-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 6px;
-  font-size: 14px;
-}
-
-.role-name {
+.roles-total-label {
+  font-size: 0.6875rem;
   font-weight: 700;
-  color: #1e293b;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8896ad);
 }
 
-.role-count {
-  color: #64748b;
-  font-size: 13px;
+.roles-total-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-heading, #2f4a72);
+  letter-spacing: -0.02em;
 }
 
-.role-track {
-  height: 12px;
-  border-radius: 999px;
-  background: #e2e8f0;
-  overflow: hidden;
+.roles-loading {
+  padding: 12px 0 4px;
 }
 
-.role-fill {
+.roles-insight-body {
+  display: grid;
+  grid-template-columns: minmax(200px, 240px) 1fr;
+  gap: 28px 32px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+.roles-insight-body.roles-insight-body--pro {
+  margin-top: 22px;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: 28px 40px;
+  align-items: center;
+}
+
+.roles-visual-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.donut-wrap {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  margin: 0 auto 10px;
+}
+
+.donut-ring {
+  width: 100%;
   height: 100%;
-  border-radius: 999px;
-  transition: width 0.35s ease;
+  border-radius: 50%;
+  box-shadow:
+    0 4px 20px rgba(15, 23, 42, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  transition: background 0.4s ease;
 }
 
-.role-fill.admin {
-  background: linear-gradient(90deg, #7c3aed, #5b21b6);
+.donut-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 58%;
+  height: 58%;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
 }
 
-.role-fill.med {
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+.donut-center-num {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-heading, #2f4a72);
+  line-height: 1;
 }
 
-.role-fill.pat {
-  background: linear-gradient(90deg, #059669, #047857);
+.donut-center-cap {
+  margin-top: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #8896ad);
+}
+
+.donut-foot {
+  margin: 0;
+  max-width: 220px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.roles-detail-col {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .roles-insight-body,
+  .roles-insight-body.roles-insight-body--pro {
+    grid-template-columns: 1fr;
+  }
+
+  .roles-total-pill {
+    align-items: flex-start;
+    width: 100%;
+  }
 }
 
 @media (max-width: 1200px) {

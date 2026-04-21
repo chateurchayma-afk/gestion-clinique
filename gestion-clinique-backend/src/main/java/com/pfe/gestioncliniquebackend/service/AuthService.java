@@ -286,20 +286,20 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-            return new AuthResponse("Email incorrect", null, null, null);
+            return new AuthResponse("Email incorrect", null, null, null, null, null, null);
         }
         String emailNorm = request.getEmail().trim().toLowerCase();
         Optional<Utilisateur> userOptional = utilisateurRepository.findByEmail(emailNorm);
 
         if (userOptional.isEmpty()) {
-            return new AuthResponse("Email incorrect", null, null, null);
+            return new AuthResponse("Email incorrect", null, null, null, null, null, null);
         }
 
         Utilisateur user = userOptional.get();
 
         String pwdRequest = request.getMotDePasse() != null ? request.getMotDePasse() : "";
         if (!user.getMotDePasse().equals(pwdRequest)) {
-            return new AuthResponse("Mot de passe incorrect", null, null, null);
+            return new AuthResponse("Mot de passe incorrect", null, null, null, null, null, null);
         }
 
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
@@ -308,7 +308,10 @@ public class AuthService {
                 "Connexion réussie",
                 token,
                 user.getRole().name(),
-                user.getEmail()
+                user.getEmail(),
+                user.getId(),
+                user.getNom(),
+                user.getPrenom()
         );
     }
 

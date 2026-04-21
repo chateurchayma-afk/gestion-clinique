@@ -125,11 +125,11 @@
 
       <p class="bottom-text">
         Déjà un compte ?
-        <a [routerLink]="['/login']">Se connecter</a>
+        <a [routerLink]="['/login']" [queryParams]="{ form: '1' }">Se connecter</a>
       </p>
 
       <p class="bottom-text">
-        ← <a [routerLink]="['/login']">Retour à la connexion</a>
+        ← <a [routerLink]="['/login']" [queryParams]="{ form: '1' }">Retour à la connexion</a>
       </p>
     </form>
   </div>

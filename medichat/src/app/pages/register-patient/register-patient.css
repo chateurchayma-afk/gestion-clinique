@@ -43,7 +43,7 @@
 
 .header-box h1 {
   font-size: 38px;
-  color: #0f172a;
+  color: var(--text-heading, #2f4a72);
   margin-bottom: 10px;
   font-weight: 700;
 }

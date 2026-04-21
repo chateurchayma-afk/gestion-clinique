@@ -1,6 +1,6 @@
 :host {
     display: block;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family: var(--font-sans);
   }
   
   .overlay {

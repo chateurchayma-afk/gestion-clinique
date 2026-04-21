@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
-import { AdminDashboardService, DashboardStats } from '../../../services/admin-dashboard.service';
+import { AdminDashboardService, DashboardStats, RoleStat } from '../../../services/admin-dashboard.service';
 import {
   AdminRendezVousPlanningItem,
   AdminRendezVousService
@@ -61,7 +60,7 @@ function normalizeHeure(raw: unknown): string {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
@@ -166,6 +165,50 @@ export class AdminDashboard implements OnInit {
       default:
         return role;
     }
+  }
+
+  /** Ordre lecture : patients → médecins → admins. */
+  sortedRepartition(s: DashboardStats): RoleStat[] {
+    const raw = s.repartitionRoles ?? [];
+    const order = ['PATIENT', 'MEDECIN', 'ADMIN'];
+    return [...raw].sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role));
+  }
+
+  /** Gradient conique pour le donut (parts proportionnelles au nombre de comptes). */
+  donutGradient(s: DashboardStats): string {
+    const palette: Record<string, string> = {
+      PATIENT: '#0d9488',
+      MEDECIN: '#2563eb',
+      ADMIN: '#6d28d9'
+    };
+    const rows = this.sortedRepartition(s).filter((r) => r.count > 0);
+    const total = rows.reduce((acc, r) => acc + r.count, 0);
+    if (total <= 0) {
+      return '#e5e7eb';
+    }
+    let cursor = 0;
+    const stops: string[] = [];
+    for (const r of rows) {
+      const slice = (r.count / total) * 360;
+      const end = cursor + slice;
+      const c = palette[r.role] ?? '#64748b';
+      stops.push(`${c} ${cursor}deg ${end}deg`);
+      cursor = end;
+    }
+    return `conic-gradient(${stops.join(', ')})`;
+  }
+
+  /** Part du total (0–100) pour barres et libellé % — reprend l’API ou recalcule. */
+  roleSharePercent(r: RoleStat, s: DashboardStats): number {
+    const p = r.pourcentage;
+    if (typeof p === 'number' && Number.isFinite(p)) {
+      return Math.min(100, Math.max(0, Math.round(p * 10) / 10));
+    }
+    const t = s.totalUtilisateurs;
+    if (!t) {
+      return 0;
+    }
+    return Math.min(100, Math.round((r.count / t) * 1000) / 10);
   }
 
   valider(m: Medecin): void {

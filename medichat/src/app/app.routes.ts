@@ -27,6 +27,7 @@ import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-lis
 import { PatientRdvNew } from './pages/patient/patient-rdv-new/patient-rdv-new';
 import { PatientMedecinProfil } from './pages/patient/patient-medecin-profil/patient-medecin-profil';
 import { PatientProfil } from './pages/patient/patient-profil/patient-profil';
+import { AccountProfil } from './pages/account-profil/account-profil';
 import { adminGuard } from './core/admin.guard';
 import { medecinGuard } from './core/medecin.guard';
 import { patientGuard } from './core/patient.guard';
@@ -49,6 +50,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: AdminDashboard },
+      { path: 'mon-profil', component: AccountProfil },
       { path: 'medecins', component: MedecinsList },
       { path: 'add-medecin', component: AddMedecin },
       { path: 'edit-medecin/:id', component: AddMedecin },
@@ -78,7 +80,8 @@ export const routes: Routes = [
           title: 'Espace médecin',
           subtitle: 'Votre tableau de bord sera enrichi au fil du projet.'
         }
-      }
+      },
+      { path: 'mon-profil', component: AccountProfil }
     ]
   },
   {

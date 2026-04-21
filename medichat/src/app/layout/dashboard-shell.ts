@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ActivatedRouteSnapshot,
   NavigationEnd,
@@ -8,9 +9,11 @@ import {
   RouterOutlet
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { UserSessionService } from '../core/user-session.service';
 import type { DashboardShellConfig } from './dashboard-shell.config';
 
 interface StoredUser {
+  id?: number;
   token?: string;
   role?: string;
   email?: string;
@@ -33,6 +36,7 @@ const FALLBACK_SHELL: DashboardShellConfig = {
 })
 export class DashboardShell {
   private readonly router = inject(Router);
+  private readonly userSession = inject(UserSessionService);
 
   readonly navOpen = signal(false);
   readonly pageTitle = signal('Tableau de bord');
@@ -40,6 +44,20 @@ export class DashboardShell {
   readonly shellConfig: DashboardShellConfig = this.resolveShell();
 
   readonly user = signal<StoredUser | null>(this.readUser());
+
+  readonly profileLink = computed(() => {
+    const role = (this.user()?.role ?? '').toString().trim().toUpperCase();
+    if (role === 'ADMIN') {
+      return '/admin/mon-profil';
+    }
+    if (role === 'MEDECIN') {
+      return '/medecin-dashboard/mon-profil';
+    }
+    if (role === 'PATIENT') {
+      return '/patient-dashboard/profil';
+    }
+    return '/login';
+  });
 
   readonly userInitials = computed(() => {
     const u = this.user();
@@ -63,9 +81,13 @@ export class DashboardShell {
   });
 
   constructor() {
+    this.userSession.profileUpdated$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.user.set(this.readUser());
+    });
     this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe(() => {
       this.pageTitle.set(this.computePageTitle(this.router.url));
       this.navOpen.set(false);
+      this.user.set(this.readUser());
     });
     this.pageTitle.set(this.computePageTitle(this.router.url));
   }
@@ -114,7 +136,7 @@ export class DashboardShell {
       return 'Rendez-vous';
     }
     if (url.includes('/admin/planning-medecins')) {
-      return 'Planning';
+      return 'Planning des médecins';
     }
     if (url.includes('/admin/medecins')) {
       return 'Médecins';
@@ -133,6 +155,9 @@ export class DashboardShell {
     }
     if (url.includes('/admin/services') || url.includes('/admin/add-service')) {
       return 'Services';
+    }
+    if (url.includes('/admin/mon-profil') || url.includes('/medecin-dashboard/mon-profil')) {
+      return 'Mon profil';
     }
     if (url.includes('/admin/dashboard')) {
       return 'Tableau de bord';

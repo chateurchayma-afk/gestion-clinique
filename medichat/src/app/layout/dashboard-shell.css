@@ -4,14 +4,14 @@
   --patient-border: #e5e7eb;
   --patient-primary: #4f6fa8;
   --patient-primary-2: #6f8fcb;
-  --patient-text: #1f2937;
-  --patient-muted: #64748b;
-  --patient-subtle: #94a3b8;
+  --patient-text: var(--text-primary, #3d5f90);
+  --patient-muted: var(--text-secondary, #5a6d85);
+  --patient-subtle: var(--text-muted, #8896ad);
 
   display: block;
   min-height: 100vh;
   background: var(--patient-bg);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   color: var(--patient-text);
 }
 
@@ -51,10 +51,11 @@
 
 .topbar-title {
   margin: 0;
-  font-size: 30px;
+  font-size: clamp(1.5rem, 1.2vw + 1.1rem, 1.875rem);
   font-weight: 800;
-  letter-spacing: 0;
-  color: #111827;
+  letter-spacing: -0.02em;
+  color: var(--patient-text);
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -133,7 +134,19 @@
   border-radius: 999px;
   border: 1px solid var(--patient-border);
   background: #fff;
-  max-width: 220px;
+  max-width: 280px;
+}
+
+a.user-chip {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+a.user-chip:hover {
+  border-color: var(--patient-primary);
+  background: #f8fafc;
 }
 
 .user-avatar {
@@ -155,6 +168,15 @@
   flex-direction: column;
   gap: 1px;
   min-width: 0;
+}
+
+.user-email {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--patient-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-name {
@@ -203,21 +225,21 @@
 }
 
 .brand {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: 0;
-  color: var(--patient-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--patient-text);
   margin-bottom: 4px;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .role-tag {
   margin: 0 0 16px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--patient-subtle);
+  color: var(--patient-muted);
 }
 
 .sidebar-nav {
@@ -241,11 +263,11 @@
 .nav-section-title {
   margin: 0 0 4px;
   padding: 0 4px;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 0.6875rem;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--patient-subtle);
+  color: var(--patient-muted);
 }
 
 .nav-link {
@@ -253,9 +275,9 @@
   padding: 12px 14px;
   border-radius: 12px;
   background: #f8fafc;
-  color: #334155;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--patient-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
   text-decoration: none !important;
   transition:
     background 0.18s ease,
@@ -276,7 +298,7 @@
 .nav-link-label {
   letter-spacing: 0;
   text-transform: none;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .nav-link:hover {
@@ -287,6 +309,7 @@
 .nav-link.active {
   background: linear-gradient(135deg, var(--patient-primary), var(--patient-primary-2));
   color: #fff;
+  font-weight: 600;
   border-color: transparent;
   box-shadow: 0 10px 24px rgba(79, 111, 168, 0.22);
 }

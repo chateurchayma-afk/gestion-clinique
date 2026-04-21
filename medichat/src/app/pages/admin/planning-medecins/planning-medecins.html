@@ -1,12 +1,5 @@
 <div class="planning-root planning-main">
-    <header class="planning-top">
-      <div>
-        <h1 class="planning-title">Planning des médecins</h1>
-        <p class="planning-subtitle">
-          Affichage des rendez-vous <strong>confirmés</strong> uniquement (réservations patient une fois validées sur le
-          tableau de bord admin). À l’ouverture, la semaine se cale sur le prochain créneau confirmé à venir.
-        </p>
-      </div>
+    <header class="planning-top planning-top--toolbar">
       <div class="planning-top-actions">
         <div class="export-wrap">
           <button type="button" class="btn-export" (click)="toggleExportMenu()">
@@ -206,10 +199,6 @@
         <div>
           <dt>Mode</dt>
           <dd>{{ labelMode(rdv.modeConsultation) }}</dd>
-        </div>
-        <div>
-          <dt>Référence</dt>
-          <dd class="muted">#{{ rdv.id }}</dd>
         </div>
       </dl>
       <div class="rdv-detail-motif">

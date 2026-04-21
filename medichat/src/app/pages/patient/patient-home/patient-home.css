@@ -1,21 +1,21 @@
 :host {
   display: block;
-  --blue-950: #1f2937;
-  --blue-900: #334155;
+  --blue-950: var(--text-heading, #2f4a72);
+  --blue-900: #3d5f90;
   --blue-800: #315ea8;
   --blue-700: #4f6fa8;
-  --blue-600: #5f7fba;
+  --blue-600: var(--text-blue, #5c7cba);
   --blue-500: #6f8fcb;
   --blue-400: #8aa6d8;
   --blue-100: #e5edfb;
   --blue-50: #f4f7fd;
-  --slate-900: #1e293b;
-  --slate-600: #64748b;
-  --slate-500: #64748b;
-  --slate-400: #94a3b8;
+  --slate-900: var(--text-heading, #2f4a72);
+  --slate-600: var(--text-secondary, #5a6d85);
+  --slate-500: var(--text-secondary, #5a6d85);
+  --slate-400: var(--text-muted, #8896ad);
   --surface: #ffffff;
   --border: #edf2f7;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .dash {

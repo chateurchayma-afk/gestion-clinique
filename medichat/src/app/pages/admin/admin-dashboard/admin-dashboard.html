@@ -1,138 +1,190 @@
-<div class="admin-dashboard-page">
-    <p class="admin-page-lead muted">Vue d’ensemble — validations et statistiques de la clinique.</p>
+<div class="admin-dashboard-page dashboard-pro">
+  <section class="dashboard-section" aria-labelledby="dash-kpi-heading">
+    <h2 id="dash-kpi-heading" class="dashboard-section-title">Indicateurs clés</h2>
+    <div class="kpi-board" role="list" *ngIf="stats() as k; else kpiLoading">
+      <div class="kpi-cell kpi-cell--users" role="listitem">
+        <span class="kpi-value">{{ k.totalUtilisateurs }}</span>
+        <span class="kpi-label">Utilisateurs</span>
+      </div>
+      <div class="kpi-cell kpi-cell--pending" role="listitem">
+        <span class="kpi-value">{{ k.medecinsEnAttente }}</span>
+        <span class="kpi-label">Médecins en attente</span>
+      </div>
+      <div class="kpi-cell kpi-cell--ok" role="listitem">
+        <span class="kpi-value">{{ k.medecinsValides }}</span>
+        <span class="kpi-label">Médecins validés</span>
+      </div>
+      <div class="kpi-cell kpi-cell--refused" role="listitem">
+        <span class="kpi-value">{{ k.medecinsRefuses }}</span>
+        <span class="kpi-label">Médecins refusés</span>
+      </div>
+    </div>
+    <ng-template #kpiLoading>
+      <div class="kpi-board kpi-board--loading" aria-busy="true" aria-label="Chargement des indicateurs">
+        <div class="kpi-cell kpi-cell--users"><span class="kpi-value kpi-value--muted">—</span><span class="kpi-label">Utilisateurs</span></div>
+        <div class="kpi-cell kpi-cell--pending"><span class="kpi-value kpi-value--muted">—</span><span class="kpi-label">Médecins en attente</span></div>
+        <div class="kpi-cell kpi-cell--ok"><span class="kpi-value kpi-value--muted">—</span><span class="kpi-label">Médecins validés</span></div>
+        <div class="kpi-cell kpi-cell--refused"><span class="kpi-value kpi-value--muted">—</span><span class="kpi-label">Médecins refusés</span></div>
+      </div>
+    </ng-template>
+  </section>
 
-    <section id="validations" class="card validation-card">
-      <div class="card-header">
-        <h3>Médecins en attente de validation</h3>
-        <span class="badge">{{ pendingMedecins().length }} demande(s)</span>
-      </div>
-      <p class="card-intro">Validez ou refusez les inscriptions médecins avant qu’ils accèdent pleinement à la plateforme.</p>
-
-      <div *ngIf="loadingPending()" class="muted">Chargement…</div>
-
-      <div *ngIf="!loadingPending() && pendingMedecins().length === 0" class="muted empty-pending">
-        Aucun médecin en attente.
-      </div>
-
-      <div class="table-wrapper" *ngIf="!loadingPending() && pendingMedecins().length > 0">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Médecin</th>
-              <th>Email</th>
-              <th>Spécialité</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let m of pendingMedecins()">
-              <td><strong>Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</strong></td>
-              <td>{{ m.utilisateur.email }}</td>
-              <td>{{ m.specialite?.nom || '—' }}</td>
-              <td><span class="pill pill-wait">En attente</span></td>
-              <td class="actions">
-                <button type="button" class="btn-ok" (click)="valider(m)">Valider</button>
-                <button type="button" class="btn-no" (click)="refuser(m)">Refuser</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="rdv-attente" class="card validation-card">
-      <div class="card-header">
-        <h3>Rendez-vous en attente de confirmation</h3>
-        <span class="badge">{{ pendingRdvs().length }} demande(s)</span>
-      </div>
-      <p class="card-intro">
-        Créneaux réservés par les patients (statut « en attente »). Confirmez-les pour qu’ils apparaissent dans le
-        planning des médecins (seuls les rendez-vous <strong>confirmés</strong> y sont affichés). Vous pouvez aussi
-        modifier les statuts depuis la
-        <a routerLink="/admin/rdv">liste complète</a>.
-      </p>
-
-      <div *ngIf="loadingRdvPending()" class="muted">Chargement…</div>
-
-      <div *ngIf="!loadingRdvPending() && pendingRdvs().length === 0" class="muted empty-pending">
-        Aucun rendez-vous en attente.
-      </div>
-
-      <div class="table-wrapper" *ngIf="!loadingRdvPending() && pendingRdvs().length > 0">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Médecin</th>
-              <th>Date &amp; heure</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let r of pendingRdvs()">
-              <td><strong>{{ r.patientPrenom }} {{ r.patientNom }}</strong></td>
-              <td>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</td>
-              <td>{{ dateRdv(r) }}<br /><span class="muted">{{ heureRdv(r) }}</span></td>
-              <td class="actions">
-                <button
-                  type="button"
-                  class="btn-ok"
-                  (click)="confirmerRdv(r)"
-                  [disabled]="savingRdvId() === r.id"
-                >
-                  Confirmer
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-label">Utilisateurs</span>
-        <h2>{{ stats()?.totalUtilisateurs ?? '—' }}</h2>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Médecins en attente</span>
-        <h2>{{ stats()?.medecinsEnAttente ?? '—' }}</h2>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Médecins validés</span>
-        <h2>{{ stats()?.medecinsValides ?? '—' }}</h2>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Médecins refusés</span>
-        <h2>{{ stats()?.medecinsRefuses ?? '—' }}</h2>
-      </div>
-    </section>
-
-    <section class="card roles-card">
-      <div class="card-header">
-        <h3>Répartition des comptes par rôle</h3>
-        <span class="badge">% du total utilisateurs</span>
-      </div>
-      <div *ngIf="loadingStats()" class="muted">Chargement des statistiques…</div>
-      <div class="role-bars" *ngIf="!loadingStats() && stats() as s">
-        <div class="role-row" *ngFor="let r of s.repartitionRoles">
-          <div class="role-meta">
-            <span class="role-name">{{ labelRole(r.role) }}</span>
-            <span class="role-count">{{ r.count }} ({{ r.pourcentage }}%)</span>
+  <section class="dashboard-section" aria-labelledby="dash-queue-heading">
+    <h2 id="dash-queue-heading" class="dashboard-section-title">Files d’attente</h2>
+    <div class="dashboard-workqueues">
+      <section id="validations" class="card queue-card queue-card--med" aria-labelledby="queue-med-title">
+        <header class="queue-pane-head">
+          <div class="queue-pane-head-top">
+            <h3 id="queue-med-title" class="queue-pane-title">Validations médecin</h3>
+            <span class="queue-count" aria-label="Nombre de demandes">{{ pendingMedecins().length }}</span>
           </div>
-          <div class="role-track">
-            <div class="role-fill" [class.admin]="r.role === 'ADMIN'" [class.med]="r.role === 'MEDECIN'" [class.pat]="r.role === 'PATIENT'" [style.width.%]="r.pourcentage"></div>
+          <p class="queue-pane-hint">Décision sur les inscriptions avant activation du compte.</p>
+        </header>
+        <div class="queue-pane-body">
+          <div *ngIf="loadingPending()" class="muted queue-status">Chargement…</div>
+          <div *ngIf="!loadingPending() && pendingMedecins().length === 0" class="queue-empty">
+            <span class="queue-empty-title">Aucune demande</span>
+            <span class="queue-empty-desc">Toutes les inscriptions médecin sont traitées.</span>
+          </div>
+          <div class="table-wrapper queue-table-wrap" *ngIf="!loadingPending() && pendingMedecins().length > 0">
+            <table class="data-table queue-table">
+              <thead>
+                <tr>
+                  <th>Médecin</th>
+                  <th>Email</th>
+                  <th>Spécialité</th>
+                  <th>Statut</th>
+                  <th class="queue-th-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of pendingMedecins()">
+                  <td><strong>Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</strong></td>
+                  <td>{{ m.utilisateur.email }}</td>
+                  <td>{{ m.specialite?.nom || '—' }}</td>
+                  <td><span class="pill pill-wait">En attente</span></td>
+                  <td class="actions queue-td-actions">
+                    <button type="button" class="btn-ok btn-queue" (click)="valider(m)">Valider</button>
+                    <button type="button" class="btn-no btn-queue" (click)="refuser(m)">Refuser</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="rdv-attente" class="card queue-card queue-card--rdv" aria-labelledby="queue-rdv-title">
+        <header class="queue-pane-head">
+          <div class="queue-pane-head-top">
+            <h3 id="queue-rdv-title" class="queue-pane-title">Créneaux à confirmer</h3>
+            <span class="queue-count queue-count--teal" aria-label="Nombre de rendez-vous">{{ pendingRdvs().length }}</span>
+          </div>
+          <p class="queue-pane-hint">Une fois confirmés, les rendez-vous apparaissent au planning du praticien.</p>
+        </header>
+        <div class="queue-pane-body">
+          <div *ngIf="loadingRdvPending()" class="muted queue-status">Chargement…</div>
+          <div *ngIf="!loadingRdvPending() && pendingRdvs().length === 0" class="queue-empty">
+            <span class="queue-empty-title">Aucun créneau en attente</span>
+            <span class="queue-empty-desc">Les demandes patients apparaîtront ici.</span>
+          </div>
+          <div class="table-wrapper queue-table-wrap" *ngIf="!loadingRdvPending() && pendingRdvs().length > 0">
+            <table class="data-table queue-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Médecin</th>
+                  <th>Date &amp; heure</th>
+                  <th class="queue-th-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of pendingRdvs()">
+                  <td><strong>{{ r.patientPrenom }} {{ r.patientNom }}</strong></td>
+                  <td>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</td>
+                  <td>
+                    <span class="queue-date">{{ dateRdv(r) }}</span>
+                    <span class="queue-time muted">{{ heureRdv(r) }}</span>
+                  </td>
+                  <td class="actions queue-td-actions">
+                    <button
+                      type="button"
+                      class="btn-ok btn-queue"
+                      (click)="confirmerRdv(r)"
+                      [disabled]="savingRdvId() === r.id"
+                    >
+                      Confirmer
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="dashboard-section dashboard-section--flush" aria-labelledby="dash-profiles-heading">
+    <h2 id="dash-profiles-heading" class="dashboard-section-title">Répartition des comptes</h2>
+    <section class="card roles-insight roles-insight--pro">
+      <div class="roles-insight-head">
+        <div class="roles-insight-intro">
+          <h3>Utilisateurs par profil</h3>
+          <p class="roles-insight-sub">Un compte utilisateur est compté une fois selon son rôle.</p>
+        </div>
+        <div class="roles-total-pill" *ngIf="!loadingStats() && stats() as st">
+          <span class="roles-total-label">Total</span>
+          <span class="roles-total-value">{{ st.totalUtilisateurs }}</span>
+          <span class="roles-total-cap">comptes</span>
+        </div>
+      </div>
+
+      <div *ngIf="loadingStats()" class="muted roles-loading">Chargement des statistiques…</div>
+
+      <div class="roles-insight-body roles-insight-body--pro" *ngIf="!loadingStats() && stats() as s">
+        <div class="roles-visual-col">
+          <div class="donut-wrap" aria-hidden="true">
+            <div class="donut-ring" [style.background]="donutGradient(s)"></div>
+            <div class="donut-center">
+              <span class="donut-center-num">{{ s.totalUtilisateurs }}</span>
+              <span class="donut-center-cap">comptes</span>
+            </div>
+          </div>
+          <p class="donut-foot muted">Vue d’ensemble proportionnelle par rôle.</p>
+        </div>
+
+        <div class="roles-detail-col roles-detail-col--bars">
+          <div class="role-bars" role="list">
+            <div *ngFor="let r of sortedRepartition(s)" class="role-bar-block" role="listitem">
+              <div class="role-bar-head">
+                <span class="role-bar-left">
+                  <span
+                    class="role-bar-dot"
+                    [class.dot-patient]="r.role === 'PATIENT'"
+                    [class.dot-medecin]="r.role === 'MEDECIN'"
+                    [class.dot-admin]="r.role === 'ADMIN'"
+                  ></span>
+                  <span class="role-bar-name">{{ labelRole(r.role) }}</span>
+                </span>
+                <span class="role-bar-nums">
+                  <span class="role-bar-count">{{ r.count }}</span>
+                  <span class="role-bar-pct">{{ roleSharePercent(r, s) | number : '1.0-1' }}%</span>
+                </span>
+              </div>
+              <div class="role-bar-track" [attr.aria-label]="labelRole(r.role) + ' ' + roleSharePercent(r, s) + ' pour cent'">
+                <div
+                  class="role-bar-fill"
+                  [class.seg-patient]="r.role === 'PATIENT'"
+                  [class.seg-medecin]="r.role === 'MEDECIN'"
+                  [class.seg-admin]="r.role === 'ADMIN'"
+                  [style.width.%]="roleSharePercent(r, s)"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
-
-    <section class="card table-card">
-      <div class="card-header">
-        <h3>Rendez-vous (aperçu)</h3>
-        <a class="view-btn" routerLink="/admin/rdv">Voir tout</a>
-      </div>
-      <p class="muted card-intro">Consultez et modifiez le statut de chaque rendez-vous (en attente, confirmé, annulé, terminé).</p>
-    </section>
+  </section>
 </div>

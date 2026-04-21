@@ -35,7 +35,8 @@ public class PatientRendezVousController {
     @PatchMapping("/{id}/annuler")
     public ResponseEntity<?> annuler(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(rendezVousPatientService.annuler(id));
+            rendezVousPatientService.annuler(id);
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

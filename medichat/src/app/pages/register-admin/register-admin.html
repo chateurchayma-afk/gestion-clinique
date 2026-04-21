@@ -47,7 +47,7 @@
 
       <p class="bottom-text" *ngIf="message" style="color: green;">{{ message }}</p>
       <p class="bottom-text" *ngIf="errorMessage" style="color: red;">{{ errorMessage }}</p>
-      <p class="bottom-text"><a [routerLink]="['/login']">Retour connexion</a></p>
+      <p class="bottom-text"><a [routerLink]="['/login']" [queryParams]="{ form: '1' }">Retour connexion</a></p>
     </form>
   </div>
 </div>

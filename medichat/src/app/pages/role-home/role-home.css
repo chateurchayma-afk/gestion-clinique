@@ -15,7 +15,7 @@
   margin: 0 0 10px;
   font-size: clamp(1.5rem, 2.2vw, 1.85rem);
   font-weight: 800;
-  color: #111827;
+  color: var(--text-heading, #2f4a72);
 }
 
 .role-home-sub {

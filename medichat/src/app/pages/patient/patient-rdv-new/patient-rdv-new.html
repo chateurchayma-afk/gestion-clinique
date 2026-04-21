@@ -7,10 +7,40 @@
   @if (loadingMed()) {
     <p class="muted">Chargement du médecin…</p>
   } @else if (!medecin()) {
-    <div class="card warn">
-      <p>Médecin non précisé ou absent du catalogue.</p>
-      <a routerLink="/patient-dashboard/medecins" class="link">Retour à l’annuaire</a>
-    </div>
+    @if (catalogueLoading()) {
+      <p class="muted">Chargement des médecins…</p>
+    } @else if (catalogueError()) {
+      <div class="card warn">
+        <p>Impossible de charger l’annuaire des médecins.</p>
+        <a routerLink="/patient-dashboard/medecins" class="link">Ouvrir l’annuaire</a>
+      </div>
+    } @else if (catalogueMedecins().length === 0) {
+      <div class="card warn">
+        <p>Aucun médecin disponible pour le moment.</p>
+        <a routerLink="/patient-dashboard/medecins" class="link">Voir l’annuaire</a>
+      </div>
+    } @else {
+      <div class="card pick">
+        <h2 class="pick-title">Choisir un médecin</h2>
+        <p class="muted pick-lead">Sélectionnez le praticien pour lequel vous souhaitez prendre rendez-vous.</p>
+        <label class="field pick-field">
+          <span>Médecin</span>
+          <select
+            class="select-medecin"
+            #selMed
+            (change)="choisirMedecinDepuisListe(+selMed.value)"
+          >
+            <option value="" selected disabled>— Choisir dans la liste —</option>
+            @for (m of catalogueMedecins(); track m.id) {
+              <option [value]="m.id">
+                Dr {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}{{ libelleMedecinOption(m) }}
+              </option>
+            }
+          </select>
+        </label>
+        <p class="pick-alt muted">Ou parcourez la <a routerLink="/patient-dashboard/medecins" class="link">liste des médecins</a>.</p>
+      </div>
+    }
   } @else {
     <div class="layout">
       <aside class="side card">
