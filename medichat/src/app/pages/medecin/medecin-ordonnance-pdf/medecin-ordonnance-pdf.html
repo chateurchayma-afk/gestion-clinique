@@ -1,0 +1,88 @@
+<div class="mec-page">
+  <div class="mec-hero no-print">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Ordonnance</p>
+      <h1 class="mec-title">Générer ordonnance PDF</h1>
+      <p class="mec-sub muted">Créez un document propre pour vos patients (impression / PDF via le navigateur).</p>
+    </div>
+  </div>
+
+  <div class="mec-ordonnance-grid">
+    <div class="mec-form-side no-print">
+      <div class="mec-card">
+        <h2 class="mec-card-title" style="margin-top: 0">Nouvelle ordonnance</h2>
+        <div class="mec-form-grid mec-form-grid--1" style="gap: 14px">
+          <div class="mec-field">
+            <label class="mec-label" for="p">Nom du patient</label>
+            <select class="mec-select" id="p" name="p" [(ngModel)]="patientId" (ngModelChange)="persist()">
+              <option [ngValue]="null" disabled>— Sélectionner —</option>
+              <option *ngFor="let p of patients()" [ngValue]="p.id">
+                {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
+              </option>
+            </select>
+            <a class="mini-link" routerLink="/medecin-dashboard/consultation">Depuis la consultation</a>
+          </div>
+          <div class="mec-field">
+            <label class="mec-label" for="m">Médicaments prescrits</label>
+            <textarea
+              class="mec-textarea"
+              id="m"
+              name="m"
+              [(ngModel)]="medicamentsText"
+              (ngModelChange)="persist()"
+              style="min-height: 120px"
+              placeholder="Chaque ligne : Atorvastatine 20 mg — 1 comprimé / jour
+Métformine 850 mg — 2 fois par jour"
+            ></textarea>
+          </div>
+          <div class="mec-field">
+            <label class="mec-label" for="d">Date de l'ordonnance</label>
+            <input
+              class="mec-input"
+              type="date"
+              id="d"
+              name="d"
+              [(ngModel)]="dateOrdonnance"
+              (ngModelChange)="persist()"
+            />
+          </div>
+        </div>
+        <div class="mec-btn-row" style="border-top: none; margin-top: 8px; padding-top: 0">
+          <button type="button" class="mec-btn mec-btn--blue" (click)="downloadOrPrint()">🖨 Télécharger (PDF)</button>
+          <button type="button" class="mec-btn mec-btn--blue-outline" (click)="onlyPrint()">Imprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mec-preview print-root">
+      <p class="preview-cap no-print">Aperçu PDF</p>
+      <div class="mec-preview-paper" id="ordonnance-print">
+        <div class="mec-preview-head">
+          <div class="mec-head-left">
+            <div class="mec-preview-logo" aria-hidden="true">+</div>
+            <div>
+              <p class="mec-md-name"><strong>{{ medecinLabel }}</strong></p>
+              <p class="mec-md-meta muted">{{ medecinAddr }}</p>
+              <p class="mec-md-meta muted">Tél. {{ medecinTel }} · {{ medecinEmail }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="mec-ord-patient-row">
+          <span class="mec-ord-strong">{{ patientName() }}</span>
+          <span class="muted date-fr">{{ formatFrDisplay(dateOrdonnance) }}</span>
+        </div>
+        <h2 class="mec-preview-doc-title">Ordonnance</h2>
+        <div class="mec-preview-meds" *ngIf="bodyLines().length; else emptyL">
+          <p *ngFor="let line of bodyLines()">• {{ line }}</p>
+        </div>
+        <ng-template #emptyL>
+          <p class="muted">— Médicaments non renseignés —</p>
+        </ng-template>
+        <div class="mec-preview-sig">
+          <p class="mec-sig-cursive">Signature</p>
+          <p class="mec-sig-label">Signature du médecin</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

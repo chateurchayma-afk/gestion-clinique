@@ -1,0 +1,24 @@
+:host a.mec-btn,
+a.mec-btn {
+  text-decoration: none !important;
+  align-self: flex-start;
+}
+
+.mec-hero a.mec-btn--dark {
+  color: #fff;
+}
+
+.mec-hero a.mec-btn--dark:hover {
+  color: #fff;
+  filter: brightness(1.05);
+}
+
+.draft-hint {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+.mec-patient-pick {
+  width: 100%;
+}

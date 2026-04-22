@@ -1,0 +1,29 @@
+.table-scroll {
+  overflow-x: auto;
+}
+
+.mec-patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.mec-patient-table th,
+.mec-patient-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mec-patient-table th {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 800;
+  background: #f8fafc;
+}
+
+.mec-patient-table tbody tr:hover {
+  background: #f8fbff;
+}

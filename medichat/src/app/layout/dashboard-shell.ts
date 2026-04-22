@@ -48,6 +48,9 @@ export class DashboardShell {
 
   readonly shellConfig: DashboardShellConfig = this.resolveShell();
 
+  /** Style nav. médecin (items type « fiche wireframe ») sans retirer le thème MediChat. */
+  readonly isMedecinShell = this.shellConfig.userRoleLabel === 'Médecin';
+
   readonly user = signal<StoredUser | null>(this.readUser());
 
   readonly profileLink = computed(() => {
@@ -257,8 +260,26 @@ export class DashboardShell {
     if (url.includes('/admin/dashboard')) {
       return 'Tableau de bord';
     }
-    if (url.includes('/medecin-dashboard')) {
+    if (url.includes('/medecin-dashboard/ordonnance-pdf')) {
+      return 'Ordonnance PDF';
+    }
+    if (url.includes('/medecin-dashboard/consultation')) {
+      return 'Consultation';
+    }
+    if (url.includes('/medecin-dashboard/dossier-medical')) {
+      return 'Dossier médical';
+    }
+    if (url.includes('/medecin-dashboard/rendez-vous')) {
+      return 'Rendez-vous';
+    }
+    if (url.includes('/medecin-dashboard/patients')) {
+      return 'Liste des patients';
+    }
+    if (url.includes('/medecin-dashboard/accueil')) {
       return 'Accueil';
+    }
+    if (url.includes('/medecin-dashboard')) {
+      return 'Espace médecin';
     }
     return 'Tableau de bord';
   }

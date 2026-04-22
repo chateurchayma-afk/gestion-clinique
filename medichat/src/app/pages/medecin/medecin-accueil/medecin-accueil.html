@@ -1,0 +1,185 @@
+<div class="medecin-home dashboard-pro" *ngIf="!loadError(); else errTpl">
+  <p class="medecin-home-kicker">Espace médecin</p>
+  <h1 class="medecin-home-title">Tableau de bord</h1>
+  <p class="medecin-home-sub muted">Vue d’ensemble de l’activité sur la période choisie.</p>
+
+  <ng-container *ngIf="!loading(); else loadingTpl">
+    <section class="dashboard-section" aria-label="Indicateurs">
+      <h2 class="visually-hidden">Indicateurs clés</h2>
+      <div class="kpi-board" *ngIf="kpis() as k" role="list">
+        <div class="kpi-cell kpi-cell--users" role="listitem">
+          <span class="kpi-value">{{ k.totalPatients }}</span>
+          <span class="kpi-label">Patients (distincts)</span>
+        </div>
+        <div class="kpi-cell kpi-cell--ok" role="listitem">
+          <span class="kpi-value">{{ k.termines }}</span>
+          <span class="kpi-label">Rendez-vous terminés</span>
+        </div>
+        <div class="kpi-cell kpi-cell--pending" role="listitem">
+          <span class="kpi-value">{{ k.enAttente }}</span>
+          <span class="kpi-label">En cours / en attente</span>
+        </div>
+        <div class="kpi-cell kpi-cell--refused" role="listitem">
+          <span class="kpi-value">{{ k.annules }}</span>
+          <span class="kpi-label">Annulés</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="medecin-grid-2">
+      <section class="card chart-card" aria-labelledby="chart-rdv">
+        <header class="card-bar-head">
+          <h2 id="chart-rdv" class="card-bar-title">Rendez-vous</h2>
+          <label class="card-bar-select">
+            <span class="visually-hidden">Période graphique</span>
+            <select
+              [value]="selectedYear()"
+              (change)="onSelectYear($any($event.target).value)"
+            >
+              <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+            </select>
+          </label>
+        </header>
+        <p class="chart-legend">
+          <span class="leg-item"
+            ><span class="leg-sq leg-sq--total" aria-hidden="true"></span> Total</span
+          >
+          <span class="leg-item"
+            ><span class="leg-sq leg-sq--term" aria-hidden="true"></span> Terminés</span
+          >
+        </p>
+        <div class="bar-chart" *ngIf="monthly() as ch" role="img" [attr.aria-label]="'Histogramme ' + selectedYear()">
+          <div class="bar-col" *ngFor="let label of monthLabels; let i = index">
+            <div class="bar-pair">
+              <div
+                class="bar-total"
+                [style.height.%]="barHeight(ch.totalByMonth[i], ch.maxVal)"
+                [attr.title]="'Total : ' + ch.totalByMonth[i]"
+              ></div>
+              <div
+                class="bar-termines"
+                [style.height.%]="barHeight(ch.terminesByMonth[i], ch.maxVal)"
+                [attr.title]="'Terminés : ' + ch.terminesByMonth[i]"
+              ></div>
+            </div>
+            <span class="bar-x">{{ label }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card top-card" aria-labelledby="top-patients">
+        <header class="card-bar-head">
+          <h2 id="top-patients" class="card-bar-title">Top patients</h2>
+          <label class="card-bar-select">
+            <span class="visually-hidden">Période</span>
+            <select
+              [value]="topScope()"
+              (change)="setTopScope($any($event.target).value)"
+            >
+              <option value="annee">Année</option>
+              <option value="mois">Mois en cours</option>
+              <option value="semaine">7 jours</option>
+            </select>
+          </label>
+        </header>
+        <ul class="top-list" *ngIf="topPatients().length; else noTop">
+          <li *ngFor="let p of topPatients()" class="top-row">
+            <span class="top-av">{{ initials(p.prenom, p.nom) }}</span>
+            <div class="top-mid">
+              <span class="top-name">{{ p.prenom }} {{ p.nom }}</span>
+            </div>
+            <span class="top-badge">{{ p.count }} RDV</span>
+          </li>
+        </ul>
+        <ng-template #noTop>
+          <p class="muted no-top">Aucun rendez-vous sur cette période.</p>
+        </ng-template>
+      </section>
+    </div>
+
+    <div class="medecin-grid-2 medecin-grid-2--bottom">
+      <section class="card table-card" aria-labelledby="rdv-recents">
+        <header class="card-bar-head">
+          <h2 id="rdv-recents" class="card-bar-title">Rendez-vous récents</h2>
+          <span class="card-bar-hint muted">Année {{ selectedYear() }}</span>
+        </header>
+        <div class="table-wrap" *ngIf="recentRdvs().length; else noRecent">
+          <table class="data-table medecin-table">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Date &amp; heure</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of recentRdvs()">
+                <td>
+                  <div class="cell-patient">
+                    <span class="cell-av">{{ initials(r.patientPrenom, r.patientNom) }}</span>
+                    <div>
+                      <span class="cell-name">{{ r.patientPrenom }} {{ r.patientNom }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="queue-date">{{ dateLine(r) }}</span>
+                  <span class="queue-time muted">{{ heureLine(r) }}</span>
+                </td>
+                <td>
+                  <span class="pill" [ngClass]="statutPillClass(r.statut)">
+                    {{ statutLabel(r.statut) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noRecent>
+          <p class="muted no-top">Aucun rendez-vous sur cette année.</p>
+        </ng-template>
+      </section>
+
+      <section class="card stats-card" aria-labelledby="appt-stats">
+        <header class="card-bar-head">
+          <h2 id="appt-stats" class="card-bar-title">Statistiques des rendez-vous</h2>
+        </header>
+        <div class="donut-block" *ngIf="kpis() as k2">
+          <div class="donut-wrap" aria-hidden="true">
+            <div class="donut-ring" [ngStyle]="donutStyle()"></div>
+            <div class="donut-center">
+              <span class="donut-center-num">{{ k2.totalRdvs }}</span>
+              <span class="donut-center-cap">au total</span>
+            </div>
+          </div>
+          <ul class="stat-legend">
+            <li>
+              <span class="dot dot--ok"></span> Terminés
+              <strong>{{ k2.termines }}</strong>
+            </li>
+            <li>
+              <span class="dot dot--pend"></span> En cours
+              <strong>{{ k2.enAttente }}</strong>
+            </li>
+            <li>
+              <span class="dot dot--bad"></span> Annulés
+              <strong>{{ k2.annules }}</strong>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="medecin-home dashboard-pro">
+    <p class="muted">Chargement du tableau de bord…</p>
+  </div>
+</ng-template>
+
+<ng-template #errTpl>
+  <div class="medecin-home medecin-home--error card">
+    <p>{{ loadError() }}</p>
+  </div>
+</ng-template>

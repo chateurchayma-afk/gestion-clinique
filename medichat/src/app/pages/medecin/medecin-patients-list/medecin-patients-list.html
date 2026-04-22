@@ -1,0 +1,43 @@
+<div class="mec-page">
+  <div class="mec-hero">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Cabinets</p>
+      <h1 class="mec-title">Liste des patients</h1>
+      <p class="mec-sub muted">Vue d’ensemble des comptes patients enregistrés sur la clinique.</p>
+    </div>
+  </div>
+
+  <div class="mec-card" *ngIf="!loading(); else loadTpl">
+    <div class="table-scroll" *ngIf="rows().length; else emptyTpl">
+      <table class="mec-patient-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>N° dossier</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of rows()">
+            <td>
+              <strong
+                >{{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}</strong
+              >
+            </td>
+            <td>{{ p.utilisateur.email || '—' }}</td>
+            <td>{{ p.utilisateur.telephone || '—' }}</td>
+            <td>{{ p.numeroDossier || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <ng-template #loadTpl>
+    <p class="muted">Chargement…</p>
+  </ng-template>
+  <ng-template #emptyTpl>
+    <p class="muted">Aucun patient pour le moment.</p>
+  </ng-template>
+</div>

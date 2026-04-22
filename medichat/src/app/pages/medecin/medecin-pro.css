@@ -1,0 +1,366 @@
+/* Fiches médecin : alignement sur le thème (#4f6fa8, #f4f7fb) */
+:host {
+  display: block;
+  font-family: var(--font-sans);
+  color: var(--text-heading, #1e3a5f);
+}
+
+.mec-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.mec-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mec-hero-text {
+  min-width: 0;
+}
+
+.mec-kicker {
+  margin: 0 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.mec-title {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 1vw + 1rem, 1.6rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-heading, #0f172a);
+}
+
+.mec-sub {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.mec-pill-tab {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 10px;
+}
+
+.mec-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.mec-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.mec-btn--primary {
+  background: linear-gradient(135deg, #4f6fa8, #5c7eb8);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(79, 111, 168, 0.25);
+}
+
+.mec-btn--primary:hover {
+  filter: brightness(1.04);
+}
+
+.mec-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.mec-btn--ghost {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.mec-btn--ghost:hover {
+  border-color: #93c5fd;
+  color: #1e3a5f;
+  background: #f8fafc;
+}
+
+.mec-btn--dark {
+  background: #0f172a;
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  padding: 10px 16px;
+}
+
+.mec-btn--dark:hover {
+  background: #1e293b;
+}
+
+.mec-btn--blue {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.mec-btn--blue:hover {
+  background: #1d4ed8;
+}
+
+.mec-btn--blue-outline {
+  background: #fff;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+}
+
+.mec-btn--blue-outline:hover {
+  background: #eff6ff;
+}
+
+.mec-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  padding: 22px 24px 24px;
+  margin-bottom: 20px;
+}
+
+.mec-card-title {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.mec-section-hint {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.mec-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+
+.mec-form-grid--1 {
+  grid-template-columns: 1fr;
+}
+
+.mec-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mec-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.02em;
+}
+
+.mec-input,
+.mec-select,
+.mec-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 0.9rem;
+  color: #0f172a;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mec-input:focus,
+.mec-select:focus,
+.mec-textarea:focus {
+  outline: none;
+  border-color: #4f6fa8;
+  box-shadow: 0 0 0 3px rgba(79, 111, 168, 0.15);
+}
+
+.mec-textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.mec-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.mec-data-table th {
+  text-align: left;
+  padding: 10px 8px;
+  background: #eff6ff;
+  color: #1e3a5f;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid #e2e8f0;
+}
+
+.mec-data-table td {
+  padding: 8px;
+  border: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+.mec-data-table .mec-input {
+  padding: 6px 8px;
+  font-size: 0.8125rem;
+}
+
+.mec-dur {
+  color: #ea580c;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mec-cb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.mec-cb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.mec-cb input {
+  width: 16px;
+  height: 16px;
+  accent-color: #4f6fa8;
+}
+
+.mec-ordonnance-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.mec-preview {
+  position: sticky;
+  top: 20px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 420px;
+}
+
+.mec-preview-paper {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+  padding: 24px 20px 32px;
+  min-height: 360px;
+}
+
+.mec-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mec-preview-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.mec-preview-doc-title {
+  margin: 16px 0 12px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-align: center;
+  color: #0f172a;
+}
+
+.mec-preview-meds {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #334155;
+  white-space: pre-wrap;
+}
+
+.mec-preview-sig {
+  margin-top: 32px;
+  text-align: right;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .mec-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .mec-cb-grid {
+    grid-template-columns: 1fr;
+  }
+  .mec-ordonnance-grid {
+    grid-template-columns: 1fr;
+  }
+  .mec-preview {
+    position: static;
+  }
+}

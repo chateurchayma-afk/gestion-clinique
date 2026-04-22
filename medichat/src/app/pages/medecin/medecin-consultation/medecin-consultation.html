@@ -1,0 +1,148 @@
+<div class="mec-page">
+  <div class="mec-hero">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Acte</p>
+      <h1 class="mec-title">Consultation</h1>
+      <p class="mec-sub muted">Saisie d’une consultation et du traitement prescrit.</p>
+    </div>
+  </div>
+
+  <form (ngSubmit)="save()">
+    <div class="mec-card">
+      <div class="mec-form-grid mec-form-grid--1" style="margin-top: 0">
+        <div class="mec-field">
+          <label class="mec-label" for="p">Nom du patient</label>
+          <select
+            class="mec-select"
+            id="p"
+            name="p"
+            [(ngModel)]="patientId"
+            (ngModelChange)="persist()"
+          >
+            <option [ngValue]="null" disabled>— Sélectionner —</option>
+            <option *ngFor="let p of patients()" [ngValue]="p.id">
+              {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
+            </option>
+          </select>
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="a">Antécédents médicaux (pour rappel)</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="a"
+            name="a"
+            [(ngModel)]="antecedents"
+            (ngModelChange)="persist()"
+            placeholder="Rappel court"
+            autocomplete="off"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="s">Les symptômes</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="s"
+            name="s"
+            [(ngModel)]="symptomes"
+            (ngModelChange)="persist()"
+            placeholder="Description des symptômes"
+            autocomplete="off"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="d">Diagnostic</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="d"
+            name="d"
+            [(ngModel)]="diagnostic"
+            (ngModelChange)="persist()"
+            placeholder="Diagnostic"
+            autocomplete="off"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="mec-card">
+      <h2 class="mec-card-title" style="margin-bottom: 12px">Traitement prescrit</h2>
+      <div class="table-wrap">
+        <table class="mec-data-table">
+          <thead>
+            <tr>
+              <th>Médicament</th>
+              <th>Posologie</th>
+              <th>Durée (jours)</th>
+              <th class="th-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of lignes; let i = index">
+              <td>
+                <input
+                  class="mec-input"
+                  name="m{{ i }}"
+                  [(ngModel)]="row.medicament"
+                  (ngModelChange)="persist()"
+                  placeholder="ex. Aspirine 100mg"
+                />
+              </td>
+              <td>
+                <input
+                  class="mec-input"
+                  name="pos{{ i }}"
+                  [(ngModel)]="row.posologie"
+                  (ngModelChange)="persist()"
+                  placeholder="1 cp / jour"
+                />
+              </td>
+              <td>
+                <input
+                  class="mec-input mec-dur"
+                  name="dur{{ i }}"
+                  [(ngModel)]="row.dureeJours"
+                  (ngModelChange)="persist()"
+                  inputmode="numeric"
+                  placeholder="7"
+                />
+              </td>
+              <td class="td-x">
+                <button type="button" class="x-btn" (click)="removeLigne(i)" *ngIf="lignes.length > 1">
+                  ×
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="mec-btn mec-btn--ghost" style="margin-top: 12px" (click)="addLigne()">
+        + Ligne
+      </button>
+      <div class="mec-field" style="margin-top: 16px">
+        <label class="mec-label" for="n">Notes</label>
+        <input
+          class="mec-input"
+          type="text"
+          id="n"
+          name="n"
+          [(ngModel)]="notes"
+          (ngModelChange)="persist()"
+          placeholder="ex. Repos + Régime alimentaire"
+        />
+      </div>
+    </div>
+
+    <div class="mec-btn-row">
+      <button type="button" class="mec-btn mec-btn--ghost" (click)="save()">Enregistrer brouillon</button>
+      <div style="display: flex; gap: 10px; margin-left: auto">
+        <button type="button" class="mec-btn mec-btn--ghost" (click)="genererOrdonnance()">
+          Générer ordonnance
+        </button>
+        <button type="submit" class="mec-btn mec-btn--primary">Enregistrer</button>
+      </div>
+    </div>
+  </form>
+</div>

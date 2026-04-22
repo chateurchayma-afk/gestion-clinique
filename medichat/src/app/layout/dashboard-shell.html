@@ -1,4 +1,8 @@
-<div class="patient-layout" [class.layout--nav-open]="navOpen()">
+<div
+  class="patient-layout"
+  [class.layout--nav-open]="navOpen()"
+  [class.layout--medecin]="isMedecinShell"
+>
   @if (navOpen()) {
     <button type="button" class="nav-backdrop" (click)="closeNav()" aria-label="Fermer le menu"></button>
   }

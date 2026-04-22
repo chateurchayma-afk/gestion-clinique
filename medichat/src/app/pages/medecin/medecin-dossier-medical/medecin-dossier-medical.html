@@ -1,0 +1,226 @@
+<div class="mec-page">
+  <div class="mec-hero">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Dossier</p>
+      <h1 class="mec-title">Dossier médical</h1>
+      <p class="mec-sub muted">Enregistrer les informations de santé du patient (brouillon local).</p>
+      <div class="mec-pill-tab">Informations médicales</div>
+    </div>
+    <a routerLink="/medecin-dashboard/consultation" class="mec-btn mec-btn--dark">Nouvelle consultation</a>
+  </div>
+
+  <div class="mec-field mec-patient-pick" style="max-width: 480px; margin-bottom: 16px">
+    <label class="mec-label" for="p">Patient</label>
+    <select
+      class="mec-select"
+      id="p"
+      name="p"
+      [(ngModel)]="patientId"
+      (ngModelChange)="onPatientChange()"
+    >
+      <option [ngValue]="null" disabled>— Sélectionner un patient —</option>
+      <option *ngFor="let p of patients()" [ngValue]="p.id">
+        {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
+      </option>
+    </select>
+  </div>
+
+  <p class="muted draft-hint" *ngIf="patientId != null">
+    Les données sont stockées sur ce navigateur (LocalStorage) — pas un dossier cliniquement validé
+    côté serveur.
+  </p>
+
+  <form (ngSubmit)="save()">
+    <div class="mec-card">
+      <h2 class="mec-card-title">informations médicales</h2>
+      <p class="mec-section-hint">
+        Saisissez les antécédents et les informations médicales du patient.
+      </p>
+      <div class="mec-form-grid">
+        <div class="mec-field">
+          <label class="mec-label" for="gs">Groupe sanguin</label>
+          <select class="mec-select" id="gs" name="gs" [(ngModel)]="form.groupeSanguin">
+            <option value="">Sélectionner le groupe sanguin</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="NSP">Inconnu</option>
+          </select>
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="taille">Taille (cm)</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="taille"
+            name="taille"
+            [(ngModel)]="form.tailleCm"
+            placeholder="Entrez la taille"
+            inputmode="decimal"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="poids">Poids (kg)</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="poids"
+            name="poids"
+            [(ngModel)]="form.poidsKg"
+            placeholder="Entrez le poids"
+            inputmode="decimal"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="al">Allergies</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="al"
+            name="al"
+            [(ngModel)]="form.allergies"
+            placeholder="Médicaments, aliments, etc."
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="med">Médicaments actuels</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="med"
+            name="med"
+            [(ngModel)]="form.medicaments"
+            placeholder="Listez les médicaments en cours"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="mc">Maladies chroniques</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="mc"
+            name="mc"
+            [(ngModel)]="form.maladiesChroniques"
+            placeholder="Listez les maladies chroniques"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="mec-card">
+      <h2 class="mec-card-title">Medical History</h2>
+      <div class="mec-form-grid mec-form-grid--1" style="margin-top: 8px">
+        <div class="mec-field">
+          <label class="mec-label" for="ic">Interventions chirurgicales antérieures</label>
+          <textarea
+            class="mec-textarea"
+            id="ic"
+            name="ic"
+            [(ngModel)]="form.interventions"
+            placeholder="Listez les interventions avec les dates"
+          ></textarea>
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="ho">Hospitalisations antérieures</label>
+          <textarea
+            class="mec-textarea"
+            id="ho"
+            name="ho"
+            [(ngModel)]="form.hospitalisations"
+            placeholder="Listez les hospitalisations avec les dates"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="mec-card">
+      <h2 class="mec-card-title">Antécédents médicaux familiaux</h2>
+      <div class="mec-cb-grid">
+        <label class="mec-cb"
+          ><input type="checkbox" name="c1" [(ngModel)]="form.famDiabete" /> Diabète</label
+        >
+        <label class="mec-cb"
+          ><input type="checkbox" name="c2" [(ngModel)]="form.famHypertension" /> Hypertension</label
+        >
+        <label class="mec-cb"
+          ><input type="checkbox" name="c3" [(ngModel)]="form.famAsthme" /> Asthme</label
+        >
+        <label class="mec-cb"
+          ><input
+            type="checkbox"
+            name="c4"
+            [(ngModel)]="form.famCardiaque"
+          />
+          Maladies cardiaques</label
+        >
+        <label class="mec-cb"
+          ><input type="checkbox" name="c5" [(ngModel)]="form.famMentaux" /> Troubles de santé
+          mentale</label
+        >
+        <label class="mec-cb"
+          ><input type="checkbox" name="c6" [(ngModel)]="form.famCancer" /> Cancer</label
+        >
+      </div>
+    </div>
+
+    <div class="mec-card">
+      <h2 class="mec-card-title">Informations sur le mode de vie</h2>
+      <div class="mec-form-grid mec-form-grid--1" style="margin-top: 8px">
+        <div class="mec-field">
+          <label class="mec-label" for="tabac">Statut tabagique</label>
+          <select class="mec-select" id="tabac" name="tabac" [(ngModel)]="form.tabac">
+            <option value="">Sélectionner le statut</option>
+            <option value="jamais">Jamais</option>
+            <option value="ancien">Ancien fumeur</option>
+            <option value="occasionnel">Occasionnel</option>
+            <option value="actif">Fumeur actif</option>
+          </select>
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="alc">Consommation d'alcool</label>
+          <select class="mec-select" id="alc" name="alc" [(ngModel)]="form.alcool">
+            <option value="">Sélectionner la consommation</option>
+            <option value="aucune">Aucune</option>
+            <option value="moderee">Modérée</option>
+            <option value="elevee">Élevée</option>
+          </select>
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="act">Fréquence d'activité physique</label>
+          <select class="mec-select" id="act" name="act" [(ngModel)]="form.activite">
+            <option value="">Sélectionner la fréquence</option>
+            <option value="faible">Faible</option>
+            <option value="moderee2">Modérée</option>
+            <option value="elevee2">Élevée</option>
+            <option value="sportif">Activité sportive régulière</option>
+          </select>
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="alim">Habitudes alimentaires</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="alim"
+            name="alim"
+            [(ngModel)]="form.alimentation"
+            placeholder="Listez"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="mec-btn-row">
+      <button type="button" class="mec-btn mec-btn--ghost" (click)="reset()">Effacer brouillon</button>
+      <div style="display: flex; gap: 10px; margin-left: auto">
+        <button type="submit" class="mec-btn mec-btn--primary" [disabled]="patientId == null">
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

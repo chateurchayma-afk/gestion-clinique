@@ -20,7 +20,12 @@ import { AdminRendezVousList } from './pages/admin/admin-rendez-vous-list/admin-
 import { DashboardShell } from './layout/dashboard-shell';
 import { ADMIN_SHELL, MEDECIN_SHELL, PATIENT_SHELL } from './layout/dashboard-shell.config';
 import { NotFound } from './pages/not-found/not-found';
-import { RoleHome } from './pages/role-home/role-home';
+import { MedecinAccueil } from './pages/medecin/medecin-accueil/medecin-accueil';
+import { MedecinConsultation } from './pages/medecin/medecin-consultation/medecin-consultation';
+import { MedecinDossierMedical } from './pages/medecin/medecin-dossier-medical/medecin-dossier-medical';
+import { MedecinOrdonnancePdf } from './pages/medecin/medecin-ordonnance-pdf/medecin-ordonnance-pdf';
+import { MedecinPatientsList } from './pages/medecin/medecin-patients-list/medecin-patients-list';
+import { MedecinRendezVous } from './pages/medecin/medecin-rendez-vous/medecin-rendez-vous';
 import { PatientHome } from './pages/patient/patient-home/patient-home';
 import { PatientMedecins } from './pages/patient/patient-medecins/patient-medecins';
 import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-list';
@@ -73,15 +78,13 @@ export const routes: Routes = [
     data: { shell: MEDECIN_SHELL },
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'accueil' },
-      {
-        path: 'accueil',
-        component: RoleHome,
-        data: {
-          title: 'Espace médecin',
-          subtitle: 'Votre tableau de bord sera enrichi au fil du projet.'
-        }
-      },
-      { path: 'mon-profil', component: AccountProfil }
+      { path: 'accueil', component: MedecinAccueil },
+      { path: 'mon-profil', component: AccountProfil },
+      { path: 'patients', component: MedecinPatientsList },
+      { path: 'rendez-vous', component: MedecinRendezVous },
+      { path: 'dossier-medical', component: MedecinDossierMedical },
+      { path: 'consultation', component: MedecinConsultation },
+      { path: 'ordonnance-pdf', component: MedecinOrdonnancePdf }
     ]
   },
   {

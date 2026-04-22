@@ -1,0 +1,115 @@
+.mec-form-side {
+  min-width: 0;
+}
+
+.preview-cap {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 8px 8px;
+}
+
+.mec-head-left {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.mec-md-name {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.mec-md-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.mec-ord-patient-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 8px;
+  font-size: 0.9rem;
+}
+
+.mec-ord-strong {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mec-sig-cursive {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1.25rem;
+  font-style: italic;
+  color: #334155;
+  margin: 0 0 4px;
+}
+
+.mec-sig-label {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mini-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4f6fa8;
+  text-decoration: none !important;
+}
+
+.mini-link:hover {
+  text-decoration: underline !important;
+}
+
+@media print {
+  .no-print,
+  .topbar,
+  .sidebar,
+  .notif-wrap {
+    display: none !important;
+  }
+
+  :host {
+    background: #fff;
+  }
+
+  .mec-page {
+    max-width: none;
+  }
+
+  .mec-ordonnance-grid {
+    display: block;
+  }
+
+  .mec-preview,
+  .mec-form-side {
+    display: block;
+    max-width: none;
+  }
+
+  .mec-preview {
+    position: static;
+    background: #fff;
+    border: none;
+    padding: 0;
+  }
+
+  .mec-preview-paper {
+    box-shadow: none;
+  }
+
+  .print-root {
+    page-break-inside: avoid;
+  }
+}

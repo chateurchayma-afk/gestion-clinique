@@ -1,0 +1,33 @@
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.th-actions,
+.td-x {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.td-x {
+  vertical-align: middle;
+}
+
+.x-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.x-btn:hover {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}

@@ -60,8 +60,13 @@ export const MEDECIN_SHELL: DashboardShellConfig = {
     {
       title: null,
       items: [
-        { label: 'Accueil', path: '/medecin-dashboard/accueil', exact: true },
-        { label: 'Mon profil', path: '/medecin-dashboard/mon-profil', exact: true }
+        { label: 'Médecin — Accueil', path: '/medecin-dashboard/accueil', exact: true },
+        { label: 'Profil', path: '/medecin-dashboard/mon-profil', exact: true },
+        { label: 'Liste des patients', path: '/medecin-dashboard/patients' },
+        { label: 'Rendez-vous', path: '/medecin-dashboard/rendez-vous' },
+        { label: 'Dossier médical', path: '/medecin-dashboard/dossier-medical' },
+        { label: 'Consultation', path: '/medecin-dashboard/consultation' },
+        { label: 'Ordonnance PDF', path: '/medecin-dashboard/ordonnance-pdf' }
       ]
     }
   ]
