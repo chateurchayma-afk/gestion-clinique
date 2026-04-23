@@ -1,5 +1,6 @@
 package com.pfe.gestioncliniquebackend.repository;
 
+import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.RendezVous;
 import com.pfe.gestioncliniquebackend.enums.StatutRendezVous;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
+
+    @Query("SELECT DISTINCT r.patient FROM RendezVous r WHERE r.medecin.id = :medecinId")
+    List<Patient> findDistinctPatientsByMedecinId(@Param("medecinId") Long medecinId);
+
+    boolean existsByPatient_IdAndMedecin_Id(Long patientId, Long medecinId);
 
     @Query(
             "SELECT r FROM RendezVous r JOIN FETCH r.medecin m JOIN FETCH m.utilisateur u "

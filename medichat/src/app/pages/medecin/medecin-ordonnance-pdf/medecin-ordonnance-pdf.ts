@@ -2,12 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../core/toast.service';
-import { Patient, PatientService } from '../../../services/patient.service';
+import { MedecinPortalService } from '../../../services/medecin-portal.service';
+import { Patient } from '../../../services/patient.service';
 import { RouterLink } from '@angular/router';
-
-const LS_CONS = 'medichat_consultation_brouillon';
-const LS_ORD = 'medichat_ordonnance_meta';
-const LS_ORD_TEXT = 'medichat_ordonnance_texte';
+import {
+  formatLignesPourOrdonnance,
+  LS_CONSULTATION_BROUILLON,
+  LS_ORDONNANCE_META,
+  LS_ORDONNANCE_TEXTE,
+  parseConsultationBrouillon
+} from '../medecin-ordonnance-sync';
+import html2pdf from 'html2pdf.js';
 
 function isoToday(): string {
   const d = new Date();
@@ -33,9 +38,11 @@ function formatFr(iso: string): string {
   styleUrls: ['./medecin-ordonnance-pdf.css', '../medecin-pro.css']
 })
 export class MedecinOrdonnancePdf implements OnInit {
-  private readonly patientsApi = inject(PatientService);
+  private readonly medecinPortal = inject(MedecinPortalService);
   private readonly toast = inject(ToastService);
   readonly patients = signal<Patient[]>([]);
+  /** Génération PDF (html2pdf) en cours */
+  readonly pdfBusy = signal(false);
   patientId: number | null = null;
   medicamentsText = '';
   dateOrdonnance = isoToday();
@@ -70,7 +77,7 @@ export class MedecinOrdonnancePdf implements OnInit {
 
   ngOnInit(): void {
     this.hydrateUser();
-    const rawMeta = localStorage.getItem(LS_ORD);
+    const rawMeta = localStorage.getItem(LS_ORDONNANCE_META);
     if (rawMeta) {
       try {
         const o = JSON.parse(rawMeta) as { dateOrdonnance?: string; patientId?: number };
@@ -84,15 +91,19 @@ export class MedecinOrdonnancePdf implements OnInit {
         /* */
       }
     }
-    const rawTxt = localStorage.getItem(LS_ORD_TEXT);
+    const rawTxt = localStorage.getItem(LS_ORDONNANCE_TEXTE);
     if (rawTxt) {
       this.medicamentsText = rawTxt;
     }
 
-    this.patientsApi.getAllPatients().subscribe({
+    this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
-        this.patients.set(list ?? []);
-        this.importFromConsultation(list ?? []);
+        const L = list ?? [];
+        this.patients.set(L);
+        this.importFromConsultation(L);
+        if (this.patientId != null && !L.some((p) => p.id === this.patientId)) {
+          this.patientId = L[0]?.id ?? null;
+        }
       },
       error: () => this.toast.show('Patients indisponibles.', 'error')
     });
@@ -120,65 +131,80 @@ export class MedecinOrdonnancePdf implements OnInit {
   }
 
   private importFromConsultation(list: Patient[]): void {
+    const cons = parseConsultationBrouillon(localStorage.getItem(LS_CONSULTATION_BROUILLON));
+    const fromConsultation = cons
+      ? formatLignesPourOrdonnance(cons.lignes ?? [], cons.notes)
+      : '';
+    if (fromConsultation.trim().length > 0) {
+      this.medicamentsText = fromConsultation;
+      this.patientId = cons?.patientId ?? this.patientId ?? list[0]?.id ?? null;
+      this.persist();
+      return;
+    }
     if (this.medicamentsText.trim().length > 0) {
       this.patientId = this.patientId ?? list[0]?.id ?? null;
       return;
     }
-    const raw = localStorage.getItem(LS_CONS);
-    if (!raw) {
-      this.patientId = this.patientId ?? list[0]?.id ?? null;
-      return;
-    }
-    try {
-      const o = JSON.parse(raw) as {
-        patientId?: number;
-        lignes?: { medicament: string; posologie: string; dureeJours: string }[];
-        notes?: string;
-      };
-      this.patientId = o.patientId ?? this.patientId ?? list[0]?.id ?? null;
-      if (o.lignes?.length) {
-        this.medicamentsText = o.lignes
-          .map((l) => {
-            const m = l.medicament?.trim();
-            if (!m) {
-              return '';
-            }
-            const p = l.posologie?.trim() || '';
-            const d = l.dureeJours?.trim() || '—';
-            return `${m} : ${p} — ${d} jours`;
-          })
-          .filter((x) => x.length > 0)
-          .join('\n');
-        if (o.notes?.trim()) {
-          this.medicamentsText += `\n\nNotes : ${o.notes.trim()}`;
-        }
-      }
-    } catch {
-      this.patientId = this.patientId ?? list[0]?.id ?? null;
-    }
+    this.patientId = this.patientId ?? list[0]?.id ?? null;
   }
 
   persist(): void {
     try {
       localStorage.setItem(
-        LS_ORD,
+        LS_ORDONNANCE_META,
         JSON.stringify({ dateOrdonnance: this.dateOrdonnance, patientId: this.patientId })
       );
-      localStorage.setItem(LS_ORD_TEXT, this.medicamentsText);
+      localStorage.setItem(LS_ORDONNANCE_TEXTE, this.medicamentsText);
     } catch {
       /* */
     }
   }
 
-  downloadOrPrint(): void {
+  /** Télécharge un fichier .pdf (pas le dialogue d’impression). */
+  async downloadPdfFile(): Promise<void> {
+    this.persist();
+    const el = document.getElementById('ordonnance-print');
+    if (!el) {
+      this.toast.show('Aperçu introuvable.', 'error');
+      return;
+    }
+    this.pdfBusy.set(true);
+    const filename = this.buildOrdonnanceFileName();
+    const options = {
+      margin: 10,
+      filename,
+      image: { type: 'jpeg' as const, quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+    };
+    try {
+      await html2pdf().set(options).from(el).save();
+      this.toast.show('Fichier PDF enregistré.', 'success');
+    } catch {
+      this.toast.show('Export PDF impossible. Utilisez « Imprimer » puis enregistrer en PDF.', 'error');
+    } finally {
+      this.pdfBusy.set(false);
+    }
+  }
+
+  /** Dialogue d’impression du navigateur. */
+  printOrdonnance(): void {
     this.persist();
     setTimeout(() => {
       globalThis.print();
     }, 150);
   }
 
-  onlyPrint(): void {
-    this.downloadOrPrint();
+  private buildOrdonnanceFileName(): string {
+    const d = (this.dateOrdonnance ?? isoToday()).replaceAll(/[^0-9-]/g, '') || 'date';
+    const raw = (this.patientName() || '')
+      .replaceAll(/[—–]/g, '')
+      .trim()
+      .replaceAll(/[<>":/\\|?*\s]+/g, '_')
+      .replaceAll(/_+/g, '_')
+      .replaceAll(/^_+|_+$/g, '') || 'Ordonnance';
+    return `${raw}-${d}.pdf`;
   }
 
   formatFrDisplay(iso: string): string {

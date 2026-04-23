@@ -3,7 +3,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
-import { Patient, PatientService } from '../../../services/patient.service';
+import { MedecinPortalService } from '../../../services/medecin-portal.service';
+import { Patient } from '../../../services/patient.service';
 
 const LS_PREFIX = 'medichat_dossier_patient_';
 
@@ -59,7 +60,7 @@ function emptyDossier(): DossierMedicalForm {
   styleUrls: ['./medecin-dossier-medical.css', '../medecin-pro.css']
 })
 export class MedecinDossierMedical implements OnInit {
-  private readonly patientsApi = inject(PatientService);
+  private readonly medecinPortal = inject(MedecinPortalService);
   private readonly toast = inject(ToastService);
 
   readonly patients = signal<Patient[]>([]);
@@ -67,7 +68,7 @@ export class MedecinDossierMedical implements OnInit {
   form: DossierMedicalForm = emptyDossier();
 
   ngOnInit(): void {
-    this.patientsApi.getAllPatients().subscribe({
+    this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
         this.patients.set(list ?? []);
         if (list[0]) {

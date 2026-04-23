@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ToastService } from '../../../core/toast.service';
-import { Patient, PatientService } from '../../../services/patient.service';
+import { MedecinPortalService } from '../../../services/medecin-portal.service';
+import { Patient } from '../../../services/patient.service';
 
 @Component({
   selector: 'app-medecin-patients-list',
@@ -11,14 +12,14 @@ import { Patient, PatientService } from '../../../services/patient.service';
   styleUrls: ['./medecin-patients-list.css', '../medecin-pro.css']
 })
 export class MedecinPatientsList implements OnInit {
-  private readonly patients = inject(PatientService);
+  private readonly medecinPortal = inject(MedecinPortalService);
   private readonly toast = inject(ToastService);
 
   readonly rows = signal<Patient[]>([]);
   readonly loading = signal(true);
 
   ngOnInit(): void {
-    this.patients.getAllPatients().subscribe({
+    this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
         this.rows.set(list ?? []);
         this.loading.set(false);

@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface MedecinRepository extends JpaRepository<Medecin, Long> {
     Optional<Medecin> findByUtilisateurId(Long utilisateurId);
 
+    Optional<Medecin> findByUtilisateur_Email(String email);
+
     List<Medecin> findByStatutValidationOrderByIdDesc(StatutValidationMedecin statut);
 
     long countByStatutValidation(StatutValidationMedecin statut);

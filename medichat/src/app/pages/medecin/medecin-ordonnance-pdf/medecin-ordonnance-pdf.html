@@ -3,7 +3,7 @@
     <div class="mec-hero-text">
       <p class="mec-kicker">Ordonnance</p>
       <h1 class="mec-title">Générer ordonnance PDF</h1>
-      <p class="mec-sub muted">Créez un document propre pour vos patients (impression / PDF via le navigateur).</p>
+      <p class="mec-sub muted">Téléchargez un fichier PDF, ou imprimez depuis le navigateur.</p>
     </div>
   </div>
 
@@ -48,8 +48,17 @@ Métformine 850 mg — 2 fois par jour"
           </div>
         </div>
         <div class="mec-btn-row" style="border-top: none; margin-top: 8px; padding-top: 0">
-          <button type="button" class="mec-btn mec-btn--blue" (click)="downloadOrPrint()">🖨 Télécharger (PDF)</button>
-          <button type="button" class="mec-btn mec-btn--blue-outline" (click)="onlyPrint()">Imprimer</button>
+          <button
+            type="button"
+            class="mec-btn mec-btn--blue"
+            (click)="downloadPdfFile()"
+            [disabled]="pdfBusy()"
+          >
+            {{ pdfBusy() ? 'Génération…' : '⬇ Télécharger (PDF)' }}
+          </button>
+          <button type="button" class="mec-btn mec-btn--blue-outline" (click)="printOrdonnance()" [disabled]="pdfBusy()">
+            Imprimer
+          </button>
         </div>
       </div>
     </div>

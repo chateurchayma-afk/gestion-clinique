@@ -7,7 +7,8 @@ import {
   AdminRendezVousCreatePayload,
   AdminRendezVousService
 } from '../../../services/admin-rendez-vous.service';
-import { Patient, PatientService } from '../../../services/patient.service';
+import { MedecinPortalService } from '../../../services/medecin-portal.service';
+import { Patient } from '../../../services/patient.service';
 import type { ModeConsultation } from '../../../services/rendez-vous-patient.service';
 
 function todayIso(): string {
@@ -35,7 +36,7 @@ function normalizeTime(t: string): string {
 })
 export class MedecinRendezVous implements OnInit {
   private readonly ctx = inject(MedecinContextService);
-  private readonly patientsApi = inject(PatientService);
+  private readonly medecinPortal = inject(MedecinPortalService);
   private readonly adminRdv = inject(AdminRendezVousService);
   private readonly toast = inject(ToastService);
 
@@ -52,7 +53,7 @@ export class MedecinRendezVous implements OnInit {
   motif = '';
 
   ngOnInit(): void {
-    this.patientsApi.getAllPatients().subscribe({
+    this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
         this.patients.set(list ?? []);
         this.patientId = list[0]?.id ?? null;
