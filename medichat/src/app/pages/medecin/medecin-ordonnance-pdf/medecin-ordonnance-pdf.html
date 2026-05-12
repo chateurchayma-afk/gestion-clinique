@@ -23,13 +23,13 @@
             <a class="mini-link" routerLink="/medecin-dashboard/consultation">Depuis la consultation</a>
           </div>
           <div class="mec-field">
-            <label class="mec-label" for="m">Médicaments prescrits</label>
+            <label class="mec-label" for="m">Traitement prescrit</label>
             <textarea
               class="mec-textarea"
               id="m"
               name="m"
-              [(ngModel)]="medicamentsText"
-              (ngModelChange)="persist()"
+              [ngModel]="medicamentsText()"
+              (ngModelChange)="onMedicamentsChange($event)"
               style="min-height: 120px"
               placeholder="Chaque ligne : Atorvastatine 20 mg — 1 comprimé / jour
 Métformine 850 mg — 2 fois par jour"
@@ -55,9 +55,6 @@ Métformine 850 mg — 2 fois par jour"
             [disabled]="pdfBusy()"
           >
             {{ pdfBusy() ? 'Génération…' : '⬇ Télécharger (PDF)' }}
-          </button>
-          <button type="button" class="mec-btn mec-btn--blue-outline" (click)="printOrdonnance()" [disabled]="pdfBusy()">
-            Imprimer
           </button>
         </div>
       </div>
@@ -87,9 +84,22 @@ Métformine 850 mg — 2 fois par jour"
         <ng-template #emptyL>
           <p class="muted">— Médicaments non renseignés —</p>
         </ng-template>
+        <div class="mec-ord-qr" *ngIf="qrDataUrl()">
+          <img [src]="qrDataUrl()" alt="QR code ordonnance" />
+          <span class="mec-ord-qr-label">QR ordonnance</span>
+        </div>
         <div class="mec-preview-sig">
-          <p class="mec-sig-cursive">Signature</p>
-          <p class="mec-sig-label">Signature du médecin</p>
+          <div class="mec-sig-auto">
+            <div class="mec-sig-stamp">
+              <span class="mec-sig-stamp-logo">+</span>
+              <span class="mec-sig-stamp-text">Cabinet Medichat</span>
+            </div>
+            <div class="mec-sig-name">
+              <span class="mec-sig-doctor">{{ medecinLabel }}</span>
+              <img class="mec-sig-img" src="/signature.png" alt="Signature medecin" />
+              <span class="mec-sig-label">Signature du medecin</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

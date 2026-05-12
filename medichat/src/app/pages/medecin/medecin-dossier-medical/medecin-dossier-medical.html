@@ -26,8 +26,8 @@
   </div>
 
   <p class="muted draft-hint" *ngIf="patientId != null">
-    Les données sont stockées sur ce navigateur (LocalStorage) — pas un dossier cliniquement validé
-    côté serveur.
+    Les données sont enregistrées dans la base de données et rattachées au patient (sauvegarde
+    automatique).
   </p>
 
   <form (ngSubmit)="save()">
@@ -39,7 +39,12 @@
       <div class="mec-form-grid">
         <div class="mec-field">
           <label class="mec-label" for="gs">Groupe sanguin</label>
-          <select class="mec-select" id="gs" name="gs" [(ngModel)]="form.groupeSanguin">
+          <select
+            class="mec-select"
+            id="gs"
+            name="gs"
+            [(ngModel)]="form.groupeSanguin"
+            (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner le groupe sanguin</option>
             <option value="A+">A+</option>
             <option value="A-">A-</option>
@@ -62,6 +67,7 @@
             [(ngModel)]="form.tailleCm"
             placeholder="Entrez la taille"
             inputmode="decimal"
+            (ngModelChange)="queueAutoSave()"
           />
         </div>
         <div class="mec-field">
@@ -74,6 +80,7 @@
             [(ngModel)]="form.poidsKg"
             placeholder="Entrez le poids"
             inputmode="decimal"
+            (ngModelChange)="queueAutoSave()"
           />
         </div>
         <div class="mec-field">
@@ -85,6 +92,7 @@
             name="al"
             [(ngModel)]="form.allergies"
             placeholder="Médicaments, aliments, etc."
+            (ngModelChange)="queueAutoSave()"
           />
         </div>
         <div class="mec-field">
@@ -96,6 +104,7 @@
             name="med"
             [(ngModel)]="form.medicaments"
             placeholder="Listez les médicaments en cours"
+            (ngModelChange)="queueAutoSave()"
           />
         </div>
         <div class="mec-field">
@@ -107,6 +116,7 @@
             name="mc"
             [(ngModel)]="form.maladiesChroniques"
             placeholder="Listez les maladies chroniques"
+            (ngModelChange)="queueAutoSave()"
           />
         </div>
       </div>
@@ -123,6 +133,7 @@
             name="ic"
             [(ngModel)]="form.interventions"
             placeholder="Listez les interventions avec les dates"
+            (ngModelChange)="queueAutoSave()"
           ></textarea>
         </div>
         <div class="mec-field">
@@ -133,6 +144,7 @@
             name="ho"
             [(ngModel)]="form.hospitalisations"
             placeholder="Listez les hospitalisations avec les dates"
+            (ngModelChange)="queueAutoSave()"
           ></textarea>
         </div>
       </div>
@@ -142,28 +154,58 @@
       <h2 class="mec-card-title">Antécédents médicaux familiaux</h2>
       <div class="mec-cb-grid">
         <label class="mec-cb"
-          ><input type="checkbox" name="c1" [(ngModel)]="form.famDiabete" /> Diabète</label
+          ><input
+            type="checkbox"
+            name="c1"
+            [(ngModel)]="form.famDiabete"
+            (ngModelChange)="queueAutoSave()"
+          />
+          Diabète</label
         >
         <label class="mec-cb"
-          ><input type="checkbox" name="c2" [(ngModel)]="form.famHypertension" /> Hypertension</label
+          ><input
+            type="checkbox"
+            name="c2"
+            [(ngModel)]="form.famHypertension"
+            (ngModelChange)="queueAutoSave()"
+          />
+          Hypertension</label
         >
         <label class="mec-cb"
-          ><input type="checkbox" name="c3" [(ngModel)]="form.famAsthme" /> Asthme</label
+          ><input
+            type="checkbox"
+            name="c3"
+            [(ngModel)]="form.famAsthme"
+            (ngModelChange)="queueAutoSave()"
+          />
+          Asthme</label
         >
         <label class="mec-cb"
           ><input
             type="checkbox"
             name="c4"
             [(ngModel)]="form.famCardiaque"
+            (ngModelChange)="queueAutoSave()"
           />
           Maladies cardiaques</label
         >
         <label class="mec-cb"
-          ><input type="checkbox" name="c5" [(ngModel)]="form.famMentaux" /> Troubles de santé
-          mentale</label
+          ><input
+            type="checkbox"
+            name="c5"
+            [(ngModel)]="form.famMentaux"
+            (ngModelChange)="queueAutoSave()"
+          />
+          Troubles de santé mentale</label
         >
         <label class="mec-cb"
-          ><input type="checkbox" name="c6" [(ngModel)]="form.famCancer" /> Cancer</label
+          ><input
+            type="checkbox"
+            name="c6"
+            [(ngModel)]="form.famCancer"
+            (ngModelChange)="queueAutoSave()"
+          />
+          Cancer</label
         >
       </div>
     </div>
@@ -173,7 +215,12 @@
       <div class="mec-form-grid mec-form-grid--1" style="margin-top: 8px">
         <div class="mec-field">
           <label class="mec-label" for="tabac">Statut tabagique</label>
-          <select class="mec-select" id="tabac" name="tabac" [(ngModel)]="form.tabac">
+          <select
+            class="mec-select"
+            id="tabac"
+            name="tabac"
+            [(ngModel)]="form.tabac"
+            (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner le statut</option>
             <option value="jamais">Jamais</option>
             <option value="ancien">Ancien fumeur</option>
@@ -183,7 +230,12 @@
         </div>
         <div class="mec-field">
           <label class="mec-label" for="alc">Consommation d'alcool</label>
-          <select class="mec-select" id="alc" name="alc" [(ngModel)]="form.alcool">
+          <select
+            class="mec-select"
+            id="alc"
+            name="alc"
+            [(ngModel)]="form.alcool"
+            (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner la consommation</option>
             <option value="aucune">Aucune</option>
             <option value="moderee">Modérée</option>
@@ -192,7 +244,12 @@
         </div>
         <div class="mec-field">
           <label class="mec-label" for="act">Fréquence d'activité physique</label>
-          <select class="mec-select" id="act" name="act" [(ngModel)]="form.activite">
+          <select
+            class="mec-select"
+            id="act"
+            name="act"
+            [(ngModel)]="form.activite"
+            (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner la fréquence</option>
             <option value="faible">Faible</option>
             <option value="moderee2">Modérée</option>
@@ -209,6 +266,7 @@
             name="alim"
             [(ngModel)]="form.alimentation"
             placeholder="Listez"
+            (ngModelChange)="queueAutoSave()"
           />
         </div>
       </div>
@@ -217,7 +275,10 @@
     <div class="mec-btn-row">
       <button type="button" class="mec-btn mec-btn--ghost" (click)="reset()">Effacer brouillon</button>
       <div style="display: flex; gap: 10px; margin-left: auto">
-        <button type="submit" class="mec-btn mec-btn--primary" [disabled]="patientId == null">
+        <button
+          type="submit"
+          class="mec-btn mec-btn--primary"
+          [disabled]="patientId == null || savingDossier()">
           Enregistrer
         </button>
       </div>

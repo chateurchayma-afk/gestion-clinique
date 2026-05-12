@@ -14,4 +14,6 @@ public class UpdateProfileRequest {
     private String codePostal;
     /** Si renseigné et non vide, remplace le mot de passe du compte. */
     private String motDePasse;
+    /** Si renseigné, active ou désactive le compte. */
+    private Boolean actif;
 }

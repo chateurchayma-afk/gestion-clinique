@@ -261,7 +261,7 @@ export class DashboardShell {
       return 'Tableau de bord';
     }
     if (url.includes('/medecin-dashboard/ordonnance-pdf')) {
-      return 'Ordonnance PDF';
+      return 'Ordonnance';
     }
     if (url.includes('/medecin-dashboard/consultation')) {
       return 'Consultation';

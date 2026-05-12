@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { MedecinPortalService } from '../../../services/medecin-portal.service';
 import { Patient } from '../../../services/patient.service';
-
-const LS_PREFIX = 'medichat_dossier_patient_';
+import { DossierMedicalService } from '../../../services/dossier-medical.service';
 
 export interface DossierMedicalForm {
   groupeSanguin: string;
@@ -62,18 +62,41 @@ function emptyDossier(): DossierMedicalForm {
 export class MedecinDossierMedical implements OnInit {
   private readonly medecinPortal = inject(MedecinPortalService);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly dossierMedical = inject(DossierMedicalService);
 
   readonly patients = signal<Patient[]>([]);
+  readonly loadingDossier = signal(false);
+  readonly savingDossier = signal(false);
   patientId: number | null = null;
   form: DossierMedicalForm = emptyDossier();
+  private pendingPatientId: number | null = null;
+  private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private hasPendingChanges = false;
 
   ngOnInit(): void {
+    const queryId = this.route.snapshot.queryParamMap.get('patientId');
+    if (queryId) {
+      const parsed = Number(queryId);
+      this.pendingPatientId = Number.isFinite(parsed) ? parsed : null;
+    }
+
     this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
         this.patients.set(list ?? []);
+        const pick =
+          this.pendingPatientId != null
+            ? list.find((p) => p.id === this.pendingPatientId) ?? null
+            : null;
+        if (pick) {
+          this.patientId = pick.id;
+          this.pendingPatientId = null;
+          this.loadDossier();
+          return;
+        }
         if (list[0]) {
           this.patientId = list[0].id;
-          this.hydrateFromStorage();
+          this.loadDossier();
         }
       },
       error: () => this.toast.show('Impossible de charger les patients.', 'error')
@@ -81,29 +104,39 @@ export class MedecinDossierMedical implements OnInit {
   }
 
   onPatientChange(): void {
-    this.hydrateFromStorage();
+    this.clearAutoSave();
+    this.loadDossier();
   }
 
-  private lsKey(id: number): string {
-    return `${LS_PREFIX}${id}`;
-  }
-
-  private hydrateFromStorage(): void {
+  private loadDossier(): void {
     if (this.patientId == null) {
       this.form = emptyDossier();
       return;
     }
-    const raw = localStorage.getItem(this.lsKey(this.patientId));
-    if (raw) {
-      try {
-        const o = JSON.parse(raw) as Partial<DossierMedicalForm>;
-        this.form = { ...emptyDossier(), ...o };
-        return;
-      } catch {
-        /* ignore */
+
+    this.loadingDossier.set(true);
+    this.dossierMedical.getByPatientId(this.patientId).subscribe({
+      next: (dossier) => {
+        this.form = { ...emptyDossier(), ...dossier };
+        this.loadingDossier.set(false);
+      },
+      error: (err) => {
+        this.loadingDossier.set(false);
+        if (err instanceof HttpErrorResponse && err.status === 404) {
+          this.form = emptyDossier();
+          return;
+        }
+        if (err instanceof HttpErrorResponse) {
+          const msg =
+            typeof err.error?.message === 'string' && err.error.message.trim()
+              ? err.error.message
+              : `Chargement du dossier impossible (erreur ${err.status}).`;
+          this.toast.show(msg, 'error');
+          return;
+        }
+        this.toast.show('Chargement du dossier impossible.', 'error');
       }
-    }
-    this.form = emptyDossier();
+    });
   }
 
   save(): void {
@@ -111,11 +144,62 @@ export class MedecinDossierMedical implements OnInit {
       this.toast.show('Sélectionnez un patient.', 'error');
       return;
     }
-    try {
-      localStorage.setItem(this.lsKey(this.patientId), JSON.stringify(this.form));
-      this.toast.show('Dossier enregistré sur cet appareil.', 'success');
-    } catch {
-      this.toast.show('Mémoire locale pleine ou indisponible.', 'error');
+
+    this.saveInternal(true);
+  }
+
+  queueAutoSave(): void {
+    if (this.patientId == null || this.loadingDossier()) {
+      return;
+    }
+    this.hasPendingChanges = true;
+    this.clearAutoSave();
+    this.autoSaveTimer = setTimeout(() => {
+      if (!this.hasPendingChanges) {
+        return;
+      }
+      this.saveInternal(false);
+    }, 800);
+  }
+
+  private saveInternal(showToast: boolean): void {
+    if (this.patientId == null) {
+      return;
+    }
+
+    this.savingDossier.set(true);
+    this.dossierMedical.saveForPatient(this.patientId, this.form).subscribe({
+      next: (dossier) => {
+        this.form = { ...emptyDossier(), ...dossier };
+        this.savingDossier.set(false);
+        this.hasPendingChanges = false;
+        if (showToast) {
+          this.toast.show('Dossier enregistré dans la base.', 'success');
+        }
+      },
+      error: (err) => {
+        this.savingDossier.set(false);
+        if (err instanceof HttpErrorResponse) {
+          const msg =
+            typeof err.error?.message === 'string' && err.error.message.trim()
+              ? err.error.message
+              : `Enregistrement impossible (erreur ${err.status}).`;
+          if (showToast) {
+            this.toast.show(msg, 'error');
+          }
+          return;
+        }
+        if (showToast) {
+          this.toast.show('Enregistrement impossible.', 'error');
+        }
+      }
+    });
+  }
+
+  private clearAutoSave(): void {
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = null;
     }
   }
 
@@ -126,8 +210,7 @@ export class MedecinDossierMedical implements OnInit {
     if (!confirm('Effacer le brouillon de dossier pour ce patient ?')) {
       return;
     }
-    localStorage.removeItem(this.lsKey(this.patientId));
     this.form = emptyDossier();
-    this.toast.show('Brouillon effacé.', 'info');
+    this.saveInternal(true);
   }
 }

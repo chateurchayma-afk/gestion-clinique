@@ -44,11 +44,14 @@
 }
 
 .mec-sig-cursive {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 1.25rem;
+  font-family: 'Segoe Print', 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: 1.5rem;
   font-style: italic;
-  color: #334155;
+  color: #1e3a8a;
   margin: 0 0 4px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(30, 58, 138, 0.15);
 }
 
 .mec-sig-label {
@@ -57,6 +60,86 @@
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.mec-sig-auto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.mec-sig-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 2px solid #2563eb;
+  border-radius: 999px;
+  color: #1e40af;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mec-sig-stamp-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.mec-sig-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.mec-sig-img {
+  width: 140px;
+  height: auto;
+  filter: contrast(1.1);
+  margin-bottom: 6px;
+}
+
+.mec-sig-doctor {
+  font-family: 'Segoe Print', 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #1e3a8a;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mec-ord-qr {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.mec-ord-qr img {
+  width: 120px;
+  height: 120px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 6px;
+}
+
+.mec-ord-qr-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
 }
 
 .mini-link {
@@ -72,7 +155,31 @@
   text-decoration: underline !important;
 }
 
+
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #ordonnance-print,
+  #ordonnance-print * {
+    visibility: visible !important;
+  }
+
+  #ordonnance-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 190mm;
+    margin: 0 auto;
+  }
+
   .no-print,
   .topbar,
   .sidebar,

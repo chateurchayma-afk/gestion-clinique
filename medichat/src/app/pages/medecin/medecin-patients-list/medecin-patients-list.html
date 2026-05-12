@@ -5,6 +5,11 @@
       <h1 class="mec-title">Liste des patients</h1>
       <p class="mec-sub muted">Vue d’ensemble des comptes patients enregistrés sur la clinique.</p>
     </div>
+    <div class="mec-hero-actions">
+      <a class="mec-btn mec-btn--primary" routerLink="/medecin-dashboard/patients/nouveau">
+        Ajouter un patient
+      </a>
+    </div>
   </div>
 
   <div class="mec-card" *ngIf="!loading(); else loadTpl">
@@ -16,10 +21,14 @@
             <th>Email</th>
             <th>Téléphone</th>
             <th>N° dossier</th>
+            <th>Dernière consultation</th>
+            <th>État</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of rows()">
+          <ng-container *ngFor="let p of rows()">
+          <tr>
             <td>
               <strong
                 >{{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}</strong
@@ -28,7 +37,251 @@
             <td>{{ p.utilisateur.email || '—' }}</td>
             <td>{{ p.utilisateur.telephone || '—' }}</td>
             <td>{{ p.numeroDossier || '—' }}</td>
+            <td>{{ formatDerniereConsultation(p.derniereConsultation) }}</td>
+            <td>
+              <span class="status" [class.active]="isActif(p)" [class.inactive]="!isActif(p)">
+                {{ isActif(p) ? 'Actif' : 'Désactivé' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button
+                type="button"
+                class="menu-btn"
+                (click)="toggleMenu(p.id, $event)"
+                [attr.aria-expanded]="openMenuId === p.id"
+                [disabled]="savingId === p.id || togglingId === p.id">
+                ⋯
+              </button>
+              <div
+                class="menu-panel"
+                *ngIf="openMenuId === p.id"
+                (mouseleave)="closeMenu()">
+                <button
+                  type="button"
+                  class="menu-item"
+                  (click)="toggleDetails(p); closeMenu()">
+                  {{ expandedId === p.id ? 'Masquer' : 'Voir' }}
+                </button>
+                <a
+                  class="menu-item"
+                  [routerLink]="['/medecin-dashboard/dossier-medical']"
+                  [queryParams]="{ patientId: p.id }"
+                  (click)="closeMenu()">
+                  Dossier médical
+                </a>
+                <button
+                  type="button"
+                  class="menu-item"
+                  (click)="startEdit(p)">
+                  Modifier
+                </button>
+                <button
+                  type="button"
+                  class="menu-item danger"
+                  (click)="toggleActif(p, $event); closeMenu()">
+                  {{ isActif(p) ? 'Désactiver' : 'Réactiver' }}
+                </button>
+              </div>
+            </td>
           </tr>
+          <tr class="details-row" *ngIf="expandedId === p.id">
+            <td colspan="7">
+              <div class="details-card">
+                <div class="details-header">
+                  <div>
+                    <strong>Coordonnées patient</strong>
+                    <p class="muted">Informations personnelles et dossier.</p>
+                  </div>
+                  <div class="details-badges" *ngIf="p.methodeContactPreferee">
+                    <span class="badge">Préférence: {{ p.methodeContactPreferee }}</span>
+                  </div>
+                </div>
+
+                <div *ngIf="editingId !== p.id; else editTpl" class="details-grid">
+                  <div>
+                    <span class="label">Adresse</span>
+                    <span>{{ p.utilisateur.adresse || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Ville</span>
+                    <span>{{ p.utilisateur.ville || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Gouvernorat</span>
+                    <span>{{ p.utilisateur.gouvernorat || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Code postal</span>
+                    <span>{{ p.utilisateur.codePostal || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Date de naissance</span>
+                    <span>{{ p.utilisateur.dateNaissance || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Sexe</span>
+                    <span>{{ p.utilisateur.sexe || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Situation</span>
+                    <span>{{ p.situationMatrimoniale || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Contact urgence</span>
+                    <span>{{ p.contactUrgenceNom || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">Urgence tel.</span>
+                    <span>{{ p.contactUrgenceTelephone || '—' }}</span>
+                  </div>
+                  <div>
+                    <span class="label">N° dossier</span>
+                    <span>{{ p.numeroDossier || '—' }}</span>
+                  </div>
+                </div>
+
+                <ng-template #editTpl>
+                  <div class="edit-grid" *ngIf="editModel">
+                    <div class="field">
+                      <label>Prénom</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.prenom"
+                        name="prenom-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Nom</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.nom"
+                        name="nom-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        [(ngModel)]="editModel.email"
+                        name="email-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Téléphone</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.telephone"
+                        name="telephone-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Date de naissance</label>
+                      <input
+                        type="date"
+                        [(ngModel)]="editModel.dateNaissance"
+                        name="dateNaissance-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Sexe</label>
+                      <select [(ngModel)]="editModel.sexe" name="sexe-{{ p.id }}">
+                        <option value="">Sélectionner</option>
+                        <option value="HOMME">Homme</option>
+                        <option value="FEMME">Femme</option>
+                      </select>
+                    </div>
+                    <div class="field field-full">
+                      <label>Adresse</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.adresse"
+                        name="adresse-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Ville</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.ville"
+                        name="ville-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Gouvernorat</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.gouvernorat"
+                        name="gouvernorat-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Code postal</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.codePostal"
+                        name="codePostal-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Situation matrimoniale</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.situationMatrimoniale"
+                        name="situation-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Contact urgence — nom</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.contactUrgenceNom"
+                        name="contactUrgenceNom-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Contact urgence — téléphone</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.contactUrgenceTelephone"
+                        name="contactUrgenceTelephone-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Méthode contact</label>
+                      <select
+                        [(ngModel)]="editModel.methodeContactPreferee"
+                        name="methodeContact-{{ p.id }}">
+                        <option value="TELEPHONE">Téléphone</option>
+                        <option value="EMAIL">E-mail</option>
+                        <option value="SMS">SMS</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>N° dossier</label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editModel.numeroDossier"
+                        name="numeroDossier-{{ p.id }}">
+                    </div>
+                    <div class="field">
+                      <label>Mot de passe</label>
+                      <input
+                        type="password"
+                        [(ngModel)]="editModel.motDePasse"
+                        name="motDePasse-{{ p.id }}"
+                        placeholder="Laisser vide si inchangé">
+                    </div>
+                  </div>
+
+                  <div class="edit-actions">
+                    <button
+                      type="button"
+                      class="ghost-btn"
+                      (click)="cancelEdit()"
+                      [disabled]="savingId === p.id">
+                      Annuler
+                    </button>
+                    <button
+                      type="button"
+                      class="primary-btn"
+                      (click)="saveEdit(p)"
+                      [disabled]="savingId === p.id">
+                      {{ savingId === p.id ? 'Enregistrement…' : 'Enregistrer' }}
+                    </button>
+                  </div>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>

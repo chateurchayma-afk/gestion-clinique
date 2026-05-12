@@ -90,6 +90,10 @@ public class UtilisateurService {
             }
             user.setMotDePasse(pwd);
         }
+
+        if (request.getActif() != null) {
+            user.setActif(request.getActif());
+        }
     }
 
     private static String trimToNull(String s) {

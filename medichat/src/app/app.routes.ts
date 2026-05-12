@@ -24,6 +24,7 @@ import { MedecinAccueil } from './pages/medecin/medecin-accueil/medecin-accueil'
 import { MedecinConsultation } from './pages/medecin/medecin-consultation/medecin-consultation';
 import { MedecinDossierMedical } from './pages/medecin/medecin-dossier-medical/medecin-dossier-medical';
 import { MedecinOrdonnancePdf } from './pages/medecin/medecin-ordonnance-pdf/medecin-ordonnance-pdf';
+import { MedecinAddPatient } from './pages/medecin/medecin-add-patient/medecin-add-patient';
 import { MedecinPatientsList } from './pages/medecin/medecin-patients-list/medecin-patients-list';
 import { MedecinRendezVous } from './pages/medecin/medecin-rendez-vous/medecin-rendez-vous';
 import { PatientHome } from './pages/patient/patient-home/patient-home';
@@ -81,6 +82,7 @@ export const routes: Routes = [
       { path: 'accueil', component: MedecinAccueil },
       { path: 'mon-profil', component: AccountProfil },
       { path: 'patients', component: MedecinPatientsList },
+      { path: 'patients/nouveau', component: MedecinAddPatient },
       { path: 'rendez-vous', component: MedecinRendezVous },
       { path: 'dossier-medical', component: MedecinDossierMedical },
       { path: 'consultation', component: MedecinConsultation },

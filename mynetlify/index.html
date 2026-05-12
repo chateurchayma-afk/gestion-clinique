@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ordonnance medicale - Medichat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div class="hero-brand">
+          <div class="brand-text">
+            <p class="brand-name">MediChat</p>
+            <p class="brand-sub">Gestion Clinique Intelligente</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="card" aria-live="polite">
+          <div class="card-header">
+            <div>
+              <p class="kicker">Ordonnance</p>
+              <h1>Resume du traitement</h1>
+              <p class="sub">Prescriptions et recommandations medicales.</p>
+            </div>
+            <div class="doc-meta">
+              <div>
+                <span class="label">Date</span>
+                <span id="ord-date" class="value">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="panel">
+              <h2>Patient</h2>
+              <p id="ord-patient" class="patient">—</p>
+              <div class="divider"></div>
+              <h2>Prescripteur</h2>
+              <p id="ord-medecin" class="doctor">—</p>
+              <p id="ord-medecin-addr" class="muted">—</p>
+              <p class="muted">
+                <span id="ord-medecin-tel">—</span>
+                <span class="dot">•</span>
+                <span id="ord-medecin-email">—</span>
+              </p>
+            </div>
+
+            <div class="panel panel--soft">
+              <h2>Traitement</h2>
+              <ul id="ord-meds" class="meds">
+                <li>—</li>
+              </ul>
+              <div class="note" id="ord-note">Aucune note supplementaire.</div>
+            </div>
+          </div>
+
+          <footer class="card-footer">
+            <p class="foot-muted">
+              Document confidentiel. Verifiez les informations avant toute utilisation.
+            </p>
+          </footer>
+        </section>
+
+        <aside class="side">
+          <div class="side-card side-card--warn" id="ord-error" hidden>
+            <h3>Donnees manquantes</h3>
+            <p class="muted">
+              Ce QR code ne contient pas assez d'informations pour afficher l'ordonnance.
+            </p>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

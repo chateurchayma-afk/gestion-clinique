@@ -13,6 +13,8 @@ import {
   parseConsultationBrouillon
 } from '../medecin-ordonnance-sync';
 import html2pdf from 'html2pdf.js';
+import QRCode from 'qrcode';
+import { environment } from '../../../../environments/environment';
 
 function isoToday(): string {
   const d = new Date();
@@ -43,13 +45,15 @@ export class MedecinOrdonnancePdf implements OnInit {
   readonly patients = signal<Patient[]>([]);
   /** Génération PDF (html2pdf) en cours */
   readonly pdfBusy = signal(false);
+  readonly qrDataUrl = signal('');
   patientId: number | null = null;
-  medicamentsText = '';
+  medicamentsText = signal('');
   dateOrdonnance = isoToday();
   medecinLabel = 'Médecin';
   medecinAddr = 'Cabinet — adresse, ville';
   medecinTel = '—';
   medecinEmail = '—';
+  private qrTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly selectedPatient = computed(() => {
     const id = this.patientId;
@@ -68,7 +72,7 @@ export class MedecinOrdonnancePdf implements OnInit {
   });
 
   readonly bodyLines = computed(() => {
-    const t = (this.medicamentsText ?? '').trim();
+    const t = this.medicamentsText().trim();
     if (t) {
       return t.split('\n').filter((l) => l.trim().length > 0);
     }
@@ -77,6 +81,7 @@ export class MedecinOrdonnancePdf implements OnInit {
 
   ngOnInit(): void {
     this.hydrateUser();
+    this.hydrateFromApi();
     const rawMeta = localStorage.getItem(LS_ORDONNANCE_META);
     if (rawMeta) {
       try {
@@ -93,7 +98,7 @@ export class MedecinOrdonnancePdf implements OnInit {
     }
     const rawTxt = localStorage.getItem(LS_ORDONNANCE_TEXTE);
     if (rawTxt) {
-      this.medicamentsText = rawTxt;
+      this.medicamentsText.set(rawTxt);
     }
 
     this.medecinPortal.getMesPatients().subscribe({
@@ -104,6 +109,7 @@ export class MedecinOrdonnancePdf implements OnInit {
         if (this.patientId != null && !L.some((p) => p.id === this.patientId)) {
           this.patientId = L[0]?.id ?? null;
         }
+        this.scheduleQrUpdate();
       },
       error: () => this.toast.show('Patients indisponibles.', 'error')
     });
@@ -130,18 +136,43 @@ export class MedecinOrdonnancePdf implements OnInit {
     }
   }
 
+  private hydrateFromApi(): void {
+    this.medecinPortal.getMoi().subscribe({
+      next: (m) => {
+        const u = m.utilisateur;
+        const n = [u.prenom, u.nom].filter(Boolean).join(' ').trim();
+        if (n) {
+          this.medecinLabel = `Dr. ${n}`;
+        }
+        if (u.email) {
+          this.medecinEmail = u.email;
+        }
+        if (u.telephone) {
+          this.medecinTel = u.telephone;
+        }
+        const addrParts = [u.adresse, u.ville].filter((x) => x && String(x).trim().length > 0);
+        if (addrParts.length > 0) {
+          this.medecinAddr = addrParts.join(', ');
+        }
+      },
+      error: () => {
+        /* fallback to localStorage data */
+      }
+    });
+  }
+
   private importFromConsultation(list: Patient[]): void {
     const cons = parseConsultationBrouillon(localStorage.getItem(LS_CONSULTATION_BROUILLON));
     const fromConsultation = cons
       ? formatLignesPourOrdonnance(cons.lignes ?? [], cons.notes)
       : '';
-    if (fromConsultation.trim().length > 0) {
-      this.medicamentsText = fromConsultation;
+    if (fromConsultation.trim().length > 0 && !this.medicamentsText().trim()) {
+      this.medicamentsText.set(fromConsultation);
       this.patientId = cons?.patientId ?? this.patientId ?? list[0]?.id ?? null;
       this.persist();
       return;
     }
-    if (this.medicamentsText.trim().length > 0) {
+    if (this.medicamentsText().trim().length > 0) {
       this.patientId = this.patientId ?? list[0]?.id ?? null;
       return;
     }
@@ -154,15 +185,85 @@ export class MedecinOrdonnancePdf implements OnInit {
         LS_ORDONNANCE_META,
         JSON.stringify({ dateOrdonnance: this.dateOrdonnance, patientId: this.patientId })
       );
-      localStorage.setItem(LS_ORDONNANCE_TEXTE, this.medicamentsText);
+      localStorage.setItem(LS_ORDONNANCE_TEXTE, this.medicamentsText());
     } catch {
       /* */
+    }
+    this.scheduleQrUpdate();
+  }
+
+  onMedicamentsChange(value: string): void {
+    this.medicamentsText.set(value ?? '');
+    this.persist();
+  }
+
+  private scheduleQrUpdate(): void {
+    if (this.qrTimer) {
+      clearTimeout(this.qrTimer);
+    }
+    this.qrTimer = setTimeout(() => {
+      void this.updateQrCode();
+    }, 250);
+  }
+
+  private buildQrPayload(): string {
+    const base = (environment.ordonnancePublicBaseUrl ?? '').trim().replace(/\/+$/g, '');
+    if (!base) {
+      return '';
+    }
+    const payload = {
+      v: 'v1',
+      id: this.buildOrdonnanceFileName(),
+      patient: this.patientName(),
+      date: this.dateOrdonnance,
+      medecin: this.medecinLabel,
+      medecinAddr: this.medecinAddr,
+      medecinTel: this.medecinTel,
+      medecinEmail: this.medecinEmail,
+      meds: this.medicamentsText().trim()
+    };
+    const encoded = this.toBase64Url(JSON.stringify(payload));
+    return `${base}/?data=${encoded}`;
+  }
+
+  private toBase64Url(input: string): string {
+    const utf8 = encodeURIComponent(input).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+      String.fromCharCode(parseInt(p1, 16))
+    );
+    const b64 = btoa(utf8);
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  private async updateQrCode(): Promise<void> {
+    const payload = this.buildQrPayload();
+    if (!payload.trim()) {
+      this.qrDataUrl.set('');
+      return;
+    }
+    try {
+      const dataUrl = await QRCode.toDataURL(payload, { width: 140, margin: 1 });
+      this.qrDataUrl.set(dataUrl);
+    } catch {
+      this.qrDataUrl.set('');
+    }
+  }
+
+  private async ensureQrReady(): Promise<void> {
+    await this.updateQrCode();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const img = document.querySelector('#ordonnance-print .mec-ord-qr img') as HTMLImageElement | null;
+    if (img && !img.complete) {
+      await new Promise<void>((resolve) => {
+        img.addEventListener('load', () => resolve(), { once: true });
+        img.addEventListener('error', () => resolve(), { once: true });
+      });
     }
   }
 
   /** Télécharge un fichier .pdf (pas le dialogue d’impression). */
   async downloadPdfFile(): Promise<void> {
     this.persist();
+    await this.ensureQrReady();
     const el = document.getElementById('ordonnance-print');
     if (!el) {
       this.toast.show('Aperçu introuvable.', 'error');
@@ -189,11 +290,10 @@ export class MedecinOrdonnancePdf implements OnInit {
   }
 
   /** Dialogue d’impression du navigateur. */
-  printOrdonnance(): void {
+  async printOrdonnance(): Promise<void> {
     this.persist();
-    setTimeout(() => {
-      globalThis.print();
-    }, 150);
+    await this.ensureQrReady();
+    globalThis.print();
   }
 
   private buildOrdonnanceFileName(): string {
@@ -210,4 +310,5 @@ export class MedecinOrdonnancePdf implements OnInit {
   formatFrDisplay(iso: string): string {
     return formatFr(iso);
   }
+
 }

@@ -16,6 +16,7 @@ export interface UtilisateurPatient {
   gouvernorat?: string | null;
   codePostal?: string | null;
   photo?: string | null;
+  actif?: boolean | null;
 }
 
 export interface Patient {
@@ -26,6 +27,7 @@ export interface Patient {
   contactUrgenceTelephone: string | null;
   methodeContactPreferee: string | null;
   numeroDossier: string | null;
+  derniereConsultation?: string | null;
 }
 
 export interface PatientUpdatePayload {
