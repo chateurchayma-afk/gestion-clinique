@@ -114,11 +114,11 @@
                   <div class="modal">
                     <h3>Confirmer la désactivation</h3>
                     <p class="muted">
-                      Désactiver le patient <strong>{{ confirmTarget?.utilisateur?.prenom }} {{ confirmTarget?.utilisateur?.nom }}</strong> ?
+                      Désactiver le patient <strong>{{ confirmTarget.utilisateur.prenom }} {{ confirmTarget.utilisateur.nom }}</strong> ?
                     </p>
                     <div class="modal-actions">
                       <button type="button" class="mec-btn mec-btn--ghost" (click)="cancelDeactivate()">Annuler</button>
-                      <button type="button" class="mec-btn mec-btn--blue" (click)="confirmDeactivate()" [disabled]="togglingId === confirmTarget?.id">
+                      <button type="button" class="mec-btn mec-btn--blue" (click)="confirmDeactivate()" [disabled]="togglingId === confirmTarget.id">
                         Confirmer
                       </button>
                     </div>

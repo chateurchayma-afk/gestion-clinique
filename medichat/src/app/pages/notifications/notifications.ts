@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { NotificationItem, NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './notifications.html',
   styleUrls: ['./notifications.css', '../medecin/medecin-pro.css']
 })

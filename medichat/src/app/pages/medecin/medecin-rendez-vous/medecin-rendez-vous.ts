@@ -13,6 +13,14 @@ import { MedecinPortalService } from '../../../services/medecin-portal.service';
 import { Patient } from '../../../services/patient.service';
 import type { ModeConsultation } from '../../../services/rendez-vous-patient.service';
 
+const STATUT_FILTRE_VALUES: ReadonlyArray<StatutRendezVousAdmin | 'TOUS'> = [
+  'TOUS',
+  'EN_ATTENTE',
+  'CONFIRME',
+  'ANNULE',
+  'TERMINE'
+];
+
 function todayIso(): string {
   const d = new Date();
   const y = d.getFullYear();
@@ -125,6 +133,14 @@ export class MedecinRendezVous implements OnInit {
       }
       this.reloadRendezVous();
     });
+  }
+
+  onFilterStatutChange(value: string): void {
+    const v = STATUT_FILTRE_VALUES.find((x) => x === value);
+    if (v != null) {
+      this.filterStatut.set(v);
+    }
+    this.reloadRendezVous();
   }
 
   reloadRendezVous(): void {
