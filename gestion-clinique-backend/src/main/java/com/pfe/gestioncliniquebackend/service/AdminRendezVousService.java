@@ -5,6 +5,7 @@ import com.pfe.gestioncliniquebackend.dto.AdminRendezVousPlanningItem;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.RendezVous;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.enums.StatutRendezVous;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
@@ -26,6 +27,7 @@ public class AdminRendezVousService {
     private final RendezVousRepository rendezVousRepository;
     private final MedecinRepository medecinRepository;
     private final PatientRepository patientRepository;
+    private final NotificationService notificationService;
 
     /**
      * Planning sur une période. Si {@code statutExact} est renseigné (ex. {@link StatutRendezVous#CONFIRME}),
@@ -63,7 +65,9 @@ public class AdminRendezVousService {
                     "Ce rendez-vous a été annulé par le patient. Il ne peut pas être réactivé ni modifié vers un autre statut.");
         }
         r.setStatut(nouveauStatut);
-        return toPlanningItem(rendezVousRepository.save(r));
+        RendezVous saved = rendezVousRepository.save(r);
+        notifyStatutChange(saved, nouveauStatut);
+        return toPlanningItem(saved);
     }
 
     @Transactional
@@ -113,7 +117,61 @@ public class AdminRendezVousService {
                 .statut(StatutRendezVous.EN_ATTENTE)
                 .build();
 
-        return toPlanningItem(rendezVousRepository.save(rdv));
+        RendezVous saved = rendezVousRepository.save(rdv);
+        notifyCreation(saved);
+        return toPlanningItem(saved);
+    }
+
+    private void notifyCreation(RendezVous rdv) {
+        String date = rdv.getDateRendezVous().toString();
+        String time = rdv.getHeureDebut().toString();
+        String patientName = rdv.getPatient().getUtilisateur().getPrenom() + " " + rdv.getPatient().getUtilisateur().getNom();
+        String medecinName = rdv.getMedecin().getUtilisateur().getPrenom() + " " + rdv.getMedecin().getUtilisateur().getNom();
+
+        notificationService.createForUser(
+                rdv.getPatient().getUtilisateur(),
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Nouveau rendez-vous",
+                "Votre rendez-vous avec Dr. " + medecinName + " le " + date + " a " + time + "."
+        );
+        notificationService.createForUser(
+                rdv.getMedecin().getUtilisateur(),
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Nouveau rendez-vous",
+                "Nouveau rendez-vous avec " + patientName + " le " + date + " a " + time + "."
+        );
+    }
+
+    private void notifyStatutChange(RendezVous rdv, StatutRendezVous statut) {
+        String date = rdv.getDateRendezVous().toString();
+        String time = rdv.getHeureDebut().toString();
+        String patientName = rdv.getPatient().getUtilisateur().getPrenom() + " " + rdv.getPatient().getUtilisateur().getNom();
+        String medecinName = rdv.getMedecin().getUtilisateur().getPrenom() + " " + rdv.getMedecin().getUtilisateur().getNom();
+
+        if (statut == StatutRendezVous.ANNULE) {
+            notificationService.createForUser(
+                    rdv.getPatient().getUtilisateur(),
+                    NotificationType.RENDEZ_VOUS_ANNULE,
+                    "Rendez-vous annule",
+                    "Votre rendez-vous avec Dr. " + medecinName + " le " + date + " a " + time + " a ete annule."
+            );
+            notificationService.createForUser(
+                    rdv.getMedecin().getUtilisateur(),
+                    NotificationType.RENDEZ_VOUS_ANNULE,
+                    "Rendez-vous annule",
+                    "Rendez-vous annule avec " + patientName + " le " + date + " a " + time + "."
+            );
+            return;
+        }
+
+        if (statut == StatutRendezVous.TERMINE) {
+            notificationService.createForUser(
+                    rdv.getPatient().getUtilisateur(),
+                    NotificationType.CONSULTATION_TERMINEE,
+                    "Consultation terminee",
+                    "Votre consultation avec Dr. " + medecinName + " est terminee."
+            );
+        }
     }
 
     private AdminRendezVousPlanningItem toPlanningItem(RendezVous r) {

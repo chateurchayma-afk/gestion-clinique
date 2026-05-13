@@ -1,0 +1,79 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../core/api-base';
+
+export type NotificationType =
+  | 'NOUVEAU_RENDEZ_VOUS'
+  | 'RENDEZ_VOUS_ANNULE'
+  | 'NOUVEAU_PATIENT'
+  | 'CONSULTATION_TERMINEE'
+  | 'ORDONNANCE_CREEE'
+  | 'PROFIL_MODIFIE'
+  | 'ALERTE_SYSTEME';
+
+export interface NotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  type: NotificationType;
+  isRead: boolean;
+  archived: boolean;
+  createdAt: string;
+}
+
+export interface NotificationPageResponse {
+  items: NotificationItem[];
+  page: number;
+  size: number;
+  total: number;
+  unreadCount: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class NotificationService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${API_BASE_URL}/api/notifications`;
+
+  list(filter: string, query: string, page: number, size: number): Observable<NotificationPageResponse> {
+    let params = new HttpParams()
+      .set('filter', filter || 'all')
+      .set('page', String(page ?? 0))
+      .set('size', String(size ?? 20));
+    if (query && query.trim()) {
+      params = params.set('query', query.trim());
+    }
+    return this.http.get<NotificationPageResponse>(this.apiUrl, { params });
+  }
+
+  recent(limit = 6): Observable<NotificationItem[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<NotificationItem[]>(`${this.apiUrl}/recent`, { params });
+  }
+
+  unreadCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`);
+  }
+
+  markRead(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/read/${id}`, {});
+  }
+
+  markUnread(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/unread/${id}`, {});
+  }
+
+  markAllRead(): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/read-all`, {});
+  }
+
+  archiveOld(): Observable<{ updated: number }> {
+    return this.http.put<{ updated: number }>(`${this.apiUrl}/archive-old`, {});
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+}

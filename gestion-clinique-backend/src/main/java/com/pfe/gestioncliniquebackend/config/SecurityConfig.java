@@ -25,6 +25,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/medecins/catalogue/**").permitAll()
                         .requestMatchers("/api/patient/**").authenticated()
                         .requestMatchers("/api/utilisateurs/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/api/ordonnances/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../core/toast.service';
 import { MedecinPortalService } from '../../../services/medecin-portal.service';
+import { OrdonnanceService } from '../../../services/ordonnance.service';
 import { Patient } from '../../../services/patient.service';
 import { RouterLink } from '@angular/router';
 import {
@@ -42,9 +43,11 @@ function formatFr(iso: string): string {
 export class MedecinOrdonnancePdf implements OnInit {
   private readonly medecinPortal = inject(MedecinPortalService);
   private readonly toast = inject(ToastService);
+  private readonly ordonnanceService = inject(OrdonnanceService);
   readonly patients = signal<Patient[]>([]);
   /** Génération PDF (html2pdf) en cours */
   readonly pdfBusy = signal(false);
+  readonly saveBusy = signal(false);
   readonly qrDataUrl = signal('');
   patientId: number | null = null;
   medicamentsText = signal('');
@@ -287,6 +290,37 @@ export class MedecinOrdonnancePdf implements OnInit {
     } finally {
       this.pdfBusy.set(false);
     }
+  }
+
+  saveOrdonnance(): void {
+    if (!this.patientId) {
+      this.toast.show('Sélectionnez un patient.', 'error');
+      return;
+    }
+    const meds = this.medicamentsText().trim();
+    if (!meds) {
+      this.toast.show('Renseignez le traitement prescrit.', 'error');
+      return;
+    }
+    const qrUrl = this.buildQrPayload();
+    this.saveBusy.set(true);
+    this.ordonnanceService
+      .create({
+        patientId: this.patientId,
+        dateOrdonnance: this.dateOrdonnance,
+        medicamentsText: meds,
+        qrUrl
+      })
+      .subscribe({
+        next: () => {
+          this.toast.show('Ordonnance enregistrée.', 'success');
+          this.saveBusy.set(false);
+        },
+        error: () => {
+          this.toast.show('Enregistrement impossible.', 'error');
+          this.saveBusy.set(false);
+        }
+      });
   }
 
   /** Dialogue d’impression du navigateur. */

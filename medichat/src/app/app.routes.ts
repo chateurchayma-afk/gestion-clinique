@@ -34,6 +34,8 @@ import { PatientRdvNew } from './pages/patient/patient-rdv-new/patient-rdv-new';
 import { PatientMedecinProfil } from './pages/patient/patient-medecin-profil/patient-medecin-profil';
 import { PatientProfil } from './pages/patient/patient-profil/patient-profil';
 import { AccountProfil } from './pages/account-profil/account-profil';
+import { NotificationsPage } from './pages/notifications/notifications';
+import { NotificationsRedirect } from './pages/notifications/notifications-redirect';
 import { adminGuard } from './core/admin.guard';
 import { medecinGuard } from './core/medecin.guard';
 import { patientGuard } from './core/patient.guard';
@@ -46,6 +48,7 @@ export const routes: Routes = [
   { path: 'register/patient', component: RegisterPatient },
   { path: 'register/admin', component: RegisterAdmin },
   { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'notifications', component: NotificationsRedirect },
   { path: 'admindashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
   { path: 'admin-dashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
   {
@@ -69,7 +72,8 @@ export const routes: Routes = [
       { path: 'add-service', component: AddService },
       { path: 'planning-medecins', component: PlanningMedecins },
       { path: 'rendez-vous', pathMatch: 'full', redirectTo: 'rdv' },
-      { path: 'rdv', component: AdminRendezVousList }
+      { path: 'rdv', component: AdminRendezVousList },
+      { path: 'notifications', component: NotificationsPage }
     ]
   },
   {
@@ -86,7 +90,8 @@ export const routes: Routes = [
       { path: 'rendez-vous', component: MedecinRendezVous },
       { path: 'dossier-medical', component: MedecinDossierMedical },
       { path: 'consultation', component: MedecinConsultation },
-      { path: 'ordonnance-pdf', component: MedecinOrdonnancePdf }
+      { path: 'ordonnance-pdf', component: MedecinOrdonnancePdf },
+      { path: 'notifications', component: NotificationsPage }
     ]
   },
   {
@@ -101,7 +106,8 @@ export const routes: Routes = [
       { path: 'medecins/profil/:id', component: PatientMedecinProfil },
       { path: 'medecins', component: PatientMedecins },
       { path: 'rendez-vous/nouveau', component: PatientRdvNew },
-      { path: 'rendez-vous', component: PatientRdvList }
+      { path: 'rendez-vous', component: PatientRdvList },
+      { path: 'notifications', component: NotificationsPage }
     ]
   },
   { path: '**', component: NotFound }

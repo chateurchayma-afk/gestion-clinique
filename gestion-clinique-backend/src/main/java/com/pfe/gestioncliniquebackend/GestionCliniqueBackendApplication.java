@@ -3,11 +3,13 @@ package com.pfe.gestioncliniquebackend;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 @SpringBootApplication
+@EnableScheduling
 public class GestionCliniqueBackendApplication {
 
     public static void main(String[] args) {

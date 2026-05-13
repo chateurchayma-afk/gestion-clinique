@@ -3,6 +3,7 @@ package com.pfe.gestioncliniquebackend.service;
 import com.pfe.gestioncliniquebackend.dto.UpdateProfileRequest;
 import com.pfe.gestioncliniquebackend.dto.UtilisateurResponse;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class UtilisateurService {
 
     private final UtilisateurRepository utilisateurRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public UtilisateurResponse getProfil(Long id) {
@@ -31,6 +33,8 @@ public class UtilisateurService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
         applyProfileFields(user, request);
         Utilisateur updatedUser = utilisateurRepository.save(user);
+        notificationService.createForUser(updatedUser, NotificationType.PROFIL_MODIFIE,
+            "Profil modifie", "Votre profil a ete mis a jour.");
         return toResponse(updatedUser);
     }
 
@@ -43,7 +47,10 @@ public class UtilisateurService {
     public UtilisateurResponse updateMe(UpdateProfileRequest request) {
         Utilisateur user = requireCurrentUtilisateur();
         applyProfileFields(user, request);
-        return toResponse(utilisateurRepository.save(user));
+        Utilisateur updated = utilisateurRepository.save(user);
+        notificationService.createForUser(updated, NotificationType.PROFIL_MODIFIE,
+                "Profil modifie", "Votre profil a ete mis a jour.");
+        return toResponse(updated);
     }
 
     private Utilisateur requireCurrentUtilisateur() {

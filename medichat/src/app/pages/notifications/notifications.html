@@ -1,0 +1,109 @@
+<div class="notif-page">
+  <div class="mec-hero">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Centre</p>
+      <h1 class="mec-title">Notifications</h1>
+      <p class="mec-sub muted">Historique complet des notifications et alertes.</p>
+    </div>
+    <div class="mec-hero-actions">
+      <button type="button" class="mec-btn mec-btn--blue-outline" (click)="markAllRead()">
+        Tout marquer comme lu
+      </button>
+    </div>
+  </div>
+
+  <div class="notif-toolbar">
+    <div class="notif-tabs">
+      <button
+        type="button"
+        class="tab"
+        [class.active]="filter() === 'all'"
+        (click)="setFilter('all')">
+        Toutes
+      </button>
+      <button
+        type="button"
+        class="tab"
+        [class.active]="filter() === 'unread'"
+        (click)="setFilter('unread')">
+        Non lues ({{ unreadCount() }})
+      </button>
+      <button
+        type="button"
+        class="tab"
+        [class.active]="filter() === 'archived'"
+        (click)="setFilter('archived')">
+        Archivées
+      </button>
+    </div>
+    <div class="notif-search">
+      <input
+        class="mec-input"
+        type="search"
+        placeholder="Rechercher..."
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event); onSearch()" />
+    </div>
+  </div>
+
+  <div class="mec-card">
+    <div *ngIf="loading(); else tableTpl" class="notif-loading">Chargement...</div>
+    <ng-template #tableTpl>
+      <table class="notif-table" *ngIf="items().length; else emptyTpl">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Titre</th>
+            <th>Message</th>
+            <th>Date</th>
+            <th>Etat</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let n of items()">
+            <td class="notif-type">
+              <span class="notif-icon">{{ iconFor(n.type) }}</span>
+            </td>
+            <td class="notif-title">{{ n.title }}</td>
+            <td class="notif-message">{{ n.message }}</td>
+            <td class="notif-date">{{ formatDate(n.createdAt) }}</td>
+            <td>
+              <span class="status" [class.active]="n.isRead" [class.inactive]="!n.isRead">
+                {{ n.isRead ? 'Lu' : 'Non lu' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button
+                type="button"
+                class="action-btn"
+                *ngIf="!n.isRead"
+                (click)="markRead(n)">
+                Marquer lu
+              </button>
+              <button
+                type="button"
+                class="action-btn"
+                *ngIf="n.isRead"
+                (click)="markUnread(n)">
+                Marquer non lu
+              </button>
+              <button type="button" class="action-btn action-btn--danger" (click)="delete(n)">
+                Supprimer
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <ng-template #emptyTpl>
+        <p class="notif-empty">Aucune notification.</p>
+      </ng-template>
+    </ng-template>
+  </div>
+
+  <div class="notif-pagination" *ngIf="totalPages() > 1">
+    <button type="button" class="mec-btn mec-btn--ghost" (click)="prevPage()">Precedent</button>
+    <span>Page {{ page() + 1 }} / {{ totalPages() }}</span>
+    <button type="button" class="mec-btn mec-btn--ghost" (click)="nextPage()">Suivant</button>
+  </div>
+</div>

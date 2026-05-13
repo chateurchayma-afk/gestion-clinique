@@ -10,7 +10,8 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { UserSessionService } from '../core/user-session.service';
-import { RendezVousPatient, RendezVousPatientService } from '../services/rendez-vous-patient.service';
+import { NotificationItem, NotificationService } from '../services/notification.service';
+import { forkJoin } from 'rxjs';
 import type { DashboardShellConfig } from './dashboard-shell.config';
 
 interface StoredUser {
@@ -38,13 +39,14 @@ const FALLBACK_SHELL: DashboardShellConfig = {
 export class DashboardShell {
   private readonly router = inject(Router);
   private readonly userSession = inject(UserSessionService);
-  private readonly rdvPatientService = inject(RendezVousPatientService);
+  private readonly notificationService = inject(NotificationService);
 
   readonly navOpen = signal(false);
   readonly pageTitle = signal('Tableau de bord');
   readonly notifOpen = signal(false);
   readonly notifLoading = signal(false);
-  readonly notifMessages = signal<string[]>([]);
+  readonly notifItems = signal<NotificationItem[]>([]);
+  readonly notifUnreadCount = signal(0);
 
   readonly shellConfig: DashboardShellConfig = this.resolveShell();
 
@@ -88,7 +90,21 @@ export class DashboardShell {
     return (u?.email ?? '').trim() || 'Utilisateur';
   });
 
-  readonly hasNotifications = computed(() => this.notifMessages().length > 0);
+  readonly hasNotifications = computed(() => this.notifUnreadCount() > 0);
+
+  readonly notificationsLink = computed(() => {
+    const role = (this.user()?.role ?? '').toString().trim().toUpperCase();
+    if (role === 'ADMIN') {
+      return '/admin/notifications';
+    }
+    if (role === 'MEDECIN') {
+      return '/medecin-dashboard/notifications';
+    }
+    if (role === 'PATIENT') {
+      return '/patient-dashboard/notifications';
+    }
+    return '/login';
+  });
 
   constructor() {
     this.userSession.profileUpdated$.pipe(takeUntilDestroyed()).subscribe(() => {
@@ -112,82 +128,76 @@ export class DashboardShell {
     }
   }
 
-  private reloadNotifications(): void {
-    if (!this.isPatient()) {
-      this.notifMessages.set([]);
-      this.notifLoading.set(false);
-      return;
-    }
-
-    this.notifLoading.set(true);
-    this.rdvPatientService.list().subscribe({
-      next: (rows) => {
-        const upcoming = this.upcomingWithin7Days(rows ?? []);
-        const lines = upcoming.map((r) => {
-          const d = this.parseRdvDateTime(r);
-          if (!d) {
-            return `Vous avez un rendez-vous avec Dr. ${r.medecinPrenom} ${r.medecinNom} dans les 7 jours.`;
-          }
-          const day = d.toLocaleDateString('fr-FR');
-          const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-          return `Rendez-vous le ${day} a ${time} avec Dr. ${r.medecinPrenom} ${r.medecinNom}.`;
-        });
-        this.notifMessages.set(lines);
-        this.notifLoading.set(false);
-      },
-      error: () => {
-        this.notifMessages.set([]);
-        this.notifLoading.set(false);
+  markAllNotificationsRead(): void {
+    this.notificationService.markAllRead().subscribe({
+      next: () => {
+        this.notifItems.set(this.notifItems().map((n) => ({ ...n, isRead: true })));
+        this.notifUnreadCount.set(0);
       }
     });
   }
 
-  private isPatient(): boolean {
-    const role = (this.user()?.role ?? '').toString().trim().toUpperCase();
-    return role === 'PATIENT';
+  markNotificationRead(item: NotificationItem): void {
+    if (item.isRead) {
+      return;
+    }
+    this.notificationService.markRead(item.id).subscribe({
+      next: () => {
+        this.notifItems.set(this.notifItems().map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
+        this.notifUnreadCount.set(Math.max(0, this.notifUnreadCount() - 1));
+      }
+    });
   }
 
-  private parseRdvDateTime(r: RendezVousPatient): Date | null {
-    const dateRaw = (r.dateRendezVous ?? '').toString().trim();
-    const datePart = dateRaw.length >= 10 ? dateRaw.slice(0, 10) : dateRaw;
-    const mDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
-    if (!mDate) {
-      return null;
+  notificationIcon(type: NotificationItem['type']): string {
+    switch (type) {
+      case 'NOUVEAU_RENDEZ_VOUS':
+        return '📅';
+      case 'RENDEZ_VOUS_ANNULE':
+        return '❌';
+      case 'NOUVEAU_PATIENT':
+        return '🧑‍⚕️';
+      case 'CONSULTATION_TERMINEE':
+        return '✅';
+      case 'ORDONNANCE_CREEE':
+        return '💊';
+      case 'PROFIL_MODIFIE':
+        return '👤';
+      default:
+        return '⚠️';
     }
-
-    const timeRaw = (r.heureDebut ?? '').toString().trim();
-    const mTime = /^(\d{2}):(\d{2})/.exec(timeRaw);
-
-    const y = Number(mDate[1]);
-    const mo = Number(mDate[2]);
-    const da = Number(mDate[3]);
-    const hh = mTime ? Number(mTime[1]) : 0;
-    const mm = mTime ? Number(mTime[2]) : 0;
-
-    if (
-      !Number.isFinite(y) ||
-      !Number.isFinite(mo) ||
-      !Number.isFinite(da) ||
-      !Number.isFinite(hh) ||
-      !Number.isFinite(mm)
-    ) {
-      return null;
-    }
-
-    return new Date(y, mo - 1, da, hh, mm, 0, 0);
   }
 
-  private upcomingWithin7Days(rows: RendezVousPatient[]): RendezVousPatient[] {
-    const now = new Date();
-    const max = new Date(now);
-    max.setDate(max.getDate() + 7);
+  formatNotifDate(value: string): string {
+    if (!value) {
+      return '';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    const d = parsed.toLocaleDateString('fr-FR');
+    const t = parsed.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `${d} ${t}`;
+  }
 
-    return [...rows]
-      .filter((r) => r.statut === 'CONFIRME')
-      .map((r) => ({ row: r, dt: this.parseRdvDateTime(r) }))
-      .filter((x) => x.dt !== null && x.dt >= now && x.dt <= max)
-      .sort((a, b) => (a.dt!.getTime() - b.dt!.getTime()))
-      .map((x) => x.row);
+  private reloadNotifications(): void {
+    this.notifLoading.set(true);
+    forkJoin({
+      recent: this.notificationService.recent(6),
+      count: this.notificationService.unreadCount()
+    }).subscribe({
+      next: ({ recent, count }) => {
+        this.notifItems.set(recent ?? []);
+        this.notifUnreadCount.set(count?.count ?? 0);
+        this.notifLoading.set(false);
+      },
+      error: () => {
+        this.notifItems.set([]);
+        this.notifUnreadCount.set(0);
+        this.notifLoading.set(false);
+      }
+    });
   }
 
   private resolveShell(): DashboardShellConfig {

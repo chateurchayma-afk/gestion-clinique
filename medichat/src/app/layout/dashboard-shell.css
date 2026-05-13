@@ -130,6 +130,24 @@
   border: 2px solid #fff;
 }
 
+.notif-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35);
+}
+
 .notif-panel {
   position: absolute;
   top: calc(100% + 10px);
@@ -141,6 +159,26 @@
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
   padding: 12px;
   z-index: 60;
+  animation: notif-pop 0.18s ease-out;
+}
+
+@keyframes notif-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notif-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .notif-title {
@@ -148,6 +186,15 @@
   font-size: 13px;
   font-weight: 800;
   color: var(--patient-text);
+}
+
+.notif-action {
+  border: none;
+  background: transparent;
+  color: var(--patient-primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .notif-list {
@@ -159,20 +206,86 @@
   gap: 8px;
 }
 
-.notif-list li {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--patient-muted);
-  background: #f8fafc;
+.notif-item {
+  width: 100%;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: #f8fafc;
+  border-radius: 12px;
   padding: 10px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: start;
+  gap: 10px;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notif-item.unread {
+  background: #eef5ff;
+  border-color: #cfe0fb;
+}
+
+.notif-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #dbe6f5;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.notif-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.notif-item-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.notif-item-msg {
+  color: var(--patient-muted);
+  font-size: 11px;
+}
+
+.notif-item-time {
+  color: var(--patient-subtle);
+  font-size: 10px;
+}
+
+.notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  margin-top: 4px;
 }
 
 .notif-empty {
   margin: 0;
   font-size: 13px;
   color: var(--patient-subtle);
+}
+
+.notif-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+  text-align: right;
+}
+
+.notif-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--patient-primary);
+  text-decoration: none;
 }
 
 .user-chip {

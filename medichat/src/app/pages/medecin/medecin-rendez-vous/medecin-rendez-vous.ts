@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../core/toast.service';
 import { MedecinContextService } from '../../../core/medecin-context.service';
 import {
   AdminRendezVousCreatePayload,
-  AdminRendezVousService
+  AdminRendezVousPlanningItem,
+  AdminRendezVousService,
+  StatutRendezVousAdmin
 } from '../../../services/admin-rendez-vous.service';
 import { MedecinPortalService } from '../../../services/medecin-portal.service';
 import { Patient } from '../../../services/patient.service';
@@ -27,6 +29,28 @@ function normalizeTime(t: string): string {
   return s.length >= 8 ? s.slice(0, 8) : s;
 }
 
+function isoOffset(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function parseIsoDate(value: string | number[] | Record<string, unknown>): string {
+  if (typeof value === 'string') {
+    return value.slice(0, 10);
+  }
+  if (Array.isArray(value) && value.length >= 3) {
+    const [y, m, d] = value;
+    if (typeof y === 'number' && typeof m === 'number' && typeof d === 'number') {
+      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+  }
+  return '';
+}
+
 @Component({
   selector: 'app-medecin-rendez-vous',
   standalone: true,
@@ -44,6 +68,36 @@ export class MedecinRendezVous implements OnInit {
   readonly patients = signal<Patient[]>([]);
   readonly loadMeta = signal(true);
   readonly submitting = signal(false);
+  readonly listLoading = signal(true);
+  readonly showForm = signal(false);
+
+  readonly rdvRows = signal<AdminRendezVousPlanningItem[]>([]);
+  readonly selectedId = signal<number | null>(null);
+
+  readonly filterStatut = signal<StatutRendezVousAdmin | 'TOUS'>('TOUS');
+  readonly filterPatientId = signal<number | null>(null);
+  readonly filterFrom = signal(isoOffset(-30));
+  readonly filterTo = signal(isoOffset(60));
+
+  readonly filteredRows = computed(() => {
+    const rows = this.rdvRows();
+    const pid = this.filterPatientId();
+    const from = this.filterFrom();
+    const to = this.filterTo();
+    return rows.filter((r) => {
+      if (pid && r.patientId !== pid) {
+        return false;
+      }
+      const d = parseIsoDate(r.dateRendezVous);
+      if (from && d && d < from) {
+        return false;
+      }
+      if (to && d && d > to) {
+        return false;
+      }
+      return true;
+    });
+  });
 
   patientId: number | null = null;
   dateRdv = todayIso();
@@ -66,8 +120,78 @@ export class MedecinRendezVous implements OnInit {
       this.loadMeta.set(false);
       if (id == null) {
         this.toast.show('Profil médecin introuvable. Reconnectez-vous.', 'error');
+        this.listLoading.set(false);
+        return;
+      }
+      this.reloadRendezVous();
+    });
+  }
+
+  reloadRendezVous(): void {
+    const medId = this.medecinId();
+    if (!medId) {
+      this.rdvRows.set([]);
+      this.listLoading.set(false);
+      return;
+    }
+    this.listLoading.set(true);
+    const statut = this.filterStatut();
+    const s = statut === 'TOUS' ? null : statut;
+    this.adminRdv.listGestion(s).subscribe({
+      next: (rows) => {
+        const filtered = (rows ?? []).filter((r) => r.medecinId === medId);
+        this.rdvRows.set(filtered);
+        this.listLoading.set(false);
+      },
+      error: () => {
+        this.rdvRows.set([]);
+        this.listLoading.set(false);
+        this.toast.show('Rendez-vous indisponibles.', 'error');
       }
     });
+  }
+
+  toggleForm(): void {
+    this.showForm.update((v) => !v);
+  }
+
+  toggleDetails(id: number): void {
+    this.selectedId.set(this.selectedId() === id ? null : id);
+  }
+
+  formatDate(value: string | number[] | Record<string, unknown>): string {
+    const iso = parseIsoDate(value);
+    if (!iso) {
+      return '—';
+    }
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  formatTime(value: string | number[] | Record<string, unknown>): string {
+    if (typeof value === 'string') {
+      return value.slice(0, 5);
+    }
+    if (Array.isArray(value) && value.length >= 2) {
+      const [h, m] = value;
+      if (typeof h === 'number' && typeof m === 'number') {
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      }
+    }
+    return '—';
+  }
+
+  statutLabel(value: string): string {
+    switch (value) {
+      case 'CONFIRME':
+        return 'Confirmé';
+      case 'ANNULE':
+        return 'Annulé';
+      case 'TERMINE':
+        return 'Terminé';
+      default:
+        return 'En attente';
+    }
   }
 
   submit(): void {
@@ -95,6 +219,8 @@ export class MedecinRendezVous implements OnInit {
         this.toast.show('Rendez-vous enregistré.', 'success');
         this.motif = '';
         this.dateRdv = todayIso();
+        this.showForm.set(false);
+        this.reloadRendezVous();
       },
       error: (err: { error?: { message?: string } | string }) => {
         this.submitting.set(false);

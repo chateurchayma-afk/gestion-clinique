@@ -46,42 +46,55 @@
             <td class="actions-cell">
               <button
                 type="button"
-                class="menu-btn"
-                (click)="toggleMenu(p.id, $event)"
-                [attr.aria-expanded]="openMenuId === p.id"
-                [disabled]="savingId === p.id || togglingId === p.id">
-                ⋯
+                class="action-btn"
+                (click)="toggleDetails(p)"
+                [disabled]="!canView(p)"
+                [attr.title]="expandedId === p.id ? 'Masquer le patient' : 'Voir la fiche'">
+                👁️
               </button>
-              <div
-                class="menu-panel"
-                *ngIf="openMenuId === p.id"
-                (mouseleave)="closeMenu()">
+              <a
+                class="action-btn action-link"
+                [routerLink]="['/medecin-dashboard/dossier-medical']"
+                [queryParams]="{ patientId: p.id }"
+                [class.disabled]="!canAccessDossier(p)"
+                [attr.aria-disabled]="!canAccessDossier(p)"
+                [attr.title]="canAccessDossier(p) ? 'Accéder au dossier médical' : 'Action indisponible'">
+                🩺
+              </a>
+              <a
+                class="action-btn action-link"
+                [routerLink]="['/medecin-dashboard/rendez-vous']"
+                [queryParams]="{ patientId: p.id }"
+                [class.disabled]="!canAccessDossier(p)"
+                [attr.aria-disabled]="!canAccessDossier(p)"
+                title="Voir les rendez-vous">
+                📅
+              </a>
+              <button
+                type="button"
+                class="action-btn"
+                (click)="startEdit(p)"
+                [disabled]="isActionDisabled(p)"
+                [attr.title]="isActionDisabled(p) ? 'Patient désactivé' : 'Modifier le patient'">
+                ✏️
+              </button>
+              <button
+                type="button"
+                class="action-btn action-btn--danger"
+                *ngIf="isActif(p); else reactivateTpl"
+                (click)="openDeactivateModal(p)"
+                title="Désactiver le patient">
+                🗑️
+              </button>
+              <ng-template #reactivateTpl>
                 <button
                   type="button"
-                  class="menu-item"
-                  (click)="toggleDetails(p); closeMenu()">
-                  {{ expandedId === p.id ? 'Masquer' : 'Voir' }}
+                  class="action-btn"
+                  (click)="toggleActif(p)"
+                  title="Réactiver le patient">
+                  🔄
                 </button>
-                <a
-                  class="menu-item"
-                  [routerLink]="['/medecin-dashboard/dossier-medical']"
-                  [queryParams]="{ patientId: p.id }"
-                  (click)="closeMenu()">
-                  Dossier médical
-                </a>
-                <button
-                  type="button"
-                  class="menu-item"
-                  (click)="startEdit(p)">
-                  Modifier
-                </button>
-                <button
-                  type="button"
-                  class="menu-item danger"
-                  (click)="toggleActif(p, $event); closeMenu()">
-                  {{ isActif(p) ? 'Désactiver' : 'Réactiver' }}
-                </button>
-              </div>
+              </ng-template>
             </td>
           </tr>
           <tr class="details-row" *ngIf="expandedId === p.id">
@@ -94,6 +107,21 @@
                   </div>
                   <div class="details-badges" *ngIf="p.methodeContactPreferee">
                     <span class="badge">Préférence: {{ p.methodeContactPreferee }}</span>
+                  </div>
+                </div>
+
+                <div class="modal-backdrop" *ngIf="confirmTarget">
+                  <div class="modal">
+                    <h3>Confirmer la désactivation</h3>
+                    <p class="muted">
+                      Désactiver le patient <strong>{{ confirmTarget?.utilisateur?.prenom }} {{ confirmTarget?.utilisateur?.nom }}</strong> ?
+                    </p>
+                    <div class="modal-actions">
+                      <button type="button" class="mec-btn mec-btn--ghost" (click)="cancelDeactivate()">Annuler</button>
+                      <button type="button" class="mec-btn mec-btn--blue" (click)="confirmDeactivate()" [disabled]="togglingId === confirmTarget?.id">
+                        Confirmer
+                      </button>
+                    </div>
                   </div>
                 </div>
 

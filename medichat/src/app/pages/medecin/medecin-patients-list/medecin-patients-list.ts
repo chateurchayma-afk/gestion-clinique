@@ -48,6 +48,7 @@ export class MedecinPatientsList implements OnInit {
   togglingId: number | null = null;
   openMenuId: number | null = null;
   editModel: PatientEditModel | null = null;
+  confirmTarget: Patient | null = null;
 
   ngOnInit(): void {
     this.medecinPortal.getMesPatients().subscribe({
@@ -78,6 +79,18 @@ export class MedecinPatientsList implements OnInit {
 
   closeMenu(): void {
     this.openMenuId = null;
+  }
+
+  isActionDisabled(patient: Patient): boolean {
+    return !this.isActif(patient) || this.savingId === patient.id || this.togglingId === patient.id;
+  }
+
+  canView(patient: Patient): boolean {
+    return this.savingId !== patient.id && this.togglingId !== patient.id;
+  }
+
+  canAccessDossier(patient: Patient): boolean {
+    return this.savingId !== patient.id && this.togglingId !== patient.id;
   }
 
   startEdit(patient: Patient): void {
@@ -142,13 +155,26 @@ export class MedecinPatientsList implements OnInit {
   toggleActif(patient: Patient, event?: Event): void {
     event?.stopPropagation();
     const current = this.isActif(patient);
-    if (current && !confirm('Désactiver ce patient ?')) {
-      return;
-    }
-    if (!current && !confirm('Réactiver ce patient ?')) {
-      return;
-    }
+    this.toggleActifConfirmed(patient, !current);
+  }
 
+  openDeactivateModal(patient: Patient): void {
+    this.confirmTarget = patient;
+  }
+
+  cancelDeactivate(): void {
+    this.confirmTarget = null;
+  }
+
+  confirmDeactivate(): void {
+    if (!this.confirmTarget) {
+      return;
+    }
+    this.toggleActifConfirmed(this.confirmTarget, false);
+    this.confirmTarget = null;
+  }
+
+  private toggleActifConfirmed(patient: Patient, nextActif: boolean): void {
     const u = patient.utilisateur;
     this.togglingId = patient.id;
     this.utilisateurService
@@ -161,7 +187,7 @@ export class MedecinPatientsList implements OnInit {
         ville: u.ville ?? null,
         gouvernorat: u.gouvernorat ?? null,
         codePostal: u.codePostal ?? null,
-        actif: !current
+        actif: nextActif
       })
       .subscribe({
         next: (updated) => {

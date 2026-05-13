@@ -62,23 +62,51 @@
             <span class="bell">🔔</span>
             @if (hasNotifications()) {
               <span class="notif-dot"></span>
+              <span class="notif-count">{{ notifUnreadCount() }}</span>
             }
           </button>
 
           @if (notifOpen()) {
             <div class="notif-panel" role="dialog" aria-label="Notifications patient">
-              <p class="notif-title">Notifications</p>
+              <div class="notif-head">
+                <p class="notif-title">Notifications</p>
+                <button type="button" class="notif-action" (click)="markAllNotificationsRead()">
+                  Tout marquer comme lu
+                </button>
+              </div>
               @if (notifLoading()) {
                 <p class="notif-empty">Chargement...</p>
-              } @else if (hasNotifications()) {
+              } @else if (notifItems().length) {
                 <ul class="notif-list">
-                  @for (msg of notifMessages(); track msg) {
-                    <li>{{ msg }}</li>
+                  @for (n of notifItems(); track n.id) {
+                    <li>
+                      <button
+                        type="button"
+                        class="notif-item"
+                        [class.unread]="!n.isRead"
+                        (click)="markNotificationRead(n)"
+                        [attr.title]="n.title">
+                        <span class="notif-icon">{{ notificationIcon(n.type) }}</span>
+                        <span class="notif-body">
+                          <span class="notif-item-title">{{ n.title }}</span>
+                          <span class="notif-item-msg">{{ n.message }}</span>
+                          <span class="notif-item-time">{{ formatNotifDate(n.createdAt) }}</span>
+                        </span>
+                        @if (!n.isRead) {
+                          <span class="notif-unread-dot"></span>
+                        }
+                      </button>
+                    </li>
                   }
                 </ul>
               } @else {
                 <p class="notif-empty">Aucune notification</p>
               }
+              <div class="notif-footer">
+                <a class="notif-link" [routerLink]="notificationsLink()" (click)="notifOpen.set(false)">
+                  Voir toutes les notifications
+                </a>
+              </div>
             </div>
           }
         </div>

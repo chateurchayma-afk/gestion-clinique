@@ -4,6 +4,7 @@ import com.pfe.gestioncliniquebackend.dto.PatientUpdateRequest;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.MethodeContact;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.repository.PatientRepository;
@@ -18,11 +19,14 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final NotificationService notificationService;
 
     public PatientService(PatientRepository patientRepository,
-                            UtilisateurRepository utilisateurRepository) {
+                            UtilisateurRepository utilisateurRepository,
+                            NotificationService notificationService) {
         this.patientRepository = patientRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.notificationService = notificationService;
     }
 
     public List<Patient> getAllPatients() {
@@ -35,7 +39,13 @@ public class PatientService {
     }
 
     public Patient savePatient(Patient patient) {
-        return patientRepository.save(patient);
+        Patient saved = patientRepository.save(patient);
+        Utilisateur u = saved.getUtilisateur();
+        if (u != null) {
+            notificationService.createForUser(u, NotificationType.NOUVEAU_PATIENT,
+                    "Bienvenue", "Votre compte patient a ete cree.");
+        }
+        return saved;
     }
 
     @Transactional
@@ -100,7 +110,10 @@ public class PatientService {
         patient.setMethodeContactPreferee(methode);
         patient.setNumeroDossier(numeroDossier);
 
-        return patientRepository.save(patient);
+        Patient saved = patientRepository.save(patient);
+        notificationService.createForUser(saved.getUtilisateur(), NotificationType.PROFIL_MODIFIE,
+            "Profil patient modifie", "Les informations du patient ont ete mises a jour.");
+        return saved;
     }
 
     public void deletePatient(Long id) {

@@ -50,6 +50,14 @@ Métformine 850 mg — 2 fois par jour"
         <div class="mec-btn-row" style="border-top: none; margin-top: 8px; padding-top: 0">
           <button
             type="button"
+            class="mec-btn mec-btn--blue-outline"
+            (click)="saveOrdonnance()"
+            [disabled]="saveBusy()"
+          >
+            {{ saveBusy() ? 'Enregistrement…' : '✔ Enregistrer' }}
+          </button>
+          <button
+            type="button"
             class="mec-btn mec-btn--blue"
             (click)="downloadPdfFile()"
             [disabled]="pdfBusy()"

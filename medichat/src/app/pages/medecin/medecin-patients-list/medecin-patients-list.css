@@ -63,11 +63,45 @@
 }
 
 .actions-cell {
-  white-space: nowrap;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
   position: relative;
+}
+
+.action-btn {
+  border: 1px solid #dbe6f5;
+  background: #ffffff;
+  color: #1e3a8a;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.action-btn:hover {
+  background: #eff6ff;
+}
+
+.action-btn--danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fff5f5;
+}
+
+.action-btn--danger:hover {
+  background: #ffe4e6;
+}
+
+.action-btn:disabled,
+.action-link.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .link-action {
@@ -147,6 +181,45 @@
   cursor: pointer;
   text-decoration: none;
   display: block;
+}
+
+.menu-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+}
+
+.modal {
+  width: min(420px, calc(100% - 32px));
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.modal h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.modal p {
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .menu-item:hover {
