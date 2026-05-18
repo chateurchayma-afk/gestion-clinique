@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from '../core/api-base';
 
 export type NotificationType =
@@ -36,6 +36,22 @@ export interface NotificationPageResponse {
   unreadCount: number;
 }
 
+/** Jackson peut exposer le champ boolean sous "read" au lieu de "isRead". */
+function normalizeNotification(raw: NotificationItem & { read?: boolean }): NotificationItem {
+  return {
+    ...raw,
+    isRead: Boolean(raw.isRead ?? raw.read ?? false),
+    archived: Boolean(raw.archived ?? false)
+  };
+}
+
+function normalizePage(res: NotificationPageResponse): NotificationPageResponse {
+  return {
+    ...res,
+    items: (res.items ?? []).map((n) => normalizeNotification(n as NotificationItem & { read?: boolean }))
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -51,12 +67,20 @@ export class NotificationService {
     if (query && query.trim()) {
       params = params.set('query', query.trim());
     }
-    return this.http.get<NotificationPageResponse>(this.apiUrl, { params });
+    return this.http
+      .get<NotificationPageResponse>(this.apiUrl, { params })
+      .pipe(map((res) => normalizePage(res)));
   }
 
   recent(limit = 6): Observable<NotificationItem[]> {
     const params = new HttpParams().set('limit', String(limit));
-    return this.http.get<NotificationItem[]>(`${this.apiUrl}/recent`, { params });
+    return this.http
+      .get<NotificationItem[]>(`${this.apiUrl}/recent`, { params })
+      .pipe(
+        map((list) =>
+          (list ?? []).map((n) => normalizeNotification(n as NotificationItem & { read?: boolean }))
+        )
+      );
   }
 
   unreadCount(): Observable<{ count: number }> {

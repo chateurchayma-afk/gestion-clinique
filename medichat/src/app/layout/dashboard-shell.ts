@@ -48,6 +48,7 @@ export class DashboardShell {
   readonly navOpen = signal(false);
   readonly pageTitle = signal('Tableau de bord');
   readonly notifOpen = signal(false);
+  readonly userMenuOpen = signal(false);
   readonly notifLoading = signal(false);
   readonly notifItems = signal<NotificationItem[]>([]);
   readonly notifUnreadCount = signal(0);
@@ -94,6 +95,14 @@ export class DashboardShell {
     return (u?.email ?? '').trim() || 'Utilisateur';
   });
 
+  readonly userMenuTitle = computed(() => {
+    const name = this.userDisplayName();
+    if (this.isMedecinShell && name && !name.startsWith('Dr.')) {
+      return `Dr. ${name}`;
+    }
+    return name;
+  });
+
   readonly hasNotifications = computed(() => this.notifUnreadCount() > 0);
 
   readonly notificationsLink = computed(() => {
@@ -118,6 +127,7 @@ export class DashboardShell {
       this.pageTitle.set(this.computePageTitle(this.router.url));
       this.navOpen.set(false);
       this.notifOpen.set(false);
+      this.userMenuOpen.set(false);
       this.user.set(this.readUser());
       this.reloadNotifications();
     });
@@ -126,10 +136,20 @@ export class DashboardShell {
   }
 
   toggleNotifications(): void {
+    this.userMenuOpen.set(false);
     this.notifOpen.update((v) => !v);
     if (this.notifOpen()) {
       this.reloadNotifications();
     }
+  }
+
+  toggleUserMenu(): void {
+    this.notifOpen.set(false);
+    this.userMenuOpen.update((v) => !v);
+  }
+
+  closeUserMenu(): void {
+    this.userMenuOpen.set(false);
   }
 
   markAllNotificationsRead(): void {
@@ -194,6 +214,22 @@ export class DashboardShell {
   }
 
   private reloadNotifications(): void {
+    const raw = localStorage.getItem('user');
+    if (!raw) {
+      this.clearNotificationsState();
+      return;
+    }
+    try {
+      const u = JSON.parse(raw) as { token?: string | null };
+      if (!u?.token) {
+        this.clearNotificationsState();
+        return;
+      }
+    } catch {
+      this.clearNotificationsState();
+      return;
+    }
+
     this.notifLoading.set(true);
     forkJoin({
       recent: this.notificationService.recent(6),
@@ -315,7 +351,16 @@ export class DashboardShell {
   }
 
   logout(): void {
+    this.clearNotificationsState();
     localStorage.removeItem('user');
     void this.router.navigate(['/login']);
+  }
+
+  private clearNotificationsState(): void {
+    this.notifOpen.set(false);
+    this.notifItems.set([]);
+    this.notifUnreadCount.set(0);
+    this.notifLoading.set(false);
+    this.userMenuOpen.set(false);
   }
 }

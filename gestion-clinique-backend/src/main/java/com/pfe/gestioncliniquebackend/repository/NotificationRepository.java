@@ -1,6 +1,7 @@
 package com.pfe.gestioncliniquebackend.repository;
 
 import com.pfe.gestioncliniquebackend.entity.Notification;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
@@ -21,10 +24,24 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findTop10ByUtilisateur_IdAndArchivedFalseOrderByCreatedAtDesc(Long userId);
 
+    Optional<Notification> findByIdAndUtilisateur_Id(Long id, Long userId);
+
     long countByUtilisateur_IdAndIsReadFalseAndArchivedFalse(Long userId);
 
     @Query(
+            "SELECT COUNT(n) FROM Notification n WHERE n.utilisateur.id = :uid "
+                    + "AND n.archived = false AND n.isRead = false "
+                    + "AND (:filterTypes = false OR n.type NOT IN :excludedTypes)"
+    )
+    long countUnreadForUser(
+            @Param("uid") Long userId,
+            @Param("filterTypes") boolean filterTypes,
+            @Param("excludedTypes") Collection<NotificationType> excludedTypes
+    );
+
+    @Query(
             "SELECT n FROM Notification n WHERE n.utilisateur.id = :uid "
+                    + "AND (:filterTypes = false OR n.type NOT IN :excludedTypes) "
                     + "AND (:archived IS NULL OR n.archived = :archived) "
                     + "AND (:isRead IS NULL OR n.isRead = :isRead) "
                     + "AND (:q IS NULL OR LOWER(n.title) LIKE LOWER(CONCAT('%',:q,'%')) "
@@ -33,9 +50,24 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     )
     Page<Notification> searchUserNotifications(
             @Param("uid") Long userId,
+            @Param("filterTypes") boolean filterTypes,
+            @Param("excludedTypes") Collection<NotificationType> excludedTypes,
             @Param("archived") Boolean archived,
             @Param("isRead") Boolean isRead,
             @Param("q") String query,
+            Pageable pageable
+    );
+
+    @Query(
+            "SELECT n FROM Notification n WHERE n.utilisateur.id = :uid "
+                    + "AND n.archived = false "
+                    + "AND (:filterTypes = false OR n.type NOT IN :excludedTypes) "
+                    + "ORDER BY n.createdAt DESC"
+    )
+    List<Notification> findRecentForUser(
+            @Param("uid") Long userId,
+            @Param("filterTypes") boolean filterTypes,
+            @Param("excludedTypes") Collection<NotificationType> excludedTypes,
             Pageable pageable
     );
 

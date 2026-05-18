@@ -86,9 +86,12 @@ export class NotificationsPage implements OnInit {
     }
     this.notificationService.markRead(item.id).subscribe({
       next: () => {
-        this.items.set(this.items().map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
-        this.unreadCount.set(Math.max(0, this.unreadCount() - 1));
-      }
+        this.items.update((list) =>
+          list.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
+        );
+        this.unreadCount.update((c) => Math.max(0, c - 1));
+      },
+      error: () => this.load()
     });
   }
 
@@ -98,18 +101,22 @@ export class NotificationsPage implements OnInit {
     }
     this.notificationService.markUnread(item.id).subscribe({
       next: () => {
-        this.items.set(this.items().map((n) => (n.id === item.id ? { ...n, isRead: false } : n)));
-        this.unreadCount.set(this.unreadCount() + 1);
-      }
+        this.items.update((list) =>
+          list.map((n) => (n.id === item.id ? { ...n, isRead: false } : n))
+        );
+        this.unreadCount.update((c) => c + 1);
+      },
+      error: () => this.load()
     });
   }
 
   markAllRead(): void {
     this.notificationService.markAllRead().subscribe({
       next: () => {
-        this.items.set(this.items().map((n) => ({ ...n, isRead: true })));
+        this.items.update((list) => list.map((n) => ({ ...n, isRead: true })));
         this.unreadCount.set(0);
-      }
+      },
+      error: () => this.load()
     });
   }
 

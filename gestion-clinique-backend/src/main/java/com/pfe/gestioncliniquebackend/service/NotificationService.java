@@ -5,6 +5,7 @@ import com.pfe.gestioncliniquebackend.dto.NotificationResponse;
 import com.pfe.gestioncliniquebackend.entity.Notification;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.NotificationType;
+import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.repository.NotificationRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -46,12 +48,14 @@ public class NotificationService {
         }
 
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100));
+        Collection<NotificationType> excludedTypes = excludedTypesForRole(user.getRole());
+        boolean filterTypes = !excludedTypes.isEmpty();
         Page<Notification> p = notificationRepository.searchUserNotifications(
-                user.getId(), archived, isRead, q, pageable
+                user.getId(), filterTypes, excludedTypes, archived, isRead, q, pageable
         );
 
         List<NotificationResponse> items = p.getContent().stream().map(NotificationService::toResponse).toList();
-        long unreadCount = notificationRepository.countByUtilisateur_IdAndIsReadFalseAndArchivedFalse(user.getId());
+        long unreadCount = notificationRepository.countUnreadForUser(user.getId(), filterTypes, excludedTypes);
 
         return new NotificationPageResponse(items, p.getNumber(), p.getSize(), p.getTotalElements(), unreadCount);
     }
@@ -60,15 +64,23 @@ public class NotificationService {
     public List<NotificationResponse> recent(int limit) {
         Utilisateur user = requireCurrentUtilisateur();
         int safe = Math.min(Math.max(limit, 1), 15);
-        List<Notification> list = notificationRepository
-                .findTop10ByUtilisateur_IdAndArchivedFalseOrderByCreatedAtDesc(user.getId());
-        return list.stream().limit(safe).map(NotificationService::toResponse).toList();
+        Collection<NotificationType> excludedTypes = excludedTypesForRole(user.getRole());
+        boolean filterTypes = !excludedTypes.isEmpty();
+        List<Notification> list = notificationRepository.findRecentForUser(
+                user.getId(),
+                filterTypes,
+                excludedTypes,
+                PageRequest.of(0, safe)
+        );
+        return list.stream().map(NotificationService::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public long unreadCount() {
         Utilisateur user = requireCurrentUtilisateur();
-        return notificationRepository.countByUtilisateur_IdAndIsReadFalseAndArchivedFalse(user.getId());
+        Collection<NotificationType> excludedTypes = excludedTypesForRole(user.getRole());
+        boolean filterTypes = !excludedTypes.isEmpty();
+        return notificationRepository.countUnreadForUser(user.getId(), filterTypes, excludedTypes);
     }
 
     @Transactional
@@ -94,7 +106,9 @@ public class NotificationService {
         Utilisateur user = requireCurrentUtilisateur();
         List<Notification> list = notificationRepository.findByUtilisateur_IdAndArchivedAndIsRead(
                 user.getId(), false, false, PageRequest.of(0, 200)
-        ).getContent();
+        ).getContent().stream()
+                .filter(n -> isAllowedForRole(n.getType(), user.getRole()))
+                .toList();
         list.forEach(n -> n.setRead(true));
         notificationRepository.saveAll(list);
     }
@@ -115,6 +129,10 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponse createForUserId(Long userId, NotificationType type, String title, String message) {
+        Utilisateur current = requireCurrentUtilisateur();
+        if (current.getRole() != Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seul un administrateur peut créer une notification pour un autre compte");
+        }
         if (userId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur requis");
         }
@@ -150,12 +168,27 @@ public class NotificationService {
 
     private Notification requireOwnedNotification(Long id) {
         Utilisateur user = requireCurrentUtilisateur();
-        Notification n = notificationRepository.findById(id)
+        Notification n = notificationRepository.findByIdAndUtilisateur_Id(id, user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification introuvable"));
-        if (n.getUtilisateur() == null || !n.getUtilisateur().getId().equals(user.getId())) {
+        if (!isAllowedForRole(n.getType(), user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acces refuse");
         }
         return n;
+    }
+
+    /** Types réservés à un rôle (double sécurité en plus du filtre par utilisateur). */
+    private static Collection<NotificationType> excludedTypesForRole(Role role) {
+        if (role == Role.MEDECIN) {
+            return List.of(NotificationType.RAPPEL_TRAITEMENT, NotificationType.CONSULTATION_TERMINEE);
+        }
+        return List.of();
+    }
+
+    private static boolean isAllowedForRole(NotificationType type, Role role) {
+        if (type == null) {
+            return true;
+        }
+        return !excludedTypesForRole(role).contains(type);
     }
 
     private Utilisateur requireCurrentUtilisateur() {

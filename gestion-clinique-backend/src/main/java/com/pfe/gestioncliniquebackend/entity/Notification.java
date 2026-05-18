@@ -28,11 +28,13 @@ public class Notification {
     private NotificationType type;
 
     @Builder.Default
+    @Column(name = "is_read")
     private boolean isRead = false;
 
     @Builder.Default
     private boolean archived = false;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

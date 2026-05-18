@@ -26,8 +26,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        final boolean notificationsApi = isNotificationsApi(request);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (notificationsApi) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentification requise");
+                return;
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -35,6 +40,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         if (!jwtService.isTokenValid(token)) {
+            if (notificationsApi) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalide ou expire");
+                return;
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -51,5 +60,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
+    }
+
+    private static boolean isNotificationsApi(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path != null && path.startsWith("/api/notifications");
     }
 }

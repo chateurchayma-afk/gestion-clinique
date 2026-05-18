@@ -35,7 +35,6 @@
     </nav>
 
     <div class="sidebar-footer">
-      <a class="nav-link ghost" routerLink="/" (click)="closeNav()">Site public</a>
       <button type="button" class="btn-logout" (click)="logout()">Déconnexion</button>
     </div>
   </aside>
@@ -111,14 +110,51 @@
             </div>
           }
         </div>
-        <a class="user-chip" [routerLink]="profileLink()" [attr.title]="'Mon profil — ' + userDisplayName()">
-          <span class="user-avatar">{{ userInitials() }}</span>
-          <span class="user-meta">
-            <span class="user-email">{{ (user()?.email ?? '').trim() }}</span>
-            <span class="user-name">{{ userDisplayName() }}</span>
-            <span class="user-role">{{ shellConfig.userRoleLabel }}</span>
-          </span>
-        </a>
+        <div class="user-menu-wrap">
+          <button
+            type="button"
+            class="user-chip"
+            [attr.title]="'Menu compte — ' + userDisplayName()"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="userMenuOpen()"
+            (click)="toggleUserMenu()"
+          >
+            <span class="user-avatar">{{ userInitials() }}</span>
+            <span class="user-meta">
+              <span class="user-email">{{ (user()?.email ?? '').trim() }}</span>
+              <span class="user-name">{{ userDisplayName() }}</span>
+              <span class="user-role">{{ shellConfig.userRoleLabel }}</span>
+            </span>
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="user-menu-panel" role="menu" aria-label="Menu compte">
+              <div class="user-menu-head">
+                <span class="user-avatar user-avatar--lg">{{ userInitials() }}</span>
+                <div class="user-menu-head-text">
+                  <span class="user-menu-name">{{ userMenuTitle() }}</span>
+                  <span class="user-menu-email">{{ (user()?.email ?? '').trim() }}</span>
+                  <span class="user-menu-role">{{ shellConfig.userRoleLabel }}</span>
+                </div>
+              </div>
+              <div class="user-menu-divider" aria-hidden="true"></div>
+              <a
+                class="user-menu-item"
+                role="menuitem"
+                [routerLink]="profileLink()"
+                (click)="closeUserMenu()"
+              >
+                <span class="user-menu-item-icon" aria-hidden="true">👤</span>
+                Mon profil
+              </a>
+              <div class="user-menu-divider" aria-hidden="true"></div>
+              <button type="button" class="user-menu-item user-menu-item--danger" role="menuitem" (click)="logout()">
+                <span class="user-menu-item-icon" aria-hidden="true">🚪</span>
+                Déconnexion
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </header>
 

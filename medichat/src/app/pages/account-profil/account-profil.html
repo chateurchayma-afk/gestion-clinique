@@ -5,11 +5,6 @@
       <h1>Mon profil</h1>
       <p class="hero-sub">Gardez vos informations de contact a jour pour votre espace clinique.</p>
     </div>
-    @if (!loading && !loadError) {
-      <button type="submit" form="profile-form" class="btn-primary" [disabled]="submitting">
-        {{ submitting ? 'Enregistrement...' : 'Enregistrer' }}
-      </button>
-    }
   </header>
 
   @if (loading) {
