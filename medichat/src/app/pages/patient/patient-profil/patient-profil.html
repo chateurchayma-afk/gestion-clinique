@@ -1,165 +1,300 @@
-<div class="doctor-page profil-page">
-  <div class="doctor-wrapper">
-    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()" class="global-card" autocomplete="off">
-      <div class="page-header">
-        <h1>Mon profil</h1>
-        <p>Modifiez vos informations comme dans le dossier patient de la clinique. Laissez le mot de passe vide pour le conserver.</p>
-        <div *ngIf="loadError" class="error-message">{{ loadError }}</div>
-        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-      </div>
+<div class="pt-profile">
+  <header class="pt-hero">
+    <div class="pt-hero-text">
+      <p class="pt-eyebrow">Espace patient</p>
+      <h1>Mon profil</h1>
+      <p class="pt-hero-sub">
+        Consultez et mettez à jour vos informations personnelles, votre dossier médical et vos contacts.
+      </p>
+    </div>
+  </header>
 
-      <div class="top-tabs">
-        <button type="button" class="top-tab" [class.active]="activeTab === 'personnel'" (click)="setTab('personnel')">
-          Informations personnelles
-        </button>
-        <button type="button" class="top-tab" [class.active]="activeTab === 'dossier'" (click)="setTab('dossier')">
-          Dossier &amp; contact
-        </button>
-      </div>
+  @if (loading()) {
+    <div class="pt-state">
+      <span class="pt-loader" aria-hidden="true"></span>
+      <p>Chargement de votre profil…</p>
+    </div>
+  } @else if (loadError()) {
+    <div class="pt-state pt-state--warn">
+      <p>{{ loadError() }}</p>
+      <button type="button" class="pt-btn pt-btn--primary" (click)="retryLoad()">Réessayer</button>
+    </div>
+  } @else {
+    <form
+      id="patient-profile-form"
+      class="pt-layout"
+      [formGroup]="patientForm"
+      (ngSubmit)="onSubmit()"
+      autocomplete="off"
+    >
+      @if (errorMessage) {
+        <div class="pt-alert" role="alert">{{ errorMessage }}</div>
+      }
 
-      <div class="inner-card">
-        <div *ngIf="activeTab === 'personnel'" class="tab-panel">
-          <div class="section-title">
-            <h2>Informations personnelles</h2>
-            <p>Identité, coordonnées et accès au compte.</p>
+      <aside class="pt-summary" aria-label="Résumé du profil">
+        <div class="pt-avatar-wrap">
+          <div class="pt-avatar" [class.pt-avatar--photo]="!!photoUrl">
+            @if (photoUrl) {
+              <img [src]="photoUrl" alt="" />
+            } @else {
+              <span>{{ initials }}</span>
+            }
           </div>
+          <span class="pt-status">Compte patient</span>
+        </div>
 
-          <div class="form-grid">
-            <div class="field">
-              <label>Prénom</label>
-              <input type="text" formControlName="prenom" placeholder="Prénom" [class.error]="getFieldError('prenom')" />
-              <div *ngIf="getFieldError('prenom')" class="field-error">{{ getFieldError('prenom') }}</div>
-            </div>
-            <div class="field">
-              <label>Nom</label>
-              <input type="text" formControlName="nom" placeholder="Nom" [class.error]="getFieldError('nom')" />
-              <div *ngIf="getFieldError('nom')" class="field-error">{{ getFieldError('nom') }}</div>
-            </div>
-            <div class="field">
-              <label>Date de naissance</label>
-              <input type="date" formControlName="dateNaissance" />
-            </div>
-            <div class="field">
-              <label>Sexe</label>
-              <select formControlName="sexe">
-                <option value="">Sélectionner</option>
-                <option value="HOMME">Homme</option>
-                <option value="FEMME">Femme</option>
-              </select>
-            </div>
-            <div class="field field-full">
-              <label>Adresse</label>
-              <input type="text" formControlName="adresse" placeholder="Adresse" autocomplete="street-address" />
-            </div>
-            <div class="field">
-              <label>Ville</label>
-              <input type="text" formControlName="ville" placeholder="Ville" />
-            </div>
-            <div class="field">
-              <label>Gouvernorat / Région</label>
-              <input type="text" formControlName="gouvernorat" placeholder="Région" />
-            </div>
-            <div class="field">
-              <label>Code postal</label>
-              <input type="text" formControlName="codePostal" placeholder="Code postal" />
-            </div>
-          </div>
+        <div class="pt-summary-main">
+          <p class="pt-summary-role">Profil</p>
+          <h2>{{ displayName }}</h2>
+          <p class="pt-summary-email">{{ patientForm.get('email')?.value || 'E-mail à compléter' }}</p>
+        </div>
 
-          <div class="sub-section">
-            <h3>Connexion</h3>
-            <div class="form-grid">
-              <div class="field">
-                <label>Adresse e-mail</label>
+        <ul class="pt-summary-list">
+          <li>
+            <span>Téléphone</span>
+            <strong>{{ patientForm.get('telephone')?.value || 'À compléter' }}</strong>
+          </li>
+          <li>
+            <span>N° dossier</span>
+            <strong>{{ patientForm.get('numeroDossier')?.value || 'Non renseigné' }}</strong>
+          </li>
+          <li>
+            <span>Localisation</span>
+            <strong>{{ contactLine }}</strong>
+          </li>
+          <li>
+            <span>Contact préféré</span>
+            <strong>{{ methodeContactLabel }}</strong>
+          </li>
+        </ul>
+
+        <label class="pt-field pt-field--compact">
+          <span>Photo (URL)</span>
+          <input type="url" formControlName="photo" placeholder="https://…" autocomplete="off" />
+        </label>
+      </aside>
+
+      <main class="pt-main">
+        <nav class="pt-tabs" role="tablist" aria-label="Sections du profil">
+          <button
+            type="button"
+            class="pt-tab"
+            role="tab"
+            [class.pt-tab--active]="activeTab === 'personnel'"
+            [attr.aria-selected]="activeTab === 'personnel'"
+            (click)="setTab('personnel')"
+          >
+            Informations personnelles
+          </button>
+          <button
+            type="button"
+            class="pt-tab"
+            role="tab"
+            [class.pt-tab--active]="activeTab === 'dossier'"
+            [attr.aria-selected]="activeTab === 'dossier'"
+            (click)="setTab('dossier')"
+          >
+            Dossier &amp; urgence
+          </button>
+        </nav>
+
+        @if (activeTab === 'personnel') {
+          <section class="pt-panel" role="tabpanel">
+            <header class="pt-panel-head">
+              <div>
+                <p class="pt-kicker">Identité</p>
+                <h2>Informations personnelles</h2>
+                <p class="pt-panel-desc">Civilité, coordonnées et adresse postale.</p>
+              </div>
+              <span class="pt-chip">{{ sexeLabel }}</span>
+            </header>
+
+            <div class="pt-grid pt-grid--2">
+              <label class="pt-field">
+                <span>Prénom <em>*</em></span>
+                <input
+                  type="text"
+                  formControlName="prenom"
+                  autocomplete="given-name"
+                  [class.pt-input--error]="getFieldError('prenom')"
+                />
+                @if (getFieldError('prenom')) {
+                  <small class="pt-error">{{ getFieldError('prenom') }}</small>
+                }
+              </label>
+              <label class="pt-field">
+                <span>Nom <em>*</em></span>
+                <input
+                  type="text"
+                  formControlName="nom"
+                  autocomplete="family-name"
+                  [class.pt-input--error]="getFieldError('nom')"
+                />
+                @if (getFieldError('nom')) {
+                  <small class="pt-error">{{ getFieldError('nom') }}</small>
+                }
+              </label>
+            </div>
+
+            <div class="pt-grid pt-grid--2">
+              <label class="pt-field">
+                <span>Date de naissance</span>
+                <input type="date" formControlName="dateNaissance" />
+              </label>
+              <label class="pt-field">
+                <span>Sexe</span>
+                <select formControlName="sexe">
+                  <option value="">Sélectionner</option>
+                  <option value="HOMME">Homme</option>
+                  <option value="FEMME">Femme</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="pt-field">
+              <span>Adresse</span>
+              <input type="text" formControlName="adresse" autocomplete="street-address" placeholder="Rue, numéro" />
+            </label>
+
+            <div class="pt-grid pt-grid--3">
+              <label class="pt-field">
+                <span>Ville</span>
+                <input type="text" formControlName="ville" autocomplete="address-level2" />
+              </label>
+              <label class="pt-field">
+                <span>Gouvernorat / région</span>
+                <input type="text" formControlName="gouvernorat" />
+              </label>
+              <label class="pt-field">
+                <span>Code postal</span>
+                <input type="text" formControlName="codePostal" autocomplete="postal-code" />
+              </label>
+            </div>
+          </section>
+
+          <section class="pt-panel pt-panel--sub">
+            <header class="pt-panel-head">
+              <div>
+                <p class="pt-kicker">Connexion</p>
+                <h2>Accès au compte</h2>
+                <p class="pt-panel-desc">Identifiants utilisés pour vous connecter à MediChat.</p>
+              </div>
+            </header>
+
+            <div class="pt-grid pt-grid--2">
+              <label class="pt-field">
+                <span>E-mail <em>*</em></span>
                 <input
                   type="email"
                   formControlName="email"
-                  placeholder="E-mail"
                   autocomplete="email"
-                  [class.error]="getFieldError('email')"
+                  [class.pt-input--error]="getFieldError('email')"
                 />
-                <div *ngIf="getFieldError('email')" class="field-error">{{ getFieldError('email') }}</div>
-              </div>
-              <div class="field">
-                <label>Téléphone</label>
-                <input type="text" formControlName="telephone" placeholder="Téléphone" [class.error]="getFieldError('telephone')" />
-                <div *ngIf="getFieldError('telephone')" class="field-error">{{ getFieldError('telephone') }}</div>
-              </div>
-              <div class="field">
-                <label>Nouveau mot de passe (optionnel)</label>
+                @if (getFieldError('email')) {
+                  <small class="pt-error">{{ getFieldError('email') }}</small>
+                }
+              </label>
+              <label class="pt-field">
+                <span>Téléphone <em>*</em></span>
                 <input
-                  type="password"
-                  formControlName="motDePasse"
-                  placeholder="Laisser vide pour ne pas changer"
-                  autocomplete="new-password"
-                  [class.error]="getFieldError('motDePasse')"
+                  type="tel"
+                  formControlName="telephone"
+                  autocomplete="tel"
+                  [class.pt-input--error]="getFieldError('telephone')"
                 />
-                <div *ngIf="getFieldError('motDePasse')" class="field-error">{{ getFieldError('motDePasse') }}</div>
+                @if (getFieldError('telephone')) {
+                  <small class="pt-error">{{ getFieldError('telephone') }}</small>
+                }
+              </label>
+            </div>
+
+            <label class="pt-field">
+              <span>Nouveau mot de passe</span>
+              <input
+                type="password"
+                formControlName="motDePasse"
+                autocomplete="new-password"
+                placeholder="Laisser vide pour ne pas modifier"
+                [class.pt-input--error]="getFieldError('motDePasse')"
+              />
+              @if (getFieldError('motDePasse')) {
+                <small class="pt-error">{{ getFieldError('motDePasse') }}</small>
+              } @else {
+                <small class="pt-hint">Minimum 6 caractères si vous changez le mot de passe.</small>
+              }
+            </label>
+          </section>
+        }
+
+        @if (activeTab === 'dossier') {
+          <section class="pt-panel" role="tabpanel">
+            <header class="pt-panel-head">
+              <div>
+                <p class="pt-kicker">Dossier</p>
+                <h2>Dossier patient &amp; urgence</h2>
+                <p class="pt-panel-desc">Informations administratives et personne à contacter.</p>
               </div>
-              <div class="field field-full">
-                <label>Photo (URL)</label>
-                <input type="text" formControlName="photo" placeholder="https://…" autocomplete="off" />
+            </header>
+
+            <div class="pt-grid pt-grid--2">
+              <label class="pt-field">
+                <span>Situation matrimoniale</span>
+                <select formControlName="situationMatrimoniale">
+                  <option value="">Sélectionner</option>
+                  <option value="Celibataire">Célibataire</option>
+                  <option value="Marie(e)">Marié(e)</option>
+                  <option value="Divorce(e)">Divorcé(e)</option>
+                  <option value="Veuf(ve)">Veuf(ve)</option>
+                </select>
+              </label>
+              <label class="pt-field">
+                <span>N° dossier</span>
+                <input type="text" formControlName="numeroDossier" placeholder="Ex. PAT-001" />
+              </label>
+            </div>
+
+            <div class="pt-grid pt-grid--2">
+              <label class="pt-field">
+                <span>Contact d'urgence — nom</span>
+                <input type="text" formControlName="contactUrgenceNom" placeholder="Nom du contact" />
+              </label>
+              <label class="pt-field">
+                <span>Contact d'urgence — téléphone</span>
+                <input type="tel" formControlName="contactUrgenceTelephone" placeholder="+216 …" />
+              </label>
+            </div>
+
+            <div class="pt-pref-block">
+              <p class="pt-kicker">Préférence</p>
+              <h3>Méthode de contact préférée</h3>
+              <div class="pt-pref-options" role="radiogroup">
+                <label class="pt-pref" [class.pt-pref--on]="patientForm.get('methodeContactPreferee')?.value === 'TELEPHONE'">
+                  <input type="radio" formControlName="methodeContactPreferee" value="TELEPHONE" />
+                  <span class="pt-pref-icon" aria-hidden="true">📞</span>
+                  <span class="pt-pref-label">Téléphone</span>
+                </label>
+                <label class="pt-pref" [class.pt-pref--on]="patientForm.get('methodeContactPreferee')?.value === 'EMAIL'">
+                  <input type="radio" formControlName="methodeContactPreferee" value="EMAIL" />
+                  <span class="pt-pref-icon" aria-hidden="true">✉</span>
+                  <span class="pt-pref-label">E-mail</span>
+                </label>
+                <label class="pt-pref" [class.pt-pref--on]="patientForm.get('methodeContactPreferee')?.value === 'SMS'">
+                  <input type="radio" formControlName="methodeContactPreferee" value="SMS" />
+                  <span class="pt-pref-icon" aria-hidden="true">💬</span>
+                  <span class="pt-pref-label">SMS</span>
+                </label>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
+        }
 
-        <div *ngIf="activeTab === 'dossier'" class="tab-panel">
-          <div class="section-title">
-            <h2>Dossier patient</h2>
-            <p>Urgences, préférences et numéro de dossier.</p>
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label>Situation matrimoniale</label>
-              <select formControlName="situationMatrimoniale">
-                <option value="">Sélectionner</option>
-                <option value="Célibataire">Célibataire</option>
-                <option value="Marié(e)">Marié(e)</option>
-                <option value="Divorcé(e)">Divorcé(e)</option>
-                <option value="Veuf(ve)">Veuf(ve)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>N° dossier</label>
-              <input type="text" formControlName="numeroDossier" placeholder="Ex. PAT-001" />
-            </div>
-            <div class="field">
-              <label>Contact urgence — nom</label>
-              <input type="text" formControlName="contactUrgenceNom" placeholder="Nom du contact" />
-            </div>
-            <div class="field">
-              <label>Contact urgence — téléphone</label>
-              <input type="text" formControlName="contactUrgenceTelephone" placeholder="Téléphone" />
-            </div>
-          </div>
-
-          <div class="sub-section">
-            <h3>Méthode de contact préférée</h3>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input type="radio" formControlName="methodeContactPreferee" value="TELEPHONE" />
-                <span>Téléphone</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" formControlName="methodeContactPreferee" value="EMAIL" />
-                <span>E-mail</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" formControlName="methodeContactPreferee" value="SMS" />
-                <span>SMS</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bottom-actions">
-        <a class="btn-cancel" routerLink="/patient-dashboard/accueil">Retour au tableau de bord</a>
-        <button type="submit" class="btn-save" [disabled]="isSubmitting || !!loadError">
-          {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer les modifications' }}
-        </button>
-      </div>
+        <footer class="pt-footer">
+          <a class="pt-btn pt-btn--ghost" routerLink="/patient-dashboard/accueil">Annuler</a>
+          <button type="submit" class="pt-btn pt-btn--primary" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+          </button>
+        </footer>
+      </main>
     </form>
-  </div>
+  }
 </div>

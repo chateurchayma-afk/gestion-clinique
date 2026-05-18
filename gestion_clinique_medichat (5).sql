@@ -99,7 +99,9 @@ CREATE TABLE `dossier_medical` (
   `statut_tabagique` enum('NON_FUMEUR','FUMEUR','ANCIEN_FUMEUR') DEFAULT NULL,
   `consommation_alcool` enum('AUCUNE','OCCASIONNELLE','REGULIERE') DEFAULT NULL,
   `frequence_activite_physique` enum('FAIBLE','MODEREE','REGULIERE','INTENSE') DEFAULT NULL,
-  `habitudes_alimentaires` text DEFAULT NULL
+  `habitudes_alimentaires` text DEFAULT NULL,
+  `rappel_traitement_nom` varchar(200) DEFAULT NULL,
+  `rappel_traitement_frequence` varchar(120) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

@@ -1,6 +1,7 @@
 package com.pfe.gestioncliniquebackend.service;
 
 import com.pfe.gestioncliniquebackend.dto.PatientUpdateRequest;
+import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.MethodeContact;
@@ -8,6 +9,7 @@ import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.repository.PatientRepository;
+import com.pfe.gestioncliniquebackend.repository.RendezVousRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +21,16 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final RendezVousRepository rendezVousRepository;
     private final NotificationService notificationService;
 
     public PatientService(PatientRepository patientRepository,
                             UtilisateurRepository utilisateurRepository,
+                            RendezVousRepository rendezVousRepository,
                             NotificationService notificationService) {
         this.patientRepository = patientRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.rendezVousRepository = rendezVousRepository;
         this.notificationService = notificationService;
     }
 
@@ -50,6 +55,11 @@ public class PatientService {
 
     @Transactional
     public Patient updatePatient(Long id, PatientUpdateRequest req) {
+        return updatePatient(id, req, false);
+    }
+
+    @Transactional
+    public Patient updatePatient(Long id, PatientUpdateRequest req, boolean notifyLinkedMedecins) {
         if (req.getNom() == null || req.getNom().trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom est obligatoire");
         }
@@ -65,6 +75,9 @@ public class PatientService {
 
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Patient introuvable"));
+        if (patient.getUtilisateur() == null) {
+            throw new IllegalArgumentException("Profil patient incomplet");
+        }
         Utilisateur u = patient.getUtilisateur();
         if (u.getRole() != Role.PATIENT) {
             throw new IllegalArgumentException("Cet enregistrement n'est pas un patient");
@@ -111,9 +124,44 @@ public class PatientService {
         patient.setNumeroDossier(numeroDossier);
 
         Patient saved = patientRepository.save(patient);
-        notificationService.createForUser(saved.getUtilisateur(), NotificationType.PROFIL_MODIFIE,
-            "Profil patient modifie", "Les informations du patient ont ete mises a jour.");
+        if (notifyLinkedMedecins) {
+            notificationService.createForUser(
+                    saved.getUtilisateur(),
+                    NotificationType.PROFIL_MODIFIE,
+                    "Profil modifié",
+                    "Vos informations ont été mises à jour.");
+            notifyLinkedMedecinsProfilUpdated(saved);
+        } else {
+            notificationService.createForUser(
+                    saved.getUtilisateur(),
+                    NotificationType.PROFIL_MODIFIE,
+                    "Profil patient modifié",
+                    "Les informations du patient ont été mises à jour.");
+        }
         return saved;
+    }
+
+    private void notifyLinkedMedecinsProfilUpdated(Patient patient) {
+        Utilisateur pu = patient.getUtilisateur();
+        if (pu == null) {
+            return;
+        }
+        String patientName = (pu.getPrenom() + " " + pu.getNom()).trim();
+        if (patientName.isEmpty()) {
+            patientName = "Un patient";
+        }
+        String message = patientName + " a mis à jour ses informations personnelles.";
+        for (Medecin medecin : rendezVousRepository.findDistinctMedecinsByPatientId(patient.getId())) {
+            Utilisateur mu = medecin.getUtilisateur();
+            if (mu == null) {
+                continue;
+            }
+            notificationService.createForUser(
+                    mu,
+                    NotificationType.PROFIL_MODIFIE,
+                    "Profil patient modifié",
+                    message);
+        }
     }
 
     public void deletePatient(Long id) {

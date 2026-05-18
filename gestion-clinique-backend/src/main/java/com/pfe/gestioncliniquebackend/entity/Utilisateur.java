@@ -1,5 +1,6 @@
 package com.pfe.gestioncliniquebackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import jakarta.persistence.*;
@@ -27,6 +28,7 @@ public class Utilisateur {
     @Column(unique = true)
     private String email;
 
+    @JsonIgnore
     @Column(name = "mot_de_passe")
     private String motDePasse;
 

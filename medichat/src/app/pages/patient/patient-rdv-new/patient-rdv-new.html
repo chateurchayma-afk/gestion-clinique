@@ -1,123 +1,116 @@
 <div class="page">
-  <header class="page-head">
-    <h1>Nouveau rendez-vous</h1>
-    <p>Choisissez un jour puis un créneau libre, ou laissez-vous guider par la suggestion automatique.</p>
-  </header>
+  <a class="back" routerLink="/patient-dashboard/medecins">← Retour</a>
+
+  <h1 class="title">Nouveau rendez-vous</h1>
 
   @if (loadingMed()) {
-    <p class="muted">Chargement du médecin…</p>
+    <p class="muted">Chargement…</p>
   } @else if (!medecin()) {
     @if (catalogueLoading()) {
       <p class="muted">Chargement des médecins…</p>
     } @else if (catalogueError()) {
-      <div class="card warn">
-        <p>Impossible de charger l’annuaire des médecins.</p>
-        <a routerLink="/patient-dashboard/medecins" class="link">Ouvrir l’annuaire</a>
+      <div class="card card--warn">
+        <p>Impossible de charger l’annuaire.</p>
+        <a routerLink="/patient-dashboard/medecins" class="link">Liste des médecins</a>
       </div>
     } @else if (catalogueMedecins().length === 0) {
-      <div class="card warn">
+      <div class="card card--warn">
         <p>Aucun médecin disponible pour le moment.</p>
-        <a routerLink="/patient-dashboard/medecins" class="link">Voir l’annuaire</a>
+        <a routerLink="/patient-dashboard/medecins" class="link">Liste des médecins</a>
       </div>
     } @else {
-      <div class="card pick">
-        <h2 class="pick-title">Choisir un médecin</h2>
-        <p class="muted pick-lead">Sélectionnez le praticien pour lequel vous souhaitez prendre rendez-vous.</p>
-        <label class="field pick-field">
-          <span>Médecin</span>
-          <select
-            class="select-medecin"
-            #selMed
-            (change)="choisirMedecinDepuisListe(+selMed.value)"
-          >
-            <option value="" selected disabled>— Choisir dans la liste —</option>
+      <div class="card">
+        <label class="field">
+          <span class="label">Médecin</span>
+          <select class="input select" #selMed (change)="choisirMedecinDepuisListe(+selMed.value)">
+            <option value="" selected disabled>Choisir…</option>
             @for (m of catalogueMedecins(); track m.id) {
               <option [value]="m.id">
-                Dr {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}{{ libelleMedecinOption(m) }}
+                Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}{{ libelleMedecinOption(m) }}
               </option>
             }
           </select>
         </label>
-        <p class="pick-alt muted">Ou parcourez la <a routerLink="/patient-dashboard/medecins" class="link">liste des médecins</a>.</p>
+        <p class="muted small"><a routerLink="/patient-dashboard/medecins" class="link">Voir toute la liste</a></p>
       </div>
     }
-  } @else {
-    <div class="layout">
-      <aside class="side card">
-        <div class="med-block">
-          <h2>{{ medecin()!.utilisateur.prenom }} {{ medecin()!.utilisateur.nom }}</h2>
-          <p class="meta">{{ medecin()!.specialite?.nom ?? 'Spécialité' }}</p>
+  } @else if (medecin(); as doc) {
+    <div class="card">
+      <div class="doc">
+        <div class="doc-main">
+          <strong>Dr. {{ doc.utilisateur.prenom }} {{ doc.utilisateur.nom }}</strong>
+          <span class="muted"> · {{ doc.specialite?.nom ?? 'Consultation' }}</span>
         </div>
-        <button
-          type="button"
-          class="btn-suggest"
-          (click)="appliquerProchainCreneau()"
-          [disabled]="prochainLoading() || medecin()!.disponible === false"
-        >
-          {{ prochainLoading() ? 'Recherche…' : 'Prochain créneau disponible' }}
-        </button>
-        <p class="hint-suggest">Remplit automatiquement la première plage libre sur les prochaines semaines.</p>
-      </aside>
-
-      <div class="card form-card">
-        <form (ngSubmit)="submit()">
-          <div class="cal-block">
-            <label class="field">
-              <span>Date</span>
-              <input type="date" name="date" [(ngModel)]="dateRendezVous" (ngModelChange)="onDateChange()" required />
-            </label>
-          </div>
-
-          @if (loadingCreneaux()) {
-            <p class="muted small">Chargement des créneaux…</p>
-          } @else if (dateRendezVous && slotsJour().length === 0) {
-            <p class="muted small">Aucun créneau standard libre ce jour-là (agenda plein ou jour passé). Vous pouvez saisir une heure manuellement ci-dessous.</p>
-          } @else if (dateRendezVous && slotsJour().length > 0) {
-            <div class="slots">
-              <span class="slots-label">Créneaux disponibles (30 min)</span>
-              <div class="slot-chips">
-                @for (h of slotsJour(); track $index) {
-                  <button
-                    type="button"
-                    class="slot"
-                    [class.active]="heureDebut === formatHeureChip(h)"
-                    (click)="choisirCreneau(h)"
-                  >
-                    {{ formatHeureChip(h) }}
-                  </button>
-                }
-              </div>
-            </div>
-          }
-
-          <label class="field">
-            <span>Heure de début</span>
-            <input type="time" name="debut" [(ngModel)]="heureDebut" required />
-          </label>
-          <label class="field">
-            <span>Heure de fin (optionnel)</span>
-            <input type="time" name="fin" [(ngModel)]="heureFin" />
-          </label>
-          <label class="field">
-            <span>Mode de consultation</span>
-            <select name="mode" [(ngModel)]="modeConsultation">
-              <option value="PRESENTIEL">Présentiel</option>
-              <option value="ONLINE">En ligne</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Motif (optionnel)</span>
-            <textarea name="motif" rows="3" [(ngModel)]="motif" placeholder="Courte description du motif…"></textarea>
-          </label>
-
-          <div class="actions">
-            <a class="btn ghost" routerLink="/patient-dashboard/medecins">Annuler</a>
-            <button type="submit" class="btn primary" [disabled]="submitting() || medecin()!.disponible === false">
-              {{ submitting() ? 'Envoi…' : 'Confirmer la demande' }}
-            </button>
-          </div>
-        </form>
       </div>
+
+      @if (!estDisponible(doc)) {
+        <p class="warn-inline">Ce praticien n’accepte pas de nouvelles réservations.</p>
+      }
+
+      <form (ngSubmit)="submit()">
+        <label class="field">
+          <span class="label">Date</span>
+          <input
+            type="date"
+            class="input"
+            name="date"
+            [(ngModel)]="dateRendezVous"
+            (ngModelChange)="onDateChange()"
+            required
+          />
+        </label>
+
+        @if (loadingCreneaux()) {
+          <p class="muted small">Créneaux…</p>
+        } @else if (dateRendezVous && slotsJour().length > 0) {
+          <div class="field">
+            <span class="label">Horaires proposés</span>
+            <div class="chips">
+              @for (h of slotsJour(); track $index) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--on]="heureDebut === formatHeureChip(h)"
+                  (click)="choisirCreneau(h)"
+                >
+                  {{ formatHeureChip(h) }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="grid2">
+          <label class="field">
+            <span class="label">Début</span>
+            <input type="time" class="input" name="debut" [(ngModel)]="heureDebut" required />
+          </label>
+          <label class="field">
+            <span class="label">Fin <span class="opt">(opt.)</span></span>
+            <input type="time" class="input" name="fin" [(ngModel)]="heureFin" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">Mode</span>
+          <select class="input select" name="mode" [(ngModel)]="modeConsultation">
+            <option value="PRESENTIEL">Présentiel</option>
+            <option value="ONLINE">En ligne</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="label">Motif <span class="opt">(optionnel)</span></span>
+          <textarea class="input textarea" name="motif" rows="3" [(ngModel)]="motif" placeholder="Quelques mots…"></textarea>
+        </label>
+
+        <div class="actions">
+          <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Annuler</a>
+          <button type="submit" class="btn btn-primary" [disabled]="submitting() || doc.disponible === false">
+            {{ submitting() ? 'Envoi…' : 'Confirmer' }}
+          </button>
+        </div>
+      </form>
     </div>
   }
 </div>

@@ -1,48 +1,33 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { CatalogueMedecinsQuery, Medecin, MedecinService } from '../../../services/medecin.service';
-import { ServiceMedical, ServiceMedicalService } from '../../../services/service-medical.service';
 import { Specialite, SpecialiteService } from '../../../services/specialite.service';
 
 @Component({
   selector: 'app-patient-medecins',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './patient-medecins.html',
   styleUrl: './patient-medecins.css'
 })
 export class PatientMedecins implements OnInit {
   private readonly medecinService = inject(MedecinService);
   private readonly specialiteService = inject(SpecialiteService);
-  private readonly serviceMedicalService = inject(ServiceMedicalService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly medecins = signal<Medecin[]>([]);
   readonly specialites = signal<Specialite[]>([]);
-  readonly services = signal<ServiceMedical[]>([]);
   readonly loading = signal(true);
-  readonly popularIds = signal<Set<number>>(new Set());
-  readonly todayIds = signal<Set<number>>(new Set());
+  /** Catalogue complet trié par nom (suggestions du champ recherche) */
+  readonly medecinsPourNoms = signal<Medecin[]>([]);
 
   searchNom = '';
   specialiteFilter: number | '' = '';
-  serviceFilter: number | '' = '';
-  /** '' = tous, 'true' / 'false' string for ngModel select */
-  disponibleFilter: '' | 'true' | 'false' = '';
   sortKey: 'nom' | 'experience' | 'disponible' = 'nom';
-
-  readonly medecinsPopulaires = computed(() => {
-    const pop = this.popularIds();
-    return this.medecins().filter((m) => pop.has(m.id));
-  });
-
-  readonly medecinsDispoAujourdhui = computed(() => {
-    const t = this.todayIds();
-    return this.medecins().filter((m) => t.has(m.id));
-  });
 
   ngOnInit(): void {
     this.specialiteService.getAll().subscribe({
@@ -52,24 +37,21 @@ export class PatientMedecins implements OnInit {
       },
       error: () => this.toast.show('Impossible de charger les spécialités.', 'error')
     });
-    this.serviceMedicalService.getAll().subscribe({
-      next: (list) => this.services.set([...list].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))),
-      error: () => this.services.set([])
-    });
-    this.medecinService.getCatalogueHighlights().subscribe({
-      next: (h) => {
-        this.popularIds.set(new Set(h.medecinsPopulairesIds ?? []));
-        this.todayIds.set(new Set(h.medecinsDisponiblesAujourdhuiIds ?? []));
-      },
-      error: () => {
-        this.popularIds.set(new Set());
-        this.todayIds.set(new Set());
-      }
+    this.medecinService.getCatalogue({ sort: 'nom' }).subscribe({
+      next: (list) => this.medecinsPourNoms.set(list),
+      error: () => this.medecinsPourNoms.set([])
     });
     this.reloadMedecins();
   }
 
-  reloadMedecins(): void {
+  /** Valeur datalist : prénom + nom (recherche API plus fiable qu’avec « Dr. »). */
+  libelleMedecinDatalist(m: Medecin): string {
+    const p = (m.utilisateur.prenom ?? '').trim();
+    const n = (m.utilisateur.nom ?? '').trim();
+    return `${p} ${n}`.trim();
+  }
+
+  reloadMedecins(scrollToResults = false): void {
     this.loading.set(true);
     const q: CatalogueMedecinsQuery = {
       sort: this.sortKey
@@ -77,19 +59,18 @@ export class PatientMedecins implements OnInit {
     if (this.specialiteFilter !== '' && this.specialiteFilter != null) {
       q.specialiteId = Number(this.specialiteFilter);
     }
-    if (this.serviceFilter !== '' && this.serviceFilter != null) {
-      q.serviceMedicalId = Number(this.serviceFilter);
-    }
     if (this.searchNom.trim()) {
       q.q = this.searchNom.trim();
-    }
-    if (this.disponibleFilter === 'true' || this.disponibleFilter === 'false') {
-      q.disponible = this.disponibleFilter === 'true';
     }
     this.medecinService.getCatalogue(q).subscribe({
       next: (list) => {
         this.medecins.set(list);
         this.loading.set(false);
+        if (scrollToResults) {
+          queueMicrotask(() => {
+            document.getElementById('medecins-resultats')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
       },
       error: () => {
         this.loading.set(false);
@@ -114,15 +95,6 @@ export class PatientMedecins implements OnInit {
     return 4 + (m.id % 6) * 0.1;
   }
 
-  etoilesPleines(m: Medecin): number {
-    return Math.floor(this.noteAffichee(m));
-  }
-
-  etoileDemi(m: Medecin): boolean {
-    const n = this.noteAffichee(m);
-    return n - Math.floor(n) >= 0.5;
-  }
-
   aNoteReelle(m: Medecin): boolean {
     return m.noteMoyenne != null && m.noteMoyenne >= 0;
   }
@@ -138,11 +110,18 @@ export class PatientMedecins implements OnInit {
     return p ? p : null;
   }
 
-  isPopular(m: Medecin): boolean {
-    return this.popularIds().has(m.id);
+  /** Page profil dédiée. */
+  voirProfil(m: Medecin): void {
+    void this.router.navigate(['/patient-dashboard/medecins/profil', m.id]);
   }
 
-  isDispoAujourdhui(m: Medecin): boolean {
-    return this.todayIds().has(m.id);
+  /** Page de réservation (même flux que la fiche médecin). */
+  prendreRdvSurPlace(m: Medecin): void {
+    if (!this.estDisponible(m)) {
+      return;
+    }
+    void this.router.navigate(['/patient-dashboard/rendez-vous/nouveau'], {
+      queryParams: { medecinId: m.id }
+    });
   }
 }

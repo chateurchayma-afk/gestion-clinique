@@ -27,6 +27,8 @@ export interface DossierMedicalForm {
   alcool: string;
   activite: string;
   alimentation: string;
+  rappelTraitementNom: string;
+  rappelTraitementFrequence: string;
 }
 
 function emptyDossier(): DossierMedicalForm {
@@ -48,7 +50,9 @@ function emptyDossier(): DossierMedicalForm {
     tabac: '',
     alcool: '',
     activite: '',
-    alimentation: ''
+    alimentation: '',
+    rappelTraitementNom: '',
+    rappelTraitementFrequence: 'CHAQUE_JOUR'
   };
 }
 
@@ -117,7 +121,12 @@ export class MedecinDossierMedical implements OnInit {
     this.loadingDossier.set(true);
     this.dossierMedical.getByPatientId(this.patientId).subscribe({
       next: (dossier) => {
-        this.form = { ...emptyDossier(), ...dossier };
+        this.form = {
+          ...emptyDossier(),
+          ...dossier,
+          rappelTraitementNom: dossier.rappelTraitementNom ?? '',
+          rappelTraitementFrequence: dossier.rappelTraitementFrequence?.trim() || 'CHAQUE_JOUR'
+        };
         this.loadingDossier.set(false);
       },
       error: (err) => {

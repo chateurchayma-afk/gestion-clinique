@@ -1,5 +1,6 @@
 package com.pfe.gestioncliniquebackend.repository;
 
+import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.RendezVous;
 import com.pfe.gestioncliniquebackend.enums.StatutRendezVous;
@@ -16,6 +17,9 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
 
     @Query("SELECT DISTINCT r.patient FROM RendezVous r WHERE r.medecin.id = :medecinId")
     List<Patient> findDistinctPatientsByMedecinId(@Param("medecinId") Long medecinId);
+
+    @Query("SELECT DISTINCT r.medecin FROM RendezVous r WHERE r.patient.id = :patientId")
+    List<Medecin> findDistinctMedecinsByPatientId(@Param("patientId") Long patientId);
 
     boolean existsByPatient_IdAndMedecin_Id(Long patientId, Long medecinId);
 
@@ -35,6 +39,20 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
                     + "AND r.heureDebut < :fin AND r.heureFin > :debut"
     )
     boolean existsChevauchement(
+            @Param("mid") Long medecinId,
+            @Param("d") LocalDate date,
+            @Param("debut") LocalTime debut,
+            @Param("fin") LocalTime fin,
+            @Param("annule") StatutRendezVous annule
+    );
+
+    @Query(
+            "SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM RendezVous r "
+                    + "WHERE r.id <> :excludeId AND r.medecin.id = :mid AND r.dateRendezVous = :d "
+                    + "AND r.statut <> :annule AND r.heureDebut < :fin AND r.heureFin > :debut"
+    )
+    boolean existsChevauchementExcluding(
+            @Param("excludeId") Long excludeId,
             @Param("mid") Long medecinId,
             @Param("d") LocalDate date,
             @Param("debut") LocalTime debut,

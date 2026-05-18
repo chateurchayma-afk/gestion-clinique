@@ -1,143 +1,155 @@
-<div class="page">
-  <header class="hero">
-    <h1>Annuaire des médecins</h1>
-    <p>Profils vérifiés par la clinique, disponibilité en temps réel et prise de rendez-vous en ligne.</p>
+<div class="medecins-page">
+  <div class="medecins-page-bg" aria-hidden="true"></div>
+
+  <header class="medecins-hero">
+    <p class="medecins-eyebrow">Clinique · Espace patient</p>
+    <h1 class="medecins-title">Liste des médecins</h1>
   </header>
 
-  <section class="filters card">
-    <div class="filters-grid">
-      <label class="field">
-        <span>Recherche</span>
-        <input
-          type="search"
-          [(ngModel)]="searchNom"
-          (ngModelChange)="reloadMedecins()"
-          name="searchNom"
-          placeholder="Nom ou prénom…"
-        />
-      </label>
-      <label class="field">
-        <span>Spécialité</span>
-        <select name="spec" [(ngModel)]="specialiteFilter" (ngModelChange)="reloadMedecins()">
-          <option value="">Toutes</option>
-          @for (s of specialites(); track s.id) {
-            <option [ngValue]="s.id">{{ s.nom }}</option>
+  <section class="medecins-toolbar medecins-surface" aria-label="Recherche et filtres">
+    <div class="toolbar-innov">
+      <div class="toolbar-combo">
+        <label class="medecins-field medecins-field--grow">
+          <span class="medecins-field-label">Rechercher un praticien</span>
+          <div class="combo-input-wrap">
+            <span class="combo-prefix" aria-hidden="true">Dr.</span>
+            <input
+              type="search"
+              class="medecins-input medecins-input--combo"
+              [(ngModel)]="searchNom"
+              (ngModelChange)="reloadMedecins()"
+              name="searchNom"
+              list="medecins-noms-catalogue"
+              placeholder="Nom, prénom ou choix dans la liste…"
+              autocomplete="off"
+            />
+          </div>
+        </label>
+        <datalist id="medecins-noms-catalogue">
+          @for (m of medecinsPourNoms(); track m.id) {
+            <option [value]="libelleMedecinDatalist(m)"></option>
           }
-        </select>
-      </label>
-      <label class="field">
-        <span>Service médical</span>
-        <select name="svc" [(ngModel)]="serviceFilter" (ngModelChange)="reloadMedecins()">
-          <option value="">Tous</option>
-          @for (sv of services(); track sv.id) {
-            <option [ngValue]="sv.id">{{ sv.nom }}</option>
-          }
-        </select>
-      </label>
-      <label class="field">
-        <span>Disponibilité</span>
-        <select name="dispo" [(ngModel)]="disponibleFilter" (ngModelChange)="reloadMedecins()">
-          <option value="">Tous</option>
-          <option value="true">Accepte des RDV</option>
-          <option value="false">Indisponible / complet</option>
-        </select>
-      </label>
-      <label class="field">
-        <span>Tri</span>
-        <select name="sort" [(ngModel)]="sortKey" (ngModelChange)="reloadMedecins()">
-          <option value="nom">Par nom</option>
-          <option value="experience">Par expérience</option>
-          <option value="disponible">Par disponibilité</option>
-        </select>
-      </label>
+        </datalist>
+      </div>
+      <div class="toolbar-filters-grid">
+        <label class="medecins-field">
+          <span class="medecins-field-label">Spécialité</span>
+          <select class="medecins-input" name="spec" [(ngModel)]="specialiteFilter" (ngModelChange)="reloadMedecins()">
+            <option value="">Toutes</option>
+            @for (s of specialites(); track s.id) {
+              <option [ngValue]="s.id">{{ s.nom }}</option>
+            }
+          </select>
+        </label>
+        <label class="medecins-field">
+          <span class="medecins-field-label">Trier par</span>
+          <select class="medecins-input" name="sort" [(ngModel)]="sortKey" (ngModelChange)="reloadMedecins()">
+            <option value="nom">Nom</option>
+            <option value="experience">Expérience</option>
+            <option value="disponible">Disponibilité</option>
+          </select>
+        </label>
+      </div>
     </div>
   </section>
 
-  @if (!loading() && medecinsDispoAujourdhui().length > 0) {
-    <section class="band">
-      <h2 class="band-title">Disponibles aujourd’hui</h2>
-      <p class="band-sub">Créneaux restants selon l’agenda (max. {{ medecinsDispoAujourdhui().length }} praticiens).</p>
-      <div class="chips">
-        @for (m of medecinsDispoAujourdhui(); track m.id) {
-          <a class="chip" [routerLink]="['/patient-dashboard/medecins/profil', m.id]">
-            {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}
-          </a>
-        }
+  <section id="medecins-resultats" class="medecins-results">
+    @if (loading()) {
+      <div class="medecins-surface medecins-loading">
+        <div class="loading-bar"></div>
+        <p class="medecins-muted">Chargement…</p>
       </div>
-    </section>
-  }
-
-  @if (!loading() && medecinsPopulaires().length > 0) {
-    <section class="band band-pop">
-      <h2 class="band-title">Médecins populaires</h2>
-      <p class="band-sub">Les praticiens les plus sollicités ces dernières semaines.</p>
-      <div class="chips">
-        @for (m of medecinsPopulaires(); track m.id) {
-          <a class="chip chip-pop" [routerLink]="['/patient-dashboard/medecins/profil', m.id]">
-            {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}
-          </a>
-        }
+    } @else if (medecins().length === 0) {
+      <div class="medecins-empty medecins-surface">
+        <div class="medecins-empty-icon" aria-hidden="true"></div>
+        <h2 class="medecins-empty-title">Aucun médecin ne correspond</h2>
+        <p class="medecins-empty-text">Élargissez les filtres ou modifiez le nom recherché.</p>
       </div>
-    </section>
-  }
+    } @else {
+      <div class="catalog-header">
+        <h2 class="catalog-heading">Médecins</h2>
+        <span class="catalog-count">{{ medecins().length }} résultat(s)</span>
+      </div>
 
-  @if (loading()) {
-    <p class="muted">Chargement…</p>
-  } @else if (medecins().length === 0) {
-    <p class="muted">Aucun médecin ne correspond à ces critères.</p>
-  } @else {
-    <h2 class="list-title">Tous les résultats ({{ medecins().length }})</h2>
-    <div class="cards">
-      @for (m of medecins(); track m.id) {
-        <article class="doc-card">
-          <div class="doc-head">
-            <div class="avatar" [class.has-photo]="photoUrl(m)">
-              @if (photoUrl(m); as url) {
-                <img [src]="url" alt="" />
-              } @else {
-                <span class="avatar-initials">{{ initiales(m) }}</span>
+      <div class="catalog-table-card medecins-surface">
+        <div class="catalog-table-scroll">
+          <table class="catalog-table">
+            <thead>
+              <tr>
+                <th scope="col">Médecin</th>
+                <th scope="col">Service</th>
+                <th scope="col">Expérience</th>
+                <th scope="col">Appréciation</th>
+                <th scope="col">Disponibilité</th>
+                <th scope="col" class="catalog-th-action">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of medecins(); track m.id) {
+                <tr class="catalog-tr">
+                  <td class="catalog-td-medecin">
+                    <div class="catalog-row-primary">
+                      <div class="catalog-avatar avatar" [class.has-photo]="photoUrl(m)">
+                        @if (photoUrl(m); as url) {
+                          <img [src]="url" alt="" />
+                        } @else {
+                          <span class="avatar-initials">{{ initiales(m) }}</span>
+                        }
+                      </div>
+                      <div class="catalog-id">
+                        <div class="catalog-line1">
+                          <span class="catalog-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</span>
+                        </div>
+                        <p class="catalog-spec">{{ m.specialite?.nom ?? 'Spécialité à préciser' }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="catalog-td-text">{{ m.serviceMedical?.nom ?? '—' }}</td>
+                  <td class="catalog-td-text catalog-td-nowrap">{{ m.experienceAnnees != null ? m.experienceAnnees + ' ans' : '—' }}</td>
+                  <td class="catalog-td-text catalog-td-nowrap">
+                    <span
+                      class="catalog-note-inline"
+                      [attr.title]="aNoteReelle(m) ? 'Note patients' : 'Indication'"
+                    >
+                      {{ noteAffichee(m).toFixed(1) }}<span class="catalog-note-star">★</span>
+                    </span>
+                  </td>
+                  <td class="catalog-td-dispo">
+                    <span
+                      class="catalog-status"
+                      [class.catalog-status--ok]="estDisponible(m)"
+                      [class.catalog-status--off]="!estDisponible(m)"
+                    >
+                      {{ libelleDisponibilite(m) }}
+                    </span>
+                  </td>
+                  <td class="catalog-td-action">
+                    <div
+                      class="catalog-action-btns"
+                      role="group"
+                      [attr.aria-label]="'Actions pour Dr. ' + m.utilisateur.prenom + ' ' + m.utilisateur.nom"
+                    >
+                      <button type="button" class="btn btn-outline btn-compact" (click)="voirProfil(m)">Voir</button>
+                      @if (estDisponible(m)) {
+                        <button type="button" class="btn btn-primary-solid btn-compact" (click)="prendreRdvSurPlace(m)">
+                          Réserver
+                        </button>
+                      } @else {
+                        <span
+                          class="btn btn-primary-solid btn-compact disabled"
+                          title="Indisponible"
+                          role="button"
+                          aria-disabled="true"
+                        >Réserver</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
               }
-            </div>
-            <div class="badges">
-              @if (isPopular(m)) {
-                <span class="badge badge-pop">Populaire</span>
-              }
-              @if (isDispoAujourdhui(m)) {
-                <span class="badge badge-today">Dispo aujourd'hui</span>
-              }
-            </div>
-          </div>
-          <h3 class="doc-name">{{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</h3>
-          <p class="doc-spec">{{ m.specialite?.nom ?? 'Spécialité à préciser' }}</p>
-          @if (m.serviceMedical) {
-            <p class="doc-svc">{{ m.serviceMedical.nom }}</p>
-          }
-          <div class="doc-meta">
-            <span class="dispo" [class.off]="!estDisponible(m)">{{ libelleDisponibilite(m) }}</span>
-            @if (m.experienceAnnees != null) {
-              <span class="exp">{{ m.experienceAnnees }} ans d’exp.</span>
-            }
-          </div>
-          <div class="stars" [attr.title]="aNoteReelle(m) ? 'Note patients' : 'Indication visuelle'">
-            @for (i of [1, 2, 3, 4, 5]; track i) {
-              <span class="star" [class.on]="i <= etoilesPleines(m)" [class.half]="i === etoilesPleines(m) + 1 && etoileDemi(m)">★</span>
-            }
-            <span class="star-note">{{ noteAffichee(m).toFixed(1) }}</span>
-          </div>
-          <div class="doc-actions">
-            <a class="btn ghost" [routerLink]="['/patient-dashboard/medecins/profil', m.id]">Voir profil</a>
-            @if (estDisponible(m)) {
-              <a class="btn primary" [routerLink]="['/patient-dashboard/rendez-vous/nouveau']" [queryParams]="{ medecinId: m.id }">
-                Prendre rendez-vous
-              </a>
-            } @else {
-              <span class="btn primary disabled" title="Ce médecin n’accepte pas de nouveaux rendez-vous pour le moment.">
-                Prendre rendez-vous
-              </span>
-            }
-          </div>
-        </article>
-      }
-    </div>
-  }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
 </div>

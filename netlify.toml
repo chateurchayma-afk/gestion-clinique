@@ -1,0 +1,11 @@
+# MediChat sur monorepo : dossier d’app = medichat/
+# Après déploiement, /ordonnance (lien du QR) doit servir index.html, sinon 404 Netlify.
+[build]
+  base = "medichat"
+  command = "npm run build"
+  publish = "medichat/dist/medichat/browser"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

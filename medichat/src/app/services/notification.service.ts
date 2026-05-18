@@ -10,7 +10,13 @@ export type NotificationType =
   | 'CONSULTATION_TERMINEE'
   | 'ORDONNANCE_CREEE'
   | 'PROFIL_MODIFIE'
+  | 'RAPPEL_TRAITEMENT'
   | 'ALERTE_SYSTEME';
+
+/** Notification prioritaire affichée différemment pour le patient. */
+export function isPatientSpecialNotification(type: NotificationType): boolean {
+  return type === 'RAPPEL_TRAITEMENT';
+}
 
 export interface NotificationItem {
   id: number;

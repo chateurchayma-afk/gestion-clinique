@@ -130,6 +130,21 @@
   color: #0f172a;
 }
 
+tr.notif-row--special td {
+  background: linear-gradient(90deg, #fff7ed 0%, #fffbeb 100%);
+  border-top-color: #fed7aa;
+  border-bottom-color: #fed7aa;
+}
+
+tr.notif-row--special .notif-icon {
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+
+tr.notif-row--special .notif-title {
+  color: #9a3412;
+}
+
 .notif-message {
   color: #475569;
 }

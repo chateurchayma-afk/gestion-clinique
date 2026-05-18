@@ -1,0 +1,82 @@
+<div class="mec-page">
+  <div class="mec-hero mec-hero--compact">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Rendez-vous</p>
+      <h1 class="mec-title">Nouveau rendez-vous</h1>
+      <p class="mec-sub muted">Planifiez un créneau pour un de vos patients.</p>
+    </div>
+    <div class="mec-hero-actions">
+      <a class="mec-btn mec-btn--ghost" routerLink="/medecin-dashboard/rendez-vous">← Retour</a>
+    </div>
+  </div>
+
+  <p class="muted" *ngIf="loadMeta()">Chargement…</p>
+
+  <form class="mec-card" (ngSubmit)="submit()" *ngIf="!loadMeta()">
+    <div class="mec-form-grid mec-form-grid--1">
+      <div class="mec-field">
+        <label class="mec-label" for="pt">Patient</label>
+        <select
+          class="mec-select"
+          id="pt"
+          name="pt"
+          [(ngModel)]="patientId"
+          [disabled]="!patients().length"
+          required
+        >
+          <option [ngValue]="null" disabled>— Sélectionner un patient —</option>
+          <option *ngFor="let p of patients()" [ngValue]="p.id">
+            {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
+            <ng-container *ngIf="p.numeroDossier as nd"> — {{ nd }}</ng-container>
+          </option>
+        </select>
+        <p class="hint muted" *ngIf="!patients().length">Aucun patient synchronisé.</p>
+      </div>
+
+      <div class="mec-form-grid">
+        <div class="mec-field">
+          <label class="mec-label" for="dt">Date</label>
+          <input class="mec-input" type="date" id="dt" name="dt" [(ngModel)]="dateRdv" required />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="m">Mode de consultation</label>
+          <select class="mec-select" id="m" name="m" [(ngModel)]="mode">
+            <option value="PRESENTIEL">Présentiel</option>
+            <option value="ONLINE">Téléconsultation</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mec-form-grid">
+        <div class="mec-field">
+          <label class="mec-label" for="h1">Heure de début</label>
+          <input class="mec-input" type="time" id="h1" name="h1" [(ngModel)]="heureDebut" required />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="h2">Heure de fin (optionnel)</label>
+          <input class="mec-input" type="time" id="h2" name="h2" [(ngModel)]="heureFin" />
+        </div>
+      </div>
+
+      <div class="mec-field">
+        <label class="mec-label" for="mo">Motif (optionnel)</label>
+        <input
+          class="mec-input"
+          type="text"
+          id="mo"
+          name="mo"
+          [(ngModel)]="motif"
+          placeholder="Motif, notes courtes"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <div class="mec-btn-row">
+      <a class="mec-btn mec-btn--ghost" routerLink="/medecin-dashboard/rendez-vous">Annuler</a>
+      <button type="submit" class="mec-btn mec-btn--primary" [disabled]="submitting() || medecinId() == null">
+        {{ submitting() ? 'Enregistrement…' : 'Enregistrer le rendez-vous' }}
+      </button>
+    </div>
+  </form>
+</div>

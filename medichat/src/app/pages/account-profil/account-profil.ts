@@ -43,6 +43,7 @@ export class AccountProfil implements OnInit {
   loading = true;
   submitting = false;
   loadError = '';
+  currentUser: UtilisateurMe | null = null;
 
   constructor() {
     this.form = this.fb.group({
@@ -70,6 +71,7 @@ export class AccountProfil implements OnInit {
       .subscribe({
         next: (u) => {
           this.loadError = '';
+          this.currentUser = u;
           this.patchFromServer(u);
         },
         error: () => {
@@ -127,6 +129,42 @@ export class AccountProfil implements OnInit {
     });
   }
 
+  get displayName(): string {
+    const prenom = String(this.form.get('prenom')?.value ?? '').trim();
+    const nom = String(this.form.get('nom')?.value ?? '').trim();
+    const fullName = `${prenom} ${nom}`.trim();
+    if (!fullName) {
+      return 'Mon profil';
+    }
+    return this.currentUser?.role === 'MEDECIN' ? `Dr. ${fullName}` : fullName;
+  }
+
+  get initials(): string {
+    const prenom = String(this.form.get('prenom')?.value ?? '').trim();
+    const nom = String(this.form.get('nom')?.value ?? '').trim();
+    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase() || 'MP';
+  }
+
+  get roleLabel(): string {
+    switch (this.currentUser?.role) {
+      case 'MEDECIN':
+        return 'Compte medecin';
+      case 'PATIENT':
+        return 'Compte patient';
+      case 'ADMIN':
+      case 'ADMINISTRATEUR':
+        return 'Compte administrateur';
+      default:
+        return 'Compte utilisateur';
+    }
+  }
+
+  get contactLine(): string {
+    const ville = String(this.form.get('ville')?.value ?? '').trim();
+    const gouvernorat = String(this.form.get('gouvernorat')?.value ?? '').trim();
+    return [ville, gouvernorat].filter(Boolean).join(', ') || 'Coordonnees a completer';
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -148,6 +186,7 @@ export class AccountProfil implements OnInit {
     this.api.updateMe(body).subscribe({
       next: (u) => {
         this.submitting = false;
+        this.currentUser = u;
         this.toast.show('Profil enregistré.', 'success');
         this.form.patchValue({ motDePasse: '' });
         this.mergeStoredUser(u);

@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
-import { CreneauJour, Medecin, MedecinService, ProchainCreneau } from '../../../services/medecin.service';
+import { CreneauJour, Medecin, MedecinService } from '../../../services/medecin.service';
 import {
   ModeConsultation,
   RendezVousCreatePayload,
@@ -33,7 +33,6 @@ export class PatientRdvNew implements OnInit {
   readonly submitting = signal(false);
   readonly creneaux = signal<CreneauJour[]>([]);
   readonly loadingCreneaux = signal(false);
-  readonly prochainLoading = signal(false);
 
   medecinId: number | null = null;
   dateRendezVous = '';
@@ -101,6 +100,10 @@ export class PatientRdvNew implements OnInit {
     return spec ? ` — ${spec}` : '';
   }
 
+  estDisponible(m: Medecin): boolean {
+    return m.disponible !== false;
+  }
+
   private loadMedecin(id: number): void {
     this.loadingMed.set(true);
     this.medecinService.getCatalogueMedecin(id).subscribe({
@@ -152,27 +155,6 @@ export class PatientRdvNew implements OnInit {
       mm -= 60;
     }
     this.heureFin = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-  }
-
-  appliquerProchainCreneau(): void {
-    const m = this.medecin();
-    if (!m) {
-      return;
-    }
-    this.prochainLoading.set(true);
-    this.medecinService.getProchainCreneau(m.id).subscribe({
-      next: (p: ProchainCreneau) => {
-        this.prochainLoading.set(false);
-        this.dateRendezVous = p.date;
-        this.heureDebut = this.normalizeHeureAffichage(p.heureDebut);
-        this.heureFin = this.normalizeHeureAffichage(p.heureFin);
-        this.toast.show('Prochain créneau libre appliqué.', 'info');
-      },
-      error: () => {
-        this.prochainLoading.set(false);
-        this.toast.show('Aucun créneau automatique trouvé pour ce médecin.', 'error');
-      }
-    });
   }
 
   submit(): void {

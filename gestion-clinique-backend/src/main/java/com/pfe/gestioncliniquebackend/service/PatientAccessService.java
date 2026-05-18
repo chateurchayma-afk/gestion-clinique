@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -19,6 +20,7 @@ public class PatientAccessService {
     /**
      * Patient connecté (JWT) — email dans le contexte Spring Security.
      */
+    @Transactional(readOnly = true)
     public Patient requireCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
@@ -28,7 +30,7 @@ public class PatientAccessService {
         if (!(principal instanceof String email) || email.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Session invalide");
         }
-        Patient patient = patientRepository.findByUtilisateur_Email(email.trim().toLowerCase())
+        Patient patient = patientRepository.findByUtilisateur_EmailWithUtilisateur(email.trim().toLowerCase())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Espace réservé aux patients"));
         if (patient.getUtilisateur().getRole() != Role.PATIENT) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Espace réservé aux patients");

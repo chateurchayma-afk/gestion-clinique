@@ -1,13 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, type Observable, of } from 'rxjs';
-import { MedecinService } from '../services/medecin.service';
+import { MedecinPortalService } from '../services/medecin-portal.service';
 
 /**
- * Résout l’identifiant du médecin connecté (profil lié à l’utilisateur).
+ * Résout l’identifiant du médecin connecté (fiche {@code Medecin}, pas l’utilisateur).
  */
 @Injectable({ providedIn: 'root' })
 export class MedecinContextService {
-  private readonly medecins = inject(MedecinService);
+  private readonly portal = inject(MedecinPortalService);
 
   getCurrentUtilisateurId(): number | null {
     const raw = localStorage.getItem('user');
@@ -15,9 +15,14 @@ export class MedecinContextService {
       return null;
     }
     try {
-      const u = JSON.parse(raw) as { id?: number };
-      if (typeof u?.id === 'number' && u.id > 0) {
-        return u.id;
+      const u = JSON.parse(raw) as { id?: number | string };
+      const n = u?.id;
+      if (typeof n === 'number' && n > 0) {
+        return n;
+      }
+      if (typeof n === 'string' && /^\d+$/.test(n)) {
+        const x = parseInt(n, 10);
+        return x > 0 ? x : null;
       }
     } catch {
       return null;
@@ -25,17 +30,13 @@ export class MedecinContextService {
     return null;
   }
 
-  /** Retourne l’id de la fiche {@link /api/medecins} du médecin connecté, ou `null`. */
+  /**
+   * {@code GET /api/medecin/moi} (ou repli) — ne peut pas échouer silencieusement comme un balayage
+   * de {@code GET /api/medecins} où le médecin courant peut être absent de la liste optimisée.
+   */
   resolveMedecinId(): Observable<number | null> {
-    const uid = this.getCurrentUtilisateurId();
-    if (uid == null) {
-      return of(null);
-    }
-    return this.medecins.getAllMedecins().pipe(
-      map((list) => {
-        const m = list.find((x) => (x.utilisateur?.id ?? 0) === uid);
-        return m?.id ?? null;
-      }),
+    return this.portal.getMoi().pipe(
+      map((m) => (typeof m?.id === 'number' && m.id > 0 ? m.id : null)),
       catchError(() => of(null))
     );
   }

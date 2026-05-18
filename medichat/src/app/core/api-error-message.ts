@@ -12,6 +12,9 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
     if (err.status === 0) {
       return 'Impossible de joindre le serveur (vérifiez que le backend est démarré et l’URL dans .env).';
     }
+    if (err.status === 404) {
+      return 'Action non disponible (404). Redémarrez le backend Spring Boot pour appliquer les dernières mises à jour.';
+    }
     const body = err.error as { message?: string } | string | null | undefined;
     if (typeof body === 'object' && body && typeof body.message === 'string' && body.message.trim()) {
       return body.message.trim();

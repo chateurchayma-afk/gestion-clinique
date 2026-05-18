@@ -61,7 +61,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let n of items()">
+          <tr *ngFor="let n of items()" [class.notif-row--special]="isSpecialRow(n)">
             <td class="notif-type">
               <span class="notif-icon">{{ iconFor(n.type) }}</span>
             </td>

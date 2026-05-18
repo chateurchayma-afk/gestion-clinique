@@ -15,6 +15,7 @@ import {
 } from '../medecin-ordonnance-sync';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'qrcode';
+import { encodeOrdonnanceQrUrl } from '../../../core/ordonnance-qr-codec';
 import { environment } from '../../../../environments/environment';
 
 function isoToday(): string {
@@ -69,9 +70,13 @@ export class MedecinOrdonnancePdf implements OnInit {
   readonly patientName = computed(() => {
     const p = this.selectedPatient();
     if (!p) {
-      return '—';
+      return '';
     }
     return `${p.utilisateur.prenom} ${p.utilisateur.nom}`.trim();
+  });
+
+  readonly canEncodeQr = computed(() => {
+    return this.patientId != null && this.medicamentsText().trim().length > 0;
   });
 
   readonly bodyLines = computed(() => {
@@ -209,42 +214,33 @@ export class MedecinOrdonnancePdf implements OnInit {
     }, 250);
   }
 
-  private buildQrPayload(): string {
+  private async buildQrPayloadAsync(): Promise<string> {
     const base = (environment.ordonnancePublicBaseUrl ?? '').trim().replace(/\/+$/g, '');
-    if (!base) {
+    if (!base || !this.canEncodeQr()) {
       return '';
     }
-    const payload = {
-      v: 'v1',
-      id: this.buildOrdonnanceFileName(),
+    return encodeOrdonnanceQrUrl({
+      baseUrl: base,
       patient: this.patientName(),
       date: this.dateOrdonnance,
       medecin: this.medecinLabel,
-      medecinAddr: this.medecinAddr,
-      medecinTel: this.medecinTel,
-      medecinEmail: this.medecinEmail,
       meds: this.medicamentsText().trim()
-    };
-    const encoded = this.toBase64Url(JSON.stringify(payload));
-    return `${base}/?data=${encoded}`;
-  }
-
-  private toBase64Url(input: string): string {
-    const utf8 = encodeURIComponent(input).replace(/%([0-9A-F]{2})/g, (_, p1) =>
-      String.fromCharCode(parseInt(p1, 16))
-    );
-    const b64 = btoa(utf8);
-    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    });
   }
 
   private async updateQrCode(): Promise<void> {
-    const payload = this.buildQrPayload();
+    const payload = await this.buildQrPayloadAsync();
     if (!payload.trim()) {
       this.qrDataUrl.set('');
       return;
     }
     try {
-      const dataUrl = await QRCode.toDataURL(payload, { width: 140, margin: 1 });
+      const dataUrl = await QRCode.toDataURL(payload, {
+        width: 320,
+        margin: 4,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#0f172a', light: '#ffffff' }
+      });
       this.qrDataUrl.set(dataUrl);
     } catch {
       this.qrDataUrl.set('');
@@ -266,6 +262,10 @@ export class MedecinOrdonnancePdf implements OnInit {
   /** Télécharge un fichier .pdf (pas le dialogue d’impression). */
   async downloadPdfFile(): Promise<void> {
     this.persist();
+    if (!this.canEncodeQr()) {
+      this.toast.show('Sélectionnez un patient et saisissez le traitement avant le PDF / QR.', 'error');
+      return;
+    }
     await this.ensureQrReady();
     const el = document.getElementById('ordonnance-print');
     if (!el) {
@@ -302,30 +302,54 @@ export class MedecinOrdonnancePdf implements OnInit {
       this.toast.show('Renseignez le traitement prescrit.', 'error');
       return;
     }
-    const qrUrl = this.buildQrPayload();
+    // Tronquer le texte des médicaments pour respecter la colonne DB (2000)
+    let medsToSend = meds;
+    if (meds.length > 2000) {
+      medsToSend = meds.slice(0, 2000);
+      this.toast.show('Traitement trop long — tronqué à 2000 caractères.', 'info');
+    }
     this.saveBusy.set(true);
-    this.ordonnanceService
-      .create({
-        patientId: this.patientId,
-        dateOrdonnance: this.dateOrdonnance,
-        medicamentsText: meds,
-        qrUrl
+    void this.buildQrPayloadAsync()
+      .then((qrUrlFull) => {
+        const qrUrl = qrUrlFull && qrUrlFull.length > 500 ? qrUrlFull.slice(0, 500) : qrUrlFull;
+        this.ordonnanceService
+          .create({
+            patientId: this.patientId!,
+            dateOrdonnance: this.dateOrdonnance,
+            medicamentsText: medsToSend,
+            qrUrl
+          })
+          .subscribe({
+            next: () => {
+              this.toast.show('Ordonnance enregistrée.', 'success');
+              this.saveBusy.set(false);
+            },
+            error: (err) => {
+              try {
+                const msg = err?.error?.message || err?.message || 'Enregistrement impossible.';
+                this.toast.show(String(msg), 'error');
+              } catch (e) {
+                this.toast.show('Enregistrement impossible.', 'error');
+              }
+              // eslint-disable-next-line no-console
+              console.error('saveOrdonnance error', err);
+              this.saveBusy.set(false);
+            }
+          });
       })
-      .subscribe({
-        next: () => {
-          this.toast.show('Ordonnance enregistrée.', 'success');
-          this.saveBusy.set(false);
-        },
-        error: () => {
-          this.toast.show('Enregistrement impossible.', 'error');
-          this.saveBusy.set(false);
-        }
+      .catch(() => {
+        this.toast.show('Impossible de préparer le lien QR.', 'error');
+        this.saveBusy.set(false);
       });
   }
 
   /** Dialogue d’impression du navigateur. */
   async printOrdonnance(): Promise<void> {
     this.persist();
+    if (!this.canEncodeQr()) {
+      this.toast.show('Sélectionnez un patient et saisissez le traitement avant l’impression.', 'error');
+      return;
+    }
     await this.ensureQrReady();
     globalThis.print();
   }

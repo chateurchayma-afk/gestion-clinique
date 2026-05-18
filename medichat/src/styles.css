@@ -13,6 +13,9 @@
   --text-secondary: #5a6d85;
   --text-muted: #8896ad;
   --text-meta: #7a889e;
+  --app-button-blue: #4f6fa8;
+  --app-button-blue-dark: #375986;
+  --app-button-blue-soft: #edf3ff;
 
   /* Échelle typographique */
   --text-display: clamp(1.875rem, 2.2vw + 1rem, 2.25rem);
@@ -198,4 +201,105 @@ textarea::placeholder {
   justify-content: center;
   margin: 0.25rem 0 0.75rem;
   min-height: 42px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Boutons uniformes : bleu + texte blanc, Annuler/secondaire blanc + bleu    */
+/* -------------------------------------------------------------------------- */
+
+.btn-primary,
+.primary-btn,
+.btn-save,
+.submit-btn,
+.btn-ok,
+.btn-no,
+.btn-add-rdv,
+.btn-export,
+.mec-btn--primary,
+.mec-btn--blue,
+.mec-btn--dark,
+.btn-next-solid,
+.action-btn,
+.action-btn *,
+.menu-btn,
+.menu-btn *,
+button.primary,
+a.primary {
+  background: var(--app-button-blue) !important;
+  background-image: none !important;
+  border-color: var(--app-button-blue) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.primary-btn:hover,
+.btn-save:hover,
+.submit-btn:hover,
+.btn-ok:hover,
+.btn-no:hover,
+.btn-add-rdv:hover,
+.btn-export:hover,
+.mec-btn--primary:hover,
+.mec-btn--blue:hover,
+.mec-btn--dark:hover,
+.btn-next-solid:hover,
+.action-btn:hover,
+.action-btn:hover *,
+.menu-btn:hover,
+.menu-btn:hover *,
+button.primary:hover,
+a.primary:hover {
+  background: var(--app-button-blue-dark) !important;
+  background-image: none !important;
+  border-color: var(--app-button-blue-dark) !important;
+  color: #ffffff !important;
+}
+
+.btn-cancel,
+.btn-secondary,
+.btn-ghost,
+.ghost-btn,
+.mec-btn--secondary,
+.mec-btn--ghost,
+.mec-btn--blue-outline,
+.btn-next-outline,
+.nav-link.ghost,
+.close-btn,
+button.secondary,
+button.cancel,
+a.secondary,
+a.cancel {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid var(--app-button-blue) !important;
+  color: var(--app-button-blue) !important;
+}
+
+.btn-cancel:hover,
+.btn-secondary:hover,
+.btn-ghost:hover,
+.ghost-btn:hover,
+.mec-btn--secondary:hover,
+.mec-btn--ghost:hover,
+.mec-btn--blue-outline:hover,
+.btn-next-outline:hover,
+.nav-link.ghost:hover,
+.close-btn:hover,
+button.secondary:hover,
+button.cancel:hover,
+a.secondary:hover,
+a.cancel:hover {
+  background: var(--app-button-blue-soft) !important;
+  color: var(--app-button-blue-dark) !important;
+  border-color: var(--app-button-blue-dark) !important;
+}
+
+button:disabled,
+.btn-primary:disabled,
+.primary-btn:disabled,
+.btn-save:disabled,
+.submit-btn:disabled,
+.mec-btn:disabled {
+  opacity: 0.62 !important;
+  cursor: not-allowed !important;
 }

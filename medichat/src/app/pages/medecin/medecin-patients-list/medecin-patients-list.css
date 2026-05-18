@@ -71,9 +71,9 @@
 }
 
 .action-btn {
-  border: 1px solid #dbe6f5;
-  background: #ffffff;
-  color: #1e3a8a;
+  border: 1px solid #4f6fa8 !important;
+  background: #ffffff !important;
+  color: #4f6fa8 !important;
   font-weight: 700;
   font-size: 12px;
   padding: 6px 8px;
@@ -84,17 +84,19 @@
 }
 
 .action-btn:hover {
-  background: #eff6ff;
+  background: #edf3ff !important;
+  color: #375986 !important;
 }
 
 .action-btn--danger {
-  border-color: #fecaca;
-  color: #b91c1c;
-  background: #fff5f5;
+  border-color: #4f6fa8 !important;
+  color: #4f6fa8 !important;
+  background: #ffffff !important;
 }
 
 .action-btn--danger:hover {
-  background: #ffe4e6;
+  background: #edf3ff !important;
+  color: #375986 !important;
 }
 
 .action-btn:disabled,

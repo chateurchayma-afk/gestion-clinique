@@ -1,0 +1,10 @@
+# Utiliser ce fichier si le site Netlify pointe vers la racine du repo « medichat » seul
+# (sans monorepo). Sinon, celui à la racine parente `gestion-clinique/netlify.toml` suffit.
+[build]
+  command = "npm run build"
+  publish = "dist/medichat/browser"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

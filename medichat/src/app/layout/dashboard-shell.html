@@ -84,6 +84,7 @@
                         type="button"
                         class="notif-item"
                         [class.unread]="!n.isRead"
+                        [class.notif-item--special]="isSpecialPatientNotification(n)"
                         (click)="markNotificationRead(n)"
                         [attr.title]="n.title">
                         <span class="notif-icon">{{ notificationIcon(n.type) }}</span>

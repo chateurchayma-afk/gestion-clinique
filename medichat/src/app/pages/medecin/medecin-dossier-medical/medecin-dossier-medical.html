@@ -123,6 +123,45 @@
     </div>
 
     <div class="mec-card">
+      <h2 class="mec-card-title">Rappel traitement</h2>
+      <p class="mec-section-hint">
+        Indiquez un traitement en cours et la fréquence du rappel. Le patient verra le message de renouvellement sur son
+        espace.
+      </p>
+      <div class="mec-form-grid">
+        <div class="mec-field">
+          <label class="mec-label" for="rt-nom">Traitement</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="rt-nom"
+            name="rt-nom"
+            [(ngModel)]="form.rappelTraitementNom"
+            placeholder="Ex. Metformine"
+            (ngModelChange)="queueAutoSave()"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="rt-freq">Rappel</label>
+          <select
+            class="mec-select"
+            id="rt-freq"
+            name="rt-freq"
+            [(ngModel)]="form.rappelTraitementFrequence"
+            (ngModelChange)="queueAutoSave()">
+            <option value="CHAQUE_JOUR">Chaque jour</option>
+            <option value="DEUX_FOIS_JOUR">Deux fois par jour</option>
+            <option value="CHAQUE_SEMAINE">Chaque semaine</option>
+            <option value="CHAQUE_MOIS">Chaque mois</option>
+          </select>
+        </div>
+      </div>
+      <p class="muted" style="margin-top: 12px; font-size: 13px">
+        Message côté patient : « Le patient doit renouveler son traitement. »
+      </p>
+    </div>
+
+    <div class="mec-card">
       <h2 class="mec-card-title">Medical History</h2>
       <div class="mec-form-grid mec-form-grid--1" style="margin-top: 8px">
         <div class="mec-field">
@@ -275,6 +314,12 @@
     <div class="mec-btn-row">
       <button type="button" class="mec-btn mec-btn--ghost" (click)="reset()">Effacer brouillon</button>
       <div style="display: flex; gap: 10px; margin-left: auto">
+        <button
+          type="button"
+          routerLink="/medecin-dashboard"
+          class="mec-btn mec-btn--secondary">
+          Annuler
+        </button>
         <button
           type="submit"
           class="mec-btn mec-btn--primary"

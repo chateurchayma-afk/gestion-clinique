@@ -85,6 +85,10 @@ body {
   margin-bottom: 24px;
 }
 
+.card-header--stack {
+  margin-bottom: 20px;
+}
+
 .kicker {
   font-size: 0.7rem;
   font-weight: 700;
@@ -270,4 +274,79 @@ h1 {
   .doc-meta {
     width: 100%;
   }
+}
+
+/* Mise en page proche du formulaire « Nouvelle ordonnance » (espace médecin) */
+.form-like {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.field-value {
+  font-size: 1rem;
+  color: var(--brand-dark);
+  line-height: 1.5;
+}
+
+.field-value--strong {
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+.field-value--md {
+  font-weight: 600;
+}
+
+.field-meta {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.traitement-bloc {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 100px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #cfd9e8;
+  background: #fafcfe;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #23314b;
+  font-weight: 500;
+}
+
+.traitement-bloc.is-empty {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.traitement-bloc--small {
+  min-height: unset;
+  font-weight: 400;
+}
+
+.form-field--prescripteur {
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--stroke);
+}
+
+.form-field--note {
+  margin-top: 4px;
 }

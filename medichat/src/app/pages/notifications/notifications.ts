@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NotificationItem, NotificationService } from '../../services/notification.service';
+import {
+  NotificationItem,
+  NotificationService,
+  isPatientSpecialNotification
+} from '../../services/notification.service';
 
 @Component({
   selector: 'app-notifications',
@@ -135,9 +139,15 @@ export class NotificationsPage implements OnInit {
         return '💊';
       case 'PROFIL_MODIFIE':
         return '👤';
+      case 'RAPPEL_TRAITEMENT':
+        return '💊';
       default:
         return '⚠️';
     }
+  }
+
+  isSpecialRow(n: NotificationItem): boolean {
+    return isPatientSpecialNotification(n.type);
   }
 
   formatDate(value: string): string {

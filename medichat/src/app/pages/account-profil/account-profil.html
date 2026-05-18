@@ -1,63 +1,153 @@
 <div class="account-profil">
-  <header class="head">
-    <h1>Mon profil</h1>
-    <p class="muted">Modifiez les coordonnées de votre compte et, si besoin, votre mot de passe.</p>
+  <header class="profile-hero">
+    <div>
+      <p class="eyebrow">Profil professionnel</p>
+      <h1>Mon profil</h1>
+      <p class="hero-sub">Gardez vos informations de contact a jour pour votre espace clinique.</p>
+    </div>
+    @if (!loading && !loadError) {
+      <button type="submit" form="profile-form" class="btn-primary" [disabled]="submitting">
+        {{ submitting ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+    }
   </header>
 
   @if (loading) {
-    <p class="muted">Chargement…</p>
+    <div class="state-card">
+      <span class="loader" aria-hidden="true"></span>
+      <p>Chargement du profil...</p>
+    </div>
   } @else if (loadError) {
-    <p class="warn">{{ loadError }}</p>
+    <div class="state-card state-card--warn">
+      <p>{{ loadError }}</p>
+    </div>
   } @else {
-    <form class="card" [formGroup]="form" (ngSubmit)="submit()">
-      <div class="grid-2">
-        <label class="field">
-          <span>Nom</span>
-          <input type="text" formControlName="nom" autocomplete="family-name" />
-        </label>
-        <label class="field">
-          <span>Prénom</span>
-          <input type="text" formControlName="prenom" autocomplete="given-name" />
-        </label>
-      </div>
-      <label class="field">
-        <span>Email</span>
-        <input type="email" formControlName="email" autocomplete="email" />
-      </label>
-      <label class="field">
-        <span>Téléphone</span>
-        <input type="text" formControlName="telephone" autocomplete="tel" />
-      </label>
-      <div class="grid-2">
-        <label class="field">
-          <span>Adresse</span>
-          <input type="text" formControlName="adresse" autocomplete="street-address" />
-        </label>
-        <label class="field">
-          <span>Ville</span>
-          <input type="text" formControlName="ville" />
-        </label>
-      </div>
-      <div class="grid-2">
-        <label class="field">
-          <span>Gouvernorat</span>
-          <input type="text" formControlName="gouvernorat" />
-        </label>
-        <label class="field">
-          <span>Code postal</span>
-          <input type="text" formControlName="codePostal" />
-        </label>
-      </div>
-      <label class="field">
-        <span>Nouveau mot de passe (optionnel)</span>
-        <input type="password" formControlName="motDePasse" autocomplete="new-password" />
-      </label>
-      <p class="hint muted">Laissez le mot de passe vide pour ne pas le modifier.</p>
-      <div class="actions">
-        <button type="submit" class="btn-primary" [disabled]="submitting">
-          {{ submitting ? 'Enregistrement…' : 'Enregistrer' }}
-        </button>
-      </div>
+    <form id="profile-form" class="profile-layout" [formGroup]="form" (ngSubmit)="submit()">
+      <aside class="summary-panel">
+        <div class="avatar" aria-hidden="true">{{ initials }}</div>
+        <div class="summary-main">
+          <p class="summary-role">{{ roleLabel }}</p>
+          <h2>{{ displayName }}</h2>
+          <p>{{ form.get('email')?.value || 'Email non renseigne' }}</p>
+        </div>
+
+        <div class="summary-list">
+          <div>
+            <span>Telephone</span>
+            <strong>{{ form.get('telephone')?.value || 'A completer' }}</strong>
+          </div>
+          <div>
+            <span>Localisation</span>
+            <strong>{{ contactLine }}</strong>
+          </div>
+          <div>
+            <span>Statut</span>
+            <strong>{{ currentUser?.actif ? 'Compte actif' : 'Compte inactif' }}</strong>
+          </div>
+        </div>
+      </aside>
+
+      <main class="form-panel">
+        <section class="form-section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Identite</p>
+              <h2>Informations personnelles</h2>
+            </div>
+          </div>
+
+          <div class="fields-stack">
+            <div class="field-row field-row--two">
+              <label class="field">
+                <span>Nom</span>
+                <input type="text" formControlName="nom" autocomplete="family-name" />
+                @if (form.get('nom')?.touched && form.get('nom')?.invalid) {
+                  <small>Le nom doit contenir au moins 2 caracteres.</small>
+                }
+              </label>
+              <label class="field">
+                <span>Prenom</span>
+                <input type="text" formControlName="prenom" autocomplete="given-name" />
+                @if (form.get('prenom')?.touched && form.get('prenom')?.invalid) {
+                  <small>Le prenom doit contenir au moins 2 caracteres.</small>
+                }
+              </label>
+            </div>
+
+            <div class="field-row field-row--two">
+              <label class="field">
+                <span>Email</span>
+                <input type="email" formControlName="email" autocomplete="email" />
+                @if (form.get('email')?.touched && form.get('email')?.invalid) {
+                  <small>Entrez une adresse email valide.</small>
+                }
+              </label>
+              <label class="field">
+                <span>Telephone</span>
+                <input type="text" formControlName="telephone" autocomplete="tel" />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Coordonnees</p>
+              <h2>Adresse et localisation</h2>
+            </div>
+          </div>
+
+          <div class="fields-stack">
+            <label class="field field--full">
+              <span>Adresse</span>
+              <input type="text" formControlName="adresse" autocomplete="street-address" />
+            </label>
+
+            <div class="field-row field-row--three">
+              <label class="field">
+                <span>Ville</span>
+                <input type="text" formControlName="ville" />
+              </label>
+              <label class="field">
+                <span>Gouvernorat</span>
+                <input type="text" formControlName="gouvernorat" />
+              </label>
+              <label class="field field--postal">
+                <span>Code postal</span>
+                <input type="text" formControlName="codePostal" />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Securite</p>
+              <h2>Mot de passe</h2>
+            </div>
+          </div>
+
+          <div class="fields-stack">
+            <label class="field field--full">
+              <span>Nouveau mot de passe</span>
+              <input type="password" formControlName="motDePasse" autocomplete="new-password" />
+              @if (form.get('motDePasse')?.touched && form.get('motDePasse')?.invalid) {
+                <small>Le mot de passe doit contenir au moins 6 caracteres.</small>
+              }
+            </label>
+            <p class="hint">Laissez ce champ vide pour conserver votre mot de passe actuel.</p>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <p class="save-note">Les modifications seront appliquees a votre compte apres validation.</p>
+          <button type="submit" class="btn-primary" [disabled]="submitting">
+            {{ submitting ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+          </button>
+        </div>
+      </main>
     </form>
   }
 </div>

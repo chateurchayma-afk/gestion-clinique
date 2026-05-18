@@ -1,0 +1,7 @@
+.mec-hero--compact {
+  gap: 1rem;
+}
+
+.mec-hero--compact .mec-title {
+  font-size: 1.5rem;
+}

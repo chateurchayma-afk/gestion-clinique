@@ -1,8 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
+import { UserSessionService } from '../../../core/user-session.service';
 import { CatalogueHighlights, Medecin, MedecinService } from '../../../services/medecin.service';
+import { PatientRappelTraitementService, RappelTraitementPatient } from '../../../services/patient-rappel-traitement.service';
+import {
+  NotificationItem,
+  NotificationService,
+  isPatientSpecialNotification
+} from '../../../services/notification.service';
 import {
   RendezVousPatient,
   RendezVousPatientService,
@@ -33,15 +41,56 @@ function minutesFromMidnight(t: string): number {
   styleUrl: './patient-home.css'
 })
 export class PatientHome implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly medecinService = inject(MedecinService);
   private readonly rdvService = inject(RendezVousPatientService);
+  private readonly rappelTraitementService = inject(PatientRappelTraitementService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly userSession = inject(UserSessionService);
 
   readonly loading = signal(true);
   readonly rdvs = signal<RendezVousPatient[]>([]);
   readonly medecins = signal<Medecin[]>([]);
   readonly highlights = signal<CatalogueHighlights | null>(null);
+  readonly rappelTraitement = signal<RappelTraitementPatient | null>(null);
+  /** Notification prioritaire non lue (rappel traitement). */
+  readonly specialNotification = signal<NotificationItem | null>(null);
+  /** Prénom depuis la session (localStorage), mis à jour après édition du profil. */
+  readonly patientPrenom = signal<string>('');
 
   readonly totalRdvs = computed(() => this.rdvs().length);
+
+  readonly todayLabel = computed(() =>
+    new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date())
+  );
+
+  /** Nombre de rendez-vous encore à venir (non annulés, date/heure ≥ maintenant). */
+  readonly rdvsAVenirCount = computed(() => {
+    const list = this.rdvsActifs();
+    const now = new Date();
+    const todayIso = this.toIsoLocal(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    let n = 0;
+    for (const r of list) {
+      const d = r.dateRendezVous.slice(0, 10);
+      if (d < todayIso) {
+        continue;
+      }
+      if (d === todayIso && minutesFromMidnight(r.heureDebut) < nowMin) {
+        continue;
+      }
+      n++;
+    }
+    return n;
+  });
+
+  /** Médecins distincts avec au moins un RDV non annulé. */
+  readonly medecinsConsultesCount = computed(() => this.countRdvsParMedecin().size);
 
   readonly rdvsActifs = computed(() => this.rdvs().filter((r) => r.statut !== 'ANNULE'));
 
@@ -137,17 +186,37 @@ export class PatientHome implements OnInit {
     return scored.slice(0, 5).map((x) => ({ medecin: x.m, bookings: x.n }));
   });
 
+  constructor() {
+    this.userSession.profileUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.refreshPatientPrenomFromStorage();
+    });
+  }
+
   ngOnInit(): void {
+    this.refreshPatientPrenomFromStorage();
     this.loading.set(true);
     forkJoin({
       medecins: this.medecinService.getCatalogue({ sort: 'nom', disponible: true }),
       highlights: this.medecinService.getCatalogueHighlights(),
-      rdvs: this.rdvService.list()
+      rdvs: this.rdvService.list(),
+      rappel: this.rappelTraitementService.getMonRappel().pipe(
+        catchError(() =>
+          of<RappelTraitementPatient>({
+            actif: false,
+            traitement: null,
+            frequence: null,
+            messageRenouvellement: null
+          })
+        )
+      ),
+      notifs: this.notificationService.recent(12).pipe(catchError(() => of<NotificationItem[]>([])))
     }).subscribe({
-      next: ({ medecins, highlights, rdvs }) => {
+      next: ({ medecins, highlights, rdvs, rappel, notifs }) => {
         this.medecins.set(medecins ?? []);
         this.highlights.set(highlights ?? null);
         this.rdvs.set(rdvs ?? []);
+        this.rappelTraitement.set(rappel ?? null);
+        this.specialNotification.set(this.pickSpecialUnread(notifs ?? []));
         this.loading.set(false);
       },
       error: () => {
@@ -156,6 +225,8 @@ export class PatientHome implements OnInit {
             this.rdvs.set(rows ?? []);
             this.medecins.set([]);
             this.highlights.set(null);
+            this.rappelTraitement.set(null);
+            this.specialNotification.set(null);
             this.loading.set(false);
           },
           error: () => {
@@ -164,6 +235,33 @@ export class PatientHome implements OnInit {
         });
       }
     });
+  }
+
+  dismissSpecialNotification(): void {
+    const n = this.specialNotification();
+    if (!n) {
+      return;
+    }
+    this.notificationService.markRead(n.id).subscribe({
+      next: () => this.specialNotification.set(null),
+      error: () => this.specialNotification.set(null)
+    });
+  }
+
+  private pickSpecialUnread(items: NotificationItem[]): NotificationItem | null {
+    return (
+      items.find((n) => !n.isRead && !n.archived && isPatientSpecialNotification(n.type)) ?? null
+    );
+  }
+
+  private refreshPatientPrenomFromStorage(): void {
+    try {
+      const raw = localStorage.getItem('user');
+      const u = raw ? (JSON.parse(raw) as { prenom?: string }) : null;
+      this.patientPrenom.set((u?.prenom ?? '').trim());
+    } catch {
+      this.patientPrenom.set('');
+    }
   }
 
   private countRdvsParMedecin(): Map<number, number> {

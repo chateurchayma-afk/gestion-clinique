@@ -1,0 +1,78 @@
+<div class="wrap">
+  <header class="top">
+    <a routerLink="/" class="brand">MediChat</a>
+    <span class="doc-type">Nouvelle ordonnance</span>
+  </header>
+
+  @if (loading()) {
+    <div class="card">
+      <p class="msg muted">Chargement de l’ordonnance…</p>
+    </div>
+  } @else if (error(); as err) {
+    <div class="card card--error">
+      <p class="title">Lecture impossible</p>
+      <p class="msg">{{ err }}</p>
+      <p class="hint">
+        Les QR générés en développement doivent utiliser une URL accessible depuis votre téléphone (pas
+        <code>localhost</code> seul). Définissez <code>ordonnancePublicBaseUrl</code> sur l’adresse de votre PC
+        (<code>http://192.168.x.x:4200</code>) ou sur une URL HTTPS déployée.
+      </p>
+      <a routerLink="/" class="btn">Retour à l’accueil</a>
+    </div>
+  } @else if (payload(); as o) {
+    <article class="card card--ord">
+      <div class="card-head">
+        <h1 class="ord-title">Nouvelle ordonnance</h1>
+        <p class="meta-line ord-sub">
+          Récapitulatif tel que saisi par le médecin (QR ou lien).
+        </p>
+      </div>
+
+      <section class="body-block ord-fields">
+        <div class="ord-field">
+          <h2 class="ord-field-label">Nom du patient</h2>
+          <p class="ord-field-value">{{ o.patient || '—' }}</p>
+        </div>
+
+        <div class="ord-field">
+          <h2 class="ord-field-label">Traitement prescrit</h2>
+          @if (o.meds?.trim()) {
+            <div class="ord-traitement">{{ o.meds!.trim() }}</div>
+          } @else {
+            <div class="ord-traitement ord-traitement--empty">—</div>
+          }
+        </div>
+
+        <div class="ord-field">
+          <h2 class="ord-field-label">Date de l'ordonnance</h2>
+          <p class="ord-field-value">
+            @if (formattedDate()) {
+              {{ formattedDate() }}
+            } @else {
+              —
+            }
+          </p>
+        </div>
+      </section>
+
+      <footer class="card-foot">
+        <div class="sig">
+          <p class="ord-field-label ord-field-label--small">Prescripteur</p>
+          <p class="dr">{{ o.medecin || '—' }}</p>
+          @if (o.medecinAddr?.trim()) {
+            <p class="coordonnees">{{ o.medecinAddr }}</p>
+          }
+          @if (o.medecinTel?.trim() && o.medecinTel !== '—') {
+            <p class="coordonnees">{{ o.medecinTel }}</p>
+          }
+          @if (o.medecinEmail?.trim() && o.medecinEmail !== '—') {
+            <p class="coordonnees">{{ o.medecinEmail }}</p>
+          }
+        </div>
+        <p class="disclaimer">
+          Document numérique affiché à partir du QR code. En cas de doute, vérifiez auprès du prescripteur.
+        </p>
+      </footer>
+    </article>
+  }
+</div>

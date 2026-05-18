@@ -72,4 +72,28 @@ export class PatientMedecinProfil implements OnInit {
     const p = m.utilisateur.photo?.trim();
     return p ? p : null;
   }
+
+  /** Affiche le bloc contact si au moins une information publique est disponible. */
+  hasContactPublic(m: Medecin): boolean {
+    const u = m.utilisateur;
+    return !!(u.telephone?.trim() || u.email?.trim() || this.adresseLigne(m));
+  }
+
+  /** Adresse postale sur une ou deux lignes pour l’affichage patient. */
+  adresseLigne(m: Medecin): string | null {
+    const u = m.utilisateur;
+    const lines: string[] = [];
+    if (u.adresse?.trim()) {
+      lines.push(u.adresse.trim());
+    }
+    const locality = [u.codePostal?.trim(), u.ville?.trim()].filter(Boolean).join(' ');
+    if (locality && u.gouvernorat?.trim()) {
+      lines.push(`${locality}, ${u.gouvernorat.trim()}`);
+    } else if (locality) {
+      lines.push(locality);
+    } else if (u.gouvernorat?.trim()) {
+      lines.push(u.gouvernorat.trim());
+    }
+    return lines.length ? lines.join('\n') : null;
+  }
 }

@@ -1,64 +1,114 @@
 <div class="page">
-  <a class="back" routerLink="/patient-dashboard/medecins">← Retour à l’annuaire</a>
+  <a class="back" routerLink="/patient-dashboard/medecins">← Liste des médecins</a>
 
   @if (loading()) {
     <p class="muted">Chargement…</p>
   } @else if (!medecin()) {
     <p class="muted">Profil introuvable.</p>
-  } @else {
-    <article class="profile card">
-      <div class="profile-head">
-        <div class="avatar" [class.has-photo]="photoUrl(medecin()!)">
-          @if (photoUrl(medecin()!); as url) {
+  } @else if (medecin(); as m) {
+    <article class="profile-card">
+      <header class="profile-card-top">
+        <h1 class="profile-card-title">Fiche médecin</h1>
+      </header>
+
+      <div class="profile-hero">
+        <div class="avatar" [class.has-photo]="photoUrl(m)">
+          @if (photoUrl(m); as url) {
             <img [src]="url" alt="" />
           } @else {
-            <span>{{ initiales(medecin()!) }}</span>
+            <span>{{ initiales(m) }}</span>
           }
         </div>
-        <div class="head-text">
-          <h1>{{ medecin()!.utilisateur.prenom }} {{ medecin()!.utilisateur.nom }}</h1>
-          <p class="spec">{{ medecin()!.specialite?.nom ?? 'Spécialité' }}</p>
-          @if (medecin()!.serviceMedical?.nom) {
-            <p class="svc">{{ medecin()!.serviceMedical!.nom }}</p>
+        <div class="hero-text">
+          <h2 class="hero-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</h2>
+          <p class="hero-spec">{{ m.specialite?.nom ?? 'Spécialité à préciser' }}</p>
+          @if (m.serviceMedical?.nom) {
+            <p class="hero-svc">{{ m.serviceMedical!.nom }}</p>
           }
-          <div class="row">
-            <span class="dispo" [class.off]="!estDisponible(medecin()!)">
-              {{ estDisponible(medecin()!) ? 'Disponible pour rendez-vous' : 'Occupé / indisponible' }}
+          <div class="hero-meta">
+            <span class="pill" [class.pill--off]="!estDisponible(m)">
+              {{ estDisponible(m) ? 'Disponible pour rendez-vous' : 'Réservation fermée' }}
             </span>
-            @if (medecin()!.experienceAnnees != null) {
-              <span class="exp">{{ medecin()!.experienceAnnees }} ans d’expérience</span>
-            }
           </div>
-          <div class="stars" [attr.title]="aNoteReelle(medecin()!) ? 'Note patients' : 'Indication'">
+          <div class="stars" [attr.title]="aNoteReelle(m) ? 'Note patients' : 'Indication'">
             @for (i of [1, 2, 3, 4, 5]; track i) {
               <span
                 class="star"
-                [class.on]="i <= etoilesPleines(medecin()!)"
-                [class.half]="etoileDemi(medecin()!) && i === etoilesPleines(medecin()!) + 1"
+                [class.on]="i <= etoilesPleines(m)"
+                [class.half]="etoileDemi(m) && i === etoilesPleines(m) + 1"
                 >★</span>
             }
-            <span class="star-note">{{ noteAffichee(medecin()!).toFixed(1) }}</span>
+            <span class="star-note">{{ noteAffichee(m).toFixed(1) }}</span>
           </div>
         </div>
       </div>
 
-      @if (medecin()!.biographie) {
-        <section class="bio">
-          <h2>Présentation</h2>
-          <p>{{ medecin()!.biographie }}</p>
-        </section>
-      }
+      <div class="profile-sections">
+        @if (m.specialite?.description?.trim() || m.serviceMedical?.description?.trim()) {
+          <section class="prof-section" aria-labelledby="sec-activity">
+            <h3 id="sec-activity" class="prof-section-title">À propos de l’activité</h3>
+            <div class="prof-detail-grid">
+              @if (m.specialite?.description?.trim()) {
+                <div class="prof-detail-card">
+                  <h4 class="prof-detail-heading">Spécialité</h4>
+                  <p class="prof-detail-body">{{ m.specialite!.description!.trim() }}</p>
+                </div>
+              }
+              @if (m.serviceMedical?.description?.trim()) {
+                <div class="prof-detail-card">
+                  <h4 class="prof-detail-heading">Service</h4>
+                  <p class="prof-detail-body">{{ m.serviceMedical!.description!.trim() }}</p>
+                </div>
+              }
+            </div>
+          </section>
+        }
 
-      <div class="actions">
-        <a class="btn ghost" routerLink="/patient-dashboard/medecins">Fermer</a>
-        @if (estDisponible(medecin()!)) {
-          <a class="btn primary" [routerLink]="['/patient-dashboard/rendez-vous/nouveau']" [queryParams]="{ medecinId: medecin()!.id }">
+        @if (hasContactPublic(m)) {
+          <section class="prof-section" aria-labelledby="sec-contact">
+            <h3 id="sec-contact" class="prof-section-title">Contact</h3>
+            <ul class="prof-contact-list">
+              @if (m.utilisateur.telephone?.trim()) {
+                <li>
+                  <span class="prof-contact-label">Téléphone</span>
+                  <a class="prof-contact-value" [href]="'tel:' + m.utilisateur.telephone!.replace(/\s/g, '')">{{
+                    m.utilisateur.telephone!.trim()
+                  }}</a>
+                </li>
+              }
+              @if (m.utilisateur.email.trim()) {
+                <li>
+                  <span class="prof-contact-label">E-mail</span>
+                  <a class="prof-contact-value" [href]="'mailto:' + m.utilisateur.email.trim()">{{
+                    m.utilisateur.email.trim()
+                  }}</a>
+                </li>
+              }
+              @if (adresseLigne(m); as addr) {
+                <li>
+                  <span class="prof-contact-label">Adresse</span>
+                  <span class="prof-contact-value prof-contact-value--block">{{ addr }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+
+      <footer class="profile-footer">
+        <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Fermer</a>
+        @if (estDisponible(m)) {
+          <a
+            class="btn btn-primary"
+            [routerLink]="['/patient-dashboard/rendez-vous/nouveau']"
+            [queryParams]="{ medecinId: m.id }"
+          >
             Prendre rendez-vous
           </a>
         } @else {
-          <span class="btn primary disabled">Réservation indisponible</span>
+          <span class="btn btn-primary btn-disabled">Réservation indisponible</span>
         }
-      </div>
+      </footer>
     </article>
   }
 </div>

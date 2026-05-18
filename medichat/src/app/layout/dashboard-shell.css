@@ -226,6 +226,25 @@
   border-color: #cfe0fb;
 }
 
+.notif-item.notif-item--special {
+  background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
+  border-color: #fdba74;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
+}
+
+.notif-item.notif-item--special .notif-icon {
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+
+.notif-item.notif-item--special .notif-item-title {
+  color: #9a3412;
+}
+
+.notif-item.notif-item--special.unread .notif-unread-dot {
+  background: #ea580c;
+}
+
 .notif-icon {
   width: 26px;
   height: 26px;

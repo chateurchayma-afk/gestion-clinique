@@ -29,6 +29,12 @@ export interface RendezVousCreatePayload {
   motif?: string | null;
 }
 
+export interface RendezVousReporterPayload {
+  dateRendezVous: string;
+  heureDebut: string;
+  heureFin?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RendezVousPatientService {
   private readonly http = inject(HttpClient);
@@ -44,5 +50,9 @@ export class RendezVousPatientService {
 
   annuler(id: number): Observable<void> {
     return this.http.patch<void>(`${this.url}/${id}/annuler`, {});
+  }
+
+  reporter(id: number, body: RendezVousReporterPayload): Observable<RendezVousPatient> {
+    return this.http.patch<RendezVousPatient>(`${this.url}/${id}/reporter`, body);
   }
 }

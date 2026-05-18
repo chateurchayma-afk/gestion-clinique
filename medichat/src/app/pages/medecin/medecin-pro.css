@@ -83,9 +83,20 @@
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.875rem;
+  font-family: inherit;
   cursor: pointer;
   border: 1px solid transparent;
+  box-sizing: border-box;
+  text-decoration: none;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+a.mec-btn--primary:visited {
+  color: #fff;
+}
+
+a.mec-btn--ghost:visited {
+  color: #334155;
 }
 
 .mec-btn--primary {

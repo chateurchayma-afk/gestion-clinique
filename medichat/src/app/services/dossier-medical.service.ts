@@ -22,6 +22,8 @@ export interface DossierMedicalPayload {
   alcool: string;
   activite: string;
   alimentation: string;
+  rappelTraitementNom: string;
+  rappelTraitementFrequence: string;
 }
 
 export interface DossierMedicalResponse extends DossierMedicalPayload {

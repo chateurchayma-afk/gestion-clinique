@@ -1,62 +1,313 @@
-<div class="page">
-  <header class="page-head">
+<div class="rdv-page">
+  <header class="rdv-hero">
     <div>
+      <p class="rdv-kicker">Rendez-vous</p>
       <h1>Mes rendez-vous</h1>
-      <p>Consultez l’historique et annulez un rendez-vous si votre situation change.</p>
+      <p>Vue liste complète ou calendrier hebdomadaire des mêmes rendez-vous.</p>
     </div>
-    <a class="btn secondary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Nouveau rendez-vous</a>
+    <div class="rdv-hero-actions">
+      <div class="rdv-view-toggle" role="group" aria-label="Mode d'affichage">
+        <button
+          type="button"
+          class="rdv-seg"
+          [class.rdv-seg--active]="viewMode() === 'liste'"
+          [disabled]="loading() || rdvs().length === 0"
+          (click)="setViewMode('liste')"
+        >
+          Liste
+        </button>
+        <button
+          type="button"
+          class="rdv-seg"
+          [class.rdv-seg--active]="viewMode() === 'calendrier'"
+          [disabled]="loading() || rdvs().length === 0"
+          (click)="setViewMode('calendrier')"
+        >
+          Calendrier
+        </button>
+      </div>
+      <a class="btn-primary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Nouveau rendez-vous</a>
+    </div>
   </header>
 
   @if (loading()) {
-    <p class="muted">Chargement…</p>
+    <section class="state-card">
+      <span class="loader" aria-hidden="true"></span>
+      <p>Chargement de vos rendez-vous...</p>
+    </section>
   } @else if (rdvs().length === 0) {
-    <div class="empty card">
-      <p>Vous n’avez pas encore de rendez-vous.</p>
-      <a class="btn" routerLink="/patient-dashboard/medecins">Voir les médecins</a>
-    </div>
+    <section class="empty-card">
+      <div class="empty-icon" aria-hidden="true">+</div>
+      <h2>Aucun rendez-vous pour le moment</h2>
+      <p>Choisissez un médecin et réservez votre premier créneau depuis l'annuaire.</p>
+      <a class="btn-primary" routerLink="/patient-dashboard/medecins">Liste des médecins</a>
+    </section>
   } @else {
-    <div class="table-wrap card">
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Horaire</th>
-            <th>Médecin</th>
-            <th>Spécialité</th>
-            <th>Mode</th>
-            <th>Statut</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of rdvs(); track r.id) {
-            <tr>
-              <td>{{ r.dateRendezVous }}</td>
-              <td>{{ formatHeure(r.heureDebut) }} – {{ formatHeure(r.heureFin) }}</td>
-              <td>{{ r.medecinPrenom }} {{ r.medecinNom }}</td>
-              <td>{{ r.specialiteNom ?? '—' }}</td>
-              <td>{{ labelMode(r.modeConsultation) }}</td>
-              <td>
-                <span class="pill" [class.pill-warn]="r.statut === 'EN_ATTENTE'" [class.pill-muted]="r.statut === 'ANNULE'">
-                  {{ labelStatut(r.statut) }}
-                </span>
-              </td>
-              <td class="actions">
-                @if (peutAnnuler(r)) {
-                  <button
-                    type="button"
-                    class="btn-danger"
-                    [disabled]="cancellingId() === r.id"
-                    (click)="annuler(r)"
-                  >
-                    {{ cancellingId() === r.id ? 'Annulation…' : 'Annuler' }}
-                  </button>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+    <section class="table-card">
+      <div class="table-head">
+        <div>
+          <p class="rdv-kicker">Historique</p>
+          <h2>{{ viewMode() === 'liste' ? 'Liste des rendez-vous' : 'Calendrier de la semaine' }}</h2>
+        </div>
+        <button type="button" class="btn-secondary rdv-refresh" (click)="reload()">Actualiser</button>
+      </div>
+
+      @if (viewMode() === 'liste') {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Horaire</th>
+                <th>Médecin</th>
+                <th>Spécialité</th>
+                <th>Mode</th>
+                <th>Disponibilité</th>
+                <th class="th-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of rdvs(); track r.id) {
+                <tr>
+                  <td class="date-cell">{{ formatDateCourt(r) }}</td>
+                  <td>{{ formatHeure(r.heureDebut) }} - {{ formatHeure(r.heureFin) }}</td>
+                  <td>
+                    <strong>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</strong>
+                  </td>
+                  <td>{{ r.specialiteNom ?? 'Consultation' }}</td>
+                  <td>{{ labelMode(r.modeConsultation) }}</td>
+                  <td class="td-disponibilite">
+                    <span
+                      class="pill"
+                      [class.pill-warn]="r.statut === 'EN_ATTENTE'"
+                      [class.pill-muted]="r.statut === 'ANNULE'"
+                      [class.pill-done]="r.statut === 'TERMINE'"
+                    >
+                      {{ labelStatut(r.statut) }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    <div
+                      class="actions-col"
+                      role="group"
+                      [attr.aria-label]="'Actions pour le rendez-vous du ' + r.dateRendezVous"
+                    >
+                      <button type="button" class="btn-details" (click)="openDetails(r)">Voir</button>
+                      <button
+                        type="button"
+                        class="btn-cancel-rdv"
+                        [title]="peutAnnuler(r) ? 'Annuler le rendez-vous' : 'Annulation impossible (rendez-vous terminé ou annulé)'"
+                        [attr.aria-label]="peutAnnuler(r) ? 'Annuler le rendez-vous' : 'Annuler indisponible'"
+                        [disabled]="!peutAnnuler(r) || cancellingId() === r.id"
+                        (click)="annuler(r)"
+                      >
+                        {{ cancellingId() === r.id ? 'Annulation…' : 'Annuler' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="rdv-cal">
+          <div class="rdv-cal-toolbar">
+            <div class="rdv-cal-nav">
+              <button type="button" class="btn-secondary" (click)="prevWeek()">‹ Semaine précédente</button>
+              <button type="button" class="btn-secondary" (click)="goThisWeek()">Cette semaine</button>
+              <button type="button" class="btn-secondary" (click)="nextWeek()">Semaine suivante ›</button>
+            </div>
+            <p class="rdv-cal-range">{{ weekRangeLabel() }}</p>
+          </div>
+          <div class="rdv-cal-grid">
+            @for (day of calendarWeekDays(); track day.iso) {
+              <div class="rdv-cal-col">
+                <div class="rdv-cal-col-head" [class.rdv-cal-col-head--today]="isTodayIso(day.iso)">
+                  <span class="rdv-cal-dow">{{ day.label }}</span>
+                  <span class="rdv-cal-dom">{{ day.dom }}</span>
+                </div>
+                <div class="rdv-cal-slots">
+                  @if (rdvsPourJour(day.iso).length) {
+                    @for (r of rdvsPourJour(day.iso); track r.id) {
+                      <button
+                        type="button"
+                        class="rdv-cal-card"
+                        [class.rdv-cal-card--open]="selectedRdv()?.id === r.id"
+                        (click)="openDetails(r)"
+                      >
+                        <span class="rdv-cal-time">
+                          {{ formatHeure(r.heureDebut) }}
+                          <span class="rdv-cal-time-sep">→</span>
+                          {{ formatHeure(r.heureFin) }}
+                        </span>
+                        <span class="rdv-cal-dr">Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</span>
+                        <span
+                          class="rdv-cal-statut"
+                          [class.rdv-cal-statut--ok]="r.statut === 'CONFIRME'"
+                          [class.rdv-cal-statut--off]="r.statut === 'ANNULE'"
+                          [class.rdv-cal-statut--done]="r.statut === 'TERMINE'"
+                        >
+                          {{ labelStatut(r.statut) }}
+                        </span>
+                      </button>
+                    }
+                  } @else {
+                    <p class="rdv-cal-empty muted">Aucun RDV</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <p class="rdv-cal-hint muted">
+            Les créneaux affichés correspondent à la semaine choisie. Utilisez « Liste » pour tout voir d’un coup.
+          </p>
+        </div>
+      }
+    </section>
   }
 </div>
+
+@if (selectedRdv(); as rdv) {
+  <div class="modal-backdrop" (click)="closeDetails()"></div>
+  <div
+    class="modal-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rdv-detail-title"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 id="rdv-detail-title">Détails du rendez-vous</h2>
+    <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">×</button>
+    <div class="rdv-detail">
+      <div class="rdv-detail-hero">
+        <p class="rdv-detail-date">{{ formatDateLong(rdv) }}</p>
+        <p class="rdv-detail-slot">
+          {{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}
+        </p>
+        <span
+          class="pill"
+          [class.pill-warn]="rdv.statut === 'EN_ATTENTE'"
+          [class.pill-muted]="rdv.statut === 'ANNULE'"
+          [class.pill-done]="rdv.statut === 'TERMINE'"
+        >
+          {{ labelStatut(rdv.statut) }}
+        </span>
+      </div>
+      <dl class="rdv-detail-grid">
+        <div>
+          <dt>Médecin</dt>
+          <dd>Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd>
+        </div>
+        <div>
+          <dt>Spécialité</dt>
+          <dd>{{ rdv.specialiteNom ?? 'Consultation' }}</dd>
+        </div>
+        <div>
+          <dt>Date</dt>
+          <dd>{{ rdv.dateRendezVous }}</dd>
+        </div>
+        <div>
+          <dt>Heure</dt>
+          <dd>{{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}</dd>
+        </div>
+        <div>
+          <dt>Mode</dt>
+          <dd>{{ labelMode(rdv.modeConsultation) }}</dd>
+        </div>
+        <div>
+          <dt>Statut</dt>
+          <dd>{{ labelStatut(rdv.statut) }}</dd>
+        </div>
+      </dl>
+      <div class="rdv-detail-motif">
+        <span class="rdv-detail-motif-label">Motif</span>
+        <p>{{ motifOuDefaut(rdv.motif) }}</p>
+      </div>
+    </div>
+    <div class="modal-actions modal-actions--split">
+      @if (peutReporter(rdv)) {
+        <button type="button" class="btn-secondary" (click)="openReport(rdv); closeDetails()">Reporter</button>
+      }
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="recuPdfBusy()"
+        (click)="downloadRecu(rdv)"
+      >
+        {{ recuPdfBusy() ? 'Génération…' : 'Télécharger reçu' }}
+      </button>
+      <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
+    </div>
+    </div>
+}
+
+@if (reportRdv(); as rdv) {
+  <div class="modal-backdrop" (click)="closeReport()"></div>
+  <div
+    class="modal-panel modal-panel--report"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rdv-report-title"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 id="rdv-report-title">Reporter le rendez-vous</h2>
+    <button type="button" class="modal-close" (click)="closeReport()" aria-label="Fermer">×</button>
+    <p class="report-lead">
+      Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}
+      <span class="report-lead-muted">— {{ rdv.specialiteNom ?? 'Consultation' }}</span>
+    </p>
+    <form class="report-form" (ngSubmit)="submitReport()">
+      <label class="report-field">
+        <span>Nouvelle date</span>
+        <input
+          type="date"
+          name="reportDate"
+          [(ngModel)]="reportDate"
+          (ngModelChange)="onReportDateChange()"
+          required
+        />
+      </label>
+
+      @if (loadingCreneaux()) {
+        <p class="report-muted">Chargement des créneaux…</p>
+      } @else if (reportDate && slotsJour().length > 0) {
+        <div class="report-slots">
+          <span class="report-slots-label">Créneaux disponibles (30 min)</span>
+          <div class="report-slot-chips">
+            @for (h of slotsJour(); track $index) {
+              <button
+                type="button"
+                class="report-slot"
+                [class.active]="reportHeureDebut === formatHeureChip(h)"
+                (click)="choisirCreneauReport(h)"
+              >
+                {{ formatHeureChip(h) }}
+              </button>
+            }
+          </div>
+        </div>
+      } @else if (reportDate) {
+        <p class="report-muted">Aucun créneau standard libre ce jour. Saisissez l’heure manuellement.</p>
+      }
+
+      <label class="report-field">
+        <span>Heure de début</span>
+        <input type="time" name="reportDebut" [(ngModel)]="reportHeureDebut" required />
+      </label>
+      <label class="report-field">
+        <span>Heure de fin (optionnel)</span>
+        <input type="time" name="reportFin" [(ngModel)]="reportHeureFin" />
+      </label>
+
+      <p class="report-hint">Le rendez-vous repassera en statut « En attente » après le report.</p>
+
+      <div class="modal-actions modal-actions--split">
+        <button type="button" class="btn-secondary" (click)="closeReport()">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="reportingId() === rdv.id">
+          {{ reportingId() === rdv.id ? 'Enregistrement…' : 'Confirmer le report' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

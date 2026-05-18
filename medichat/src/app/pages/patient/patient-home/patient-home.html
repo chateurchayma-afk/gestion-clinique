@@ -2,31 +2,94 @@
   @if (loading()) {
     <div class="dash-loading">Chargement de votre espace…</div>
   } @else {
-    <header class="dash-hero">
-      <div>
-        <p class="dash-kicker">Vue d’ensemble</p>
-        <h1>Tableau de bord</h1>
-        <p class="dash-lead">
-          Suivez vos rendez-vous, retrouvez vos médecins habituels et prenez un nouveau créneau en quelques clics.
+    <header class="dash-welcome">
+      <div class="dash-welcome-text">
+        <p class="dash-welcome-kicker">Espace patient</p>
+        <h1 class="dash-welcome-title">
+          @if (patientPrenom()) {
+            Bonjour, <span class="dash-welcome-name">{{ patientPrenom() }}</span>
+          } @else {
+            Bonjour
+          }
+        </h1>
+        <p class="dash-welcome-meta">
+          <span class="dash-welcome-date">{{ todayLabel() | titlecase }}</span>
+          <span class="dash-welcome-dot" aria-hidden="true"></span>
+          <span>Retrouvez ici vos rendez-vous et vos praticiens.</span>
         </p>
       </div>
-      <div class="dash-hero-actions">
-        <a class="btn-primary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Nouveau rendez-vous</a>
-        <a class="btn-ghost" [routerLink]="['/patient-dashboard', 'medecins']">Annuaire médecins</a>
-      </div>
+      <nav class="dash-quick" aria-label="Accès rapide">
+        <a class="dash-quick-btn dash-quick-btn--primary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">
+          Prendre un rendez-vous
+        </a>
+        <a class="dash-quick-btn" [routerLink]="['/patient-dashboard', 'medecins']">Annuaire médecins</a>
+        <a class="dash-quick-btn" [routerLink]="['/patient-dashboard', 'rendez-vous']">Mes rendez-vous</a>
+      </nav>
     </header>
+
+    @if (specialNotification(); as sn) {
+      <section class="panel panel--special-notif" aria-live="assertive">
+        <div class="special-notif-icon" aria-hidden="true">💊</div>
+        <div class="special-notif-body">
+          <p class="special-notif-kicker">Notification importante</p>
+          <p class="special-notif-title">{{ sn.title }}</p>
+          <p class="special-notif-msg">{{ sn.message }}</p>
+          <div class="special-notif-actions">
+            <a class="special-notif-link" [routerLink]="['/patient-dashboard', 'notifications']">
+              Voir mes notifications
+            </a>
+            <button type="button" class="special-notif-dismiss" (click)="dismissSpecialNotification()">
+              Marquer comme lu
+            </button>
+          </div>
+        </div>
+      </section>
+    }
+
+    <section class="dash-metrics" aria-label="Synthèse">
+      <div class="metric">
+        <span class="metric-value">{{ totalRdvs() }}</span>
+        <span class="metric-label">Rendez-vous enregistrés</span>
+        @if (trendText(); as tt) {
+          <span class="metric-hint">{{ tt }}</span>
+        }
+      </div>
+      <div class="metric metric--accent">
+        <span class="metric-value">{{ rdvsAVenirCount() }}</span>
+        <span class="metric-label">À venir</span>
+        <span class="metric-hint">Prochains créneaux planifiés</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value">{{ medecinsConsultesCount() }}</span>
+        <span class="metric-label">Médecins consultés</span>
+        <span class="metric-hint">Praticiens avec au moins un RDV</span>
+      </div>
+    </section>
+
+    @if (rappelTraitement(); as rp) {
+      @if (rp.actif) {
+        <section class="panel panel--treatment-reminder" aria-live="polite">
+          <div class="treatment-reminder-icon" aria-hidden="true">💊</div>
+          <div class="treatment-reminder-body">
+            <p class="treatment-reminder-kicker">Rappel traitement</p>
+            <p class="treatment-reminder-msg">{{ rp.messageRenouvellement }}</p>
+            <p class="treatment-reminder-detail muted">
+              <strong>{{ rp.traitement }}</strong>
+              @if (rp.frequence) {
+                <span> — {{ rp.frequence }}</span>
+              }
+            </p>
+          </div>
+        </section>
+      }
+    }
 
     <div class="dash-grid">
       <section class="panel panel--doctors">
         <div class="panel-head">
           <div>
-            <h2>Vos médecins</h2>
-            <p class="panel-sub">Basé sur vos rendez-vous et le catalogue clinique</p>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-pill-value">{{ totalRdvs() }}</span>
-            <span class="stat-pill-label">RDV enregistrés</span>
-            <span class="stat-pill-trend">{{ trendText() }}</span>
+            <h2>Vos praticiens</h2>
+            <p class="panel-sub">Suggestions basées sur votre historique et le catalogue de la clinique</p>
           </div>
         </div>
         <ul class="doctor-list">
@@ -48,20 +111,13 @@
               </a>
             </li>
           } @empty {
-            <li class="doctor-empty muted">Aucun médecin à afficher pour le moment.</li>
+            <li class="doctor-empty muted">Aucun praticien à afficher pour le moment.</li>
           }
         </ul>
+        <a class="panel-footer-link" [routerLink]="['/patient-dashboard', 'medecins']">Voir tout l’annuaire</a>
       </section>
 
       <div class="dash-col-right">
-        <section class="panel panel--stat">
-          <div class="stat-card-icon" aria-hidden="true">📅</div>
-          <div>
-            <p class="stat-card-label">Total rendez-vous</p>
-            <p class="stat-card-value">{{ totalRdvs() }}</p>
-          </div>
-        </section>
-
         <section class="panel panel--next">
           @if (prochainRdv(); as nx) {
             <p class="next-kicker">Prochain rendez-vous</p>
@@ -74,13 +130,14 @@
             </div>
             <p class="next-when">{{ formatLongDate(nx.dateRendezVous) }}</p>
             <p class="next-slot">{{ formatHeureRange(nx) }}</p>
+            <p class="next-mode muted">{{ labelMode(nx.modeConsultation) }}</p>
             <div class="next-actions">
-              <a class="btn-next-outline" [routerLink]="['/patient-dashboard', 'rendez-vous']">Voir mes RDV</a>
+              <a class="btn-next-outline" [routerLink]="['/patient-dashboard', 'rendez-vous']">Gérer mes RDV</a>
             </div>
           } @else {
             <p class="next-kicker">Prochain rendez-vous</p>
-            <p class="next-empty">Aucun rendez-vous à venir.</p>
-            <a class="btn-next-solid" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Prendre un rendez-vous</a>
+            <p class="next-empty">Aucun rendez-vous à venir. Réservez un créneau en quelques clics.</p>
+            <a class="btn-next-solid" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Réserver</a>
           }
         </section>
       </div>
@@ -88,8 +145,11 @@
 
     <section class="panel panel--table">
       <div class="panel-head panel-head--row">
-        <h2>Rendez-vous récents</h2>
-        <a class="link-all" [routerLink]="['/patient-dashboard', 'rendez-vous']">Voir tout</a>
+        <div>
+          <h2>Activité récente</h2>
+          <p class="panel-sub panel-sub--inline">Vos derniers rendez-vous (les plus récents en premier)</p>
+        </div>
+        <a class="link-all" [routerLink]="['/patient-dashboard', 'rendez-vous']">Tout afficher</a>
       </div>
       <div class="table-wrap">
         <table class="rdv-table">
@@ -124,21 +184,12 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="4" class="muted table-empty">Aucun rendez-vous pour l’instant.</td>
+                <td colspan="4" class="muted table-empty">Aucun rendez-vous enregistré pour l’instant.</td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    </section>
-
-    <section class="panel panel--account" id="compte">
-      <h2>Mon compte</h2>
-      <p class="muted">
-        Mettez à jour vos coordonnées, votre dossier et votre mot de passe depuis la page profil, comme pour un dossier
-        patient en clinique.
-      </p>
-      <a class="btn-ghost" [routerLink]="['/patient-dashboard', 'profil']">Modifier mes informations</a>
     </section>
   }
 </div>

@@ -7,5 +7,6 @@ public enum NotificationType {
     CONSULTATION_TERMINEE,
     ORDONNANCE_CREEE,
     PROFIL_MODIFIE,
+    RAPPEL_TRAITEMENT,
     ALERTE_SYSTEME
 }

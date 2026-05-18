@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { Patient } from '../../../services/patient.service';
 import { PatientProfilService } from '../../../services/patient-profil.service';
+import { finalize, timeout } from 'rxjs';
 
 function optionalPasswordMin6(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -31,7 +32,7 @@ function optionalPasswordMin6(): ValidatorFn {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './patient-profil.html',
-  styleUrls: ['../../admin/add-medecin/add-medecin.css', './patient-profil.css']
+  styleUrls: ['./patient-profil.css']
 })
 export class PatientProfil implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -41,8 +42,9 @@ export class PatientProfil implements OnInit {
   activeTab: 'personnel' | 'dossier' = 'personnel';
   patientForm: FormGroup;
   isSubmitting = false;
+  readonly loading = signal(true);
   errorMessage = '';
-  loadError = '';
+  readonly loadError = signal('');
 
   constructor() {
     this.patientForm = this.fb.group({
@@ -73,19 +75,55 @@ export class PatientProfil implements OnInit {
     this.loadProfil();
   }
 
+  retryLoad(): void {
+    this.loadProfil();
+  }
+
   private loadProfil(): void {
-    this.loadError = '';
-    this.profilService.getProfil().subscribe({
-      next: (p) => this.patchFromPatient(p),
-      error: () => {
-        this.loadError = 'Impossible de charger votre profil.';
-        this.toast.show(this.loadError, 'error');
-      }
-    });
+    this.loading.set(true);
+    this.loadError.set('');
+    this.profilService
+      .getProfil()
+      .pipe(
+        timeout(20000),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe({
+        next: (p) => {
+          if (!p?.utilisateur) {
+            this.loadError.set('Profil incomplet côté serveur. Réessayez ou reconnectez-vous.');
+            this.toast.show(this.loadError(), 'error');
+            return;
+          }
+          this.patchFromPatient(p);
+        },
+        error: (err) => {
+          const msg = this.loadProfilErrorMessage(err);
+          this.loadError.set(msg);
+          this.toast.show(msg, 'error');
+        }
+      });
+  }
+
+  private loadProfilErrorMessage(err: { status?: number; error?: unknown }): string {
+    if (err?.status === 0) {
+      return 'Serveur inaccessible. Vérifiez que le backend tourne sur http://localhost:8081.';
+    }
+    if (err?.status === 401 || err?.status === 403) {
+      return 'Session expirée ou accès refusé. Reconnectez-vous.';
+    }
+    const e = err?.error;
+    if (e && typeof e === 'object' && 'message' in e && typeof (e as { message: string }).message === 'string') {
+      return (e as { message: string }).message;
+    }
+    return 'Impossible de charger votre profil.';
   }
 
   private patchFromPatient(p: Patient): void {
     const u = p.utilisateur;
+    if (!u) {
+      return;
+    }
     const dn = u.dateNaissance
       ? typeof u.dateNaissance === 'string'
         ? (u.dateNaissance as string).slice(0, 10)
@@ -115,6 +153,55 @@ export class PatientProfil implements OnInit {
 
   setTab(tab: 'personnel' | 'dossier'): void {
     this.activeTab = tab;
+  }
+
+  get photoUrl(): string {
+    return String(this.patientForm.get('photo')?.value ?? '').trim();
+  }
+
+  get initials(): string {
+    const prenom = String(this.patientForm.get('prenom')?.value ?? '').trim();
+    const nom = String(this.patientForm.get('nom')?.value ?? '').trim();
+    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase() || 'PT';
+  }
+
+  get displayName(): string {
+    const prenom = String(this.patientForm.get('prenom')?.value ?? '').trim();
+    const nom = String(this.patientForm.get('nom')?.value ?? '').trim();
+    return `${prenom} ${nom}`.trim() || 'Mon profil patient';
+  }
+
+  get contactLine(): string {
+    const parts = [
+      this.patientForm.get('ville')?.value,
+      this.patientForm.get('gouvernorat')?.value
+    ]
+      .map((v) => (v != null ? String(v).trim() : ''))
+      .filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : 'À compléter';
+  }
+
+  get methodeContactLabel(): string {
+    const m = String(this.patientForm.get('methodeContactPreferee')?.value ?? 'TELEPHONE');
+    switch (m) {
+      case 'EMAIL':
+        return 'E-mail';
+      case 'SMS':
+        return 'SMS';
+      default:
+        return 'Téléphone';
+    }
+  }
+
+  get sexeLabel(): string {
+    const s = String(this.patientForm.get('sexe')?.value ?? '');
+    if (s === 'HOMME') {
+      return 'Homme';
+    }
+    if (s === 'FEMME') {
+      return 'Femme';
+    }
+    return 'Non renseigné';
   }
 
   onSubmit(): void {
@@ -208,7 +295,7 @@ export class PatientProfil implements OnInit {
         return 'Ce champ est obligatoire';
       }
       if (control.errors['email']) {
-        return 'Adresse email invalide';
+        return 'Adresse e-mail invalide';
       }
       if (control.errors['minlength']) {
         return `Minimum ${control.errors['minlength'].requiredLength} caractères`;

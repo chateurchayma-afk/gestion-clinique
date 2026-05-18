@@ -10,7 +10,11 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { UserSessionService } from '../core/user-session.service';
-import { NotificationItem, NotificationService } from '../services/notification.service';
+import {
+  NotificationItem,
+  NotificationService,
+  isPatientSpecialNotification
+} from '../services/notification.service';
 import { forkJoin } from 'rxjs';
 import type { DashboardShellConfig } from './dashboard-shell.config';
 
@@ -163,9 +167,17 @@ export class DashboardShell {
         return '💊';
       case 'PROFIL_MODIFIE':
         return '👤';
+      case 'RAPPEL_TRAITEMENT':
+        return '💊';
       default:
         return '⚠️';
     }
+  }
+
+  readonly isPatientShell = this.shellConfig.userRoleLabel === 'Patient';
+
+  isSpecialPatientNotification(n: NotificationItem): boolean {
+    return this.isPatientShell && isPatientSpecialNotification(n.type);
   }
 
   formatNotifDate(value: string): string {
@@ -232,7 +244,7 @@ export class DashboardShell {
       return 'Fiche médecin';
     }
     if (url.includes('/patient-dashboard/medecins')) {
-      return 'Médecins';
+      return 'Liste des médecins';
     }
     if (url.includes('/patient-dashboard/rendez-vous/nouveau')) {
       return 'Nouveau rendez-vous';

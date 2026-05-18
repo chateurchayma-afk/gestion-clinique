@@ -20,6 +20,7 @@ import { AdminRendezVousList } from './pages/admin/admin-rendez-vous-list/admin-
 import { DashboardShell } from './layout/dashboard-shell';
 import { ADMIN_SHELL, MEDECIN_SHELL, PATIENT_SHELL } from './layout/dashboard-shell.config';
 import { NotFound } from './pages/not-found/not-found';
+import { OrdonnanceQrPublic } from './pages/ordonnance-qr-public/ordonnance-qr-public';
 import { MedecinAccueil } from './pages/medecin/medecin-accueil/medecin-accueil';
 import { MedecinConsultation } from './pages/medecin/medecin-consultation/medecin-consultation';
 import { MedecinDossierMedical } from './pages/medecin/medecin-dossier-medical/medecin-dossier-medical';
@@ -27,6 +28,7 @@ import { MedecinOrdonnancePdf } from './pages/medecin/medecin-ordonnance-pdf/med
 import { MedecinAddPatient } from './pages/medecin/medecin-add-patient/medecin-add-patient';
 import { MedecinPatientsList } from './pages/medecin/medecin-patients-list/medecin-patients-list';
 import { MedecinRendezVous } from './pages/medecin/medecin-rendez-vous/medecin-rendez-vous';
+import { MedecinRdvNouveau } from './pages/medecin/medecin-rdv-nouveau/medecin-rdv-nouveau';
 import { PatientHome } from './pages/patient/patient-home/patient-home';
 import { PatientMedecins } from './pages/patient/patient-medecins/patient-medecins';
 import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-list';
@@ -42,6 +44,7 @@ import { patientGuard } from './core/patient.guard';
 
 export const routes: Routes = [
   { path: '', component: Home },
+  { path: 'ordonnance', component: OrdonnanceQrPublic },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'register/medecin', component: RegisterMedecin },
@@ -87,6 +90,7 @@ export const routes: Routes = [
       { path: 'mon-profil', component: AccountProfil },
       { path: 'patients', component: MedecinPatientsList },
       { path: 'patients/nouveau', component: MedecinAddPatient },
+      { path: 'rendez-vous/nouveau', component: MedecinRdvNouveau },
       { path: 'rendez-vous', component: MedecinRendezVous },
       { path: 'dossier-medical', component: MedecinDossierMedical },
       { path: 'consultation', component: MedecinConsultation },

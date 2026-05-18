@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=ord20260215" />
   </head>
   <body>
     <div class="page">
@@ -24,42 +24,45 @@
       </header>
 
       <main class="content">
-        <section class="card" aria-live="polite">
-          <div class="card-header">
+        <section class="card ord-recap" aria-live="polite">
+          <div class="card-header card-header--stack">
             <div>
               <p class="kicker">Ordonnance</p>
-              <h1>Resume du traitement</h1>
-              <p class="sub">Prescriptions et recommandations medicales.</p>
-            </div>
-            <div class="doc-meta">
-              <div>
-                <span class="label">Date</span>
-                <span id="ord-date" class="value">—</span>
-              </div>
+              <h1>Nouvelle ordonnance</h1>
+              <p class="sub">Récapitulatif tel que saisi par le médecin (via le lien ou le QR code).</p>
             </div>
           </div>
 
-          <div class="grid">
-            <div class="panel">
-              <h2>Patient</h2>
-              <p id="ord-patient" class="patient">—</p>
-              <div class="divider"></div>
-              <h2>Prescripteur</h2>
-              <p id="ord-medecin" class="doctor">—</p>
-              <p id="ord-medecin-addr" class="muted">—</p>
-              <p class="muted">
+          <div class="form-like" role="region" aria-label="Détail de l'ordonnance">
+            <div class="form-field">
+              <span class="field-label">Nom du patient</span>
+              <p id="ord-patient" class="field-value field-value--strong">—</p>
+            </div>
+
+            <div class="form-field">
+              <span class="field-label">Traitement prescrit</span>
+              <div id="ord-traitement" class="traitement-bloc">—</div>
+            </div>
+
+            <div class="form-field form-field--date">
+              <span class="field-label">Date de l'ordonnance</span>
+              <p id="ord-date" class="field-value">—</p>
+            </div>
+
+            <div class="form-field form-field--prescripteur">
+              <span class="field-label">Prescripteur</span>
+              <p id="ord-medecin" class="field-value field-value--md">—</p>
+              <p id="ord-medecin-addr" class="field-meta">—</p>
+              <p class="field-meta">
                 <span id="ord-medecin-tel">—</span>
-                <span class="dot">•</span>
+                <span class="dot" aria-hidden="true">•</span>
                 <span id="ord-medecin-email">—</span>
               </p>
             </div>
 
-            <div class="panel panel--soft">
-              <h2>Traitement</h2>
-              <ul id="ord-meds" class="meds">
-                <li>—</li>
-              </ul>
-              <div class="note" id="ord-note">Aucune note supplementaire.</div>
+            <div class="form-field form-field--note" id="ord-note-wrap" hidden>
+              <span class="field-label">Note</span>
+              <div id="ord-note" class="traitement-bloc traitement-bloc--small"></div>
             </div>
           </div>
 
@@ -81,6 +84,196 @@
       </main>
     </div>
 
-    <script src="app.js" defer></script>
+    <!-- Logique inline : le site en production servait un vieux app.js en cache ; le QR utilise #data= (fragment). -->
+    <script>
+(function () {
+  function normalizeBase64Url(value) {
+    if (!value) return '';
+    var b64 = value.replace(/-/g, '+').replace(/_/g, '/');
+    var pad = b64.length % 4;
+    if (pad) b64 += '='.repeat(4 - pad);
+    return b64;
+  }
+  function base64UrlToBytes(value) {
+    var b64 = normalizeBase64Url(value);
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+  function decodeBase64UrlToUtf8(value) {
+    if (!value) return '';
+    try {
+      return new TextDecoder('utf-8').decode(base64UrlToBytes(value));
+    } catch (err) {
+      return '';
+    }
+  }
+  function formatDate(value) {
+    if (!value) return '—';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      var parts = value.split('-');
+      return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+    return value;
+  }
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = value || '—';
+  }
+  function setTraitementBloc(id, raw) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var t = (raw != null ? String(raw) : '').trim();
+    if (!t) {
+      el.textContent = '—';
+      el.classList.add('is-empty');
+      return;
+    }
+    el.textContent = t;
+    el.classList.remove('is-empty');
+  }
+  function showError(show) {
+    var el = document.getElementById('ord-error');
+    if (!el) return;
+    el.hidden = !show;
+  }
+  function extractDataToken() {
+    var params = new URLSearchParams(window.location.search);
+    var q = params.get('data');
+    if (q && q.trim()) return q.trim();
+    var h = window.location.hash || '';
+    if (h.startsWith('#')) h = h.slice(1);
+    h = h.trim();
+    if (h.startsWith('/')) h = h.slice(1).trim();
+    if (h.startsWith('data=')) {
+      var v = h.slice(5);
+      var amp = v.indexOf('&');
+      if (amp >= 0) v = v.slice(0, amp);
+      try {
+        v = decodeURIComponent(v);
+      } catch (e) {}
+      return v.trim();
+    }
+    if (h.startsWith('z:')) {
+      var ztok = h;
+      var zAmp = ztok.indexOf('&');
+      if (zAmp >= 0) ztok = ztok.slice(0, zAmp);
+      return ztok.trim();
+    }
+    if (/^[A-Za-z0-9_-]+$/.test(h)) return h.trim();
+    return '';
+  }
+  function gunzipBytes(bytes) {
+    if (typeof DecompressionStream === 'undefined') return Promise.reject(new Error('no-gzip'));
+    var ds = new DecompressionStream('gzip');
+    var stream = new Blob([bytes]).stream().pipeThrough(ds);
+    return new Response(stream).text();
+  }
+  function parseJsonPayload(jsonStr) {
+    var s = String(jsonStr).replace(/^\uFEFF/, '');
+    var o = JSON.parse(s);
+    var ver = o.v;
+    var compact =
+      ver === 2 ||
+      ver === '2' ||
+      ver === 'v2' ||
+      (Object.prototype.hasOwnProperty.call(o, 'p') &&
+        Object.prototype.hasOwnProperty.call(o, 't') &&
+        !Object.prototype.hasOwnProperty.call(o, 'patient'));
+    if (compact) {
+      return {
+        patient: o.p != null ? String(o.p) : '',
+        date: o.d != null ? String(o.d) : '',
+        medecin: o.g != null ? String(o.g) : '',
+        medecinAddr: '',
+        medecinTel: '',
+        medecinEmail: '',
+        meds: o.t != null ? String(o.t) : '',
+        note: o.note != null ? String(o.note) : ''
+      };
+    }
+    return {
+      patient: o.patient != null ? String(o.patient) : '',
+      date: o.date != null ? String(o.date) : '',
+      medecin: o.medecin != null ? String(o.medecin) : '',
+      medecinAddr: o.medecinAddr != null ? String(o.medecinAddr) : '',
+      medecinTel: o.medecinTel != null ? String(o.medecinTel) : '',
+      medecinEmail: o.medecinEmail != null ? String(o.medecinEmail) : '',
+      meds: o.meds != null ? String(o.meds) : '',
+      note: o.note != null ? String(o.note) : ''
+    };
+  }
+  async function decodeToken(token) {
+    if (!token) return null;
+    try {
+      var jsonStr;
+      if (token.startsWith('z:')) {
+        var rawB64 = token.slice(2);
+        var bytes = base64UrlToBytes(rawB64);
+        jsonStr = await gunzipBytes(bytes);
+      } else {
+        jsonStr = decodeBase64UrlToUtf8(token);
+      }
+      if (!jsonStr) return null;
+      return parseJsonPayload(jsonStr);
+    } catch (err) {
+      return null;
+    }
+  }
+  async function init() {
+    var token = extractDataToken();
+    var raw = await decodeToken(token);
+    var payload = raw || {};
+    var params = new URLSearchParams(window.location.search);
+    var patient = payload.patient || params.get('patient');
+    var date = payload.date || params.get('date');
+    var medecin = payload.medecin || params.get('medecin');
+    var medecinAddr = payload.medecinAddr || params.get('medecinAddr');
+    var medecinTel = payload.medecinTel || params.get('medecinTel');
+    var medecinEmail = payload.medecinEmail || params.get('medecinEmail');
+    var meds = payload.meds || params.get('meds');
+    var note = payload.note || params.get('note');
+    setText('ord-patient', patient);
+    setText('ord-date', formatDate(date));
+    setText('ord-medecin', medecin);
+    setText('ord-medecin-addr', medecinAddr);
+    setText('ord-medecin-tel', medecinTel);
+    setText('ord-medecin-email', medecinEmail);
+    var medsRaw = '';
+    if (typeof meds === 'string') medsRaw = meds.trim();
+    else if (Array.isArray(meds)) {
+      medsRaw = meds
+        .map(function (line) {
+          return String(line).trim();
+        })
+        .filter(Boolean)
+        .join('\n');
+    }
+    setTraitementBloc('ord-traitement', medsRaw || '');
+    var noteWrap = document.getElementById('ord-note-wrap');
+    var noteEl = document.getElementById('ord-note');
+    if (noteWrap && noteEl) {
+      var nt = note != null ? String(note).trim() : '';
+      if (nt) {
+        noteEl.textContent = nt;
+        noteWrap.hidden = false;
+      } else {
+        noteEl.textContent = '';
+        noteWrap.hidden = true;
+      }
+    }
+    var isMissing = !patient && !medsRaw && !medecin;
+    showError(isMissing);
+  }
+  window.addEventListener('DOMContentLoaded', function () {
+    void init();
+  });
+  window.addEventListener('hashchange', function () {
+    void init();
+  });
+})();
+    </script>
   </body>
 </html>

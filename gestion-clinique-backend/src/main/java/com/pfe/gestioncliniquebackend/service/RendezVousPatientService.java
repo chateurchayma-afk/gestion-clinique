@@ -1,6 +1,7 @@
 package com.pfe.gestioncliniquebackend.service;
 
 import com.pfe.gestioncliniquebackend.dto.RendezVousCreateRequest;
+import com.pfe.gestioncliniquebackend.dto.RendezVousReporterRequest;
 import com.pfe.gestioncliniquebackend.dto.RendezVousResponse;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
@@ -95,14 +96,54 @@ public class RendezVousPatientService {
      * ce qui libère immédiatement le créneau pour un autre patient.
      */
     @Transactional
-    public void annuler(Long rendezVousId) {
+    public RendezVousResponse reporter(Long rendezVousId, RendezVousReporterRequest req) {
         Patient patient = patientAccessService.requireCurrentPatient();
         RendezVous rdv = rendezVousRepository.findByIdAndPatient_Id(rendezVousId, patient.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Rendez-vous introuvable"));
 
-        if (rdv.getStatut() == StatutRendezVous.TERMINE) {
-            throw new IllegalArgumentException("Un rendez-vous terminé ne peut pas être annulé");
+        if (rdv.getStatut() == StatutRendezVous.TERMINE || rdv.getStatut() == StatutRendezVous.ANNULE) {
+            throw new IllegalArgumentException("Ce rendez-vous ne peut plus être reporté");
         }
+
+        LocalDate date = req.getDateRendezVous();
+        if (date.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("La date du rendez-vous ne peut pas être dans le passé");
+        }
+
+        LocalTime debut = req.getHeureDebut();
+        LocalTime fin = req.getHeureFin() != null ? req.getHeureFin() : debut.plusMinutes(30);
+        if (!fin.isAfter(debut)) {
+            throw new IllegalArgumentException("L'heure de fin doit être après l'heure de début");
+        }
+
+        if (date.equals(LocalDate.now())) {
+            LocalDateTime limite = LocalDateTime.of(date, debut);
+            if (limite.isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("L'heure choisie est déjà passée aujourd'hui");
+            }
+        }
+
+        if (rendezVousRepository.existsChevauchementExcluding(
+                rdv.getId(), rdv.getMedecin().getId(), date, debut, fin, StatutRendezVous.ANNULE)) {
+            throw new IllegalArgumentException(
+                    "Ce créneau chevauche un autre rendez-vous. Choisissez une autre heure ou un autre jour.");
+        }
+
+        rdv.setDateRendezVous(date);
+        rdv.setHeureDebut(debut);
+        rdv.setHeureFin(fin);
+        rdv.setStatut(StatutRendezVous.EN_ATTENTE);
+
+        RendezVous saved = rendezVousRepository.save(rdv);
+        notifyReport(saved);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public void annuler(Long rendezVousId) {
+        Patient patient = patientAccessService.requireCurrentPatient();
+        RendezVous rdv = rendezVousRepository.findByIdAndPatient_Id(rendezVousId, patient.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Rendez-vous introuvable"));
 
         notifyCancel(rdv);
         rendezVousRepository.delete(rdv);
@@ -127,6 +168,26 @@ public class RendezVousPatientService {
             "Nouveau rendez-vous avec " + patientName + " le " + date + " a " + time + "."
         );
         }
+
+    private void notifyReport(RendezVous rdv) {
+        String date = rdv.getDateRendezVous().toString();
+        String time = rdv.getHeureDebut().toString();
+        String patientName = rdv.getPatient().getUtilisateur().getPrenom() + " " + rdv.getPatient().getUtilisateur().getNom();
+        String medecinName = rdv.getMedecin().getUtilisateur().getPrenom() + " " + rdv.getMedecin().getUtilisateur().getNom();
+
+        notificationService.createForUser(
+                rdv.getPatient().getUtilisateur(),
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Rendez-vous reporté",
+                "Votre rendez-vous avec Dr. " + medecinName + " a été reporté au " + date + " à " + time + "."
+        );
+        notificationService.createForUser(
+                rdv.getMedecin().getUtilisateur(),
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Rendez-vous reporté",
+                patientName + " a reporté son rendez-vous au " + date + " à " + time + "."
+        );
+    }
 
         private void notifyCancel(RendezVous rdv) {
         String date = rdv.getDateRendezVous().toString();

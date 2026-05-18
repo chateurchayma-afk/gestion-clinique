@@ -126,12 +126,13 @@
 }
 
 .mec-ord-qr img {
-  width: 120px;
-  height: 120px;
+  width: 168px;
+  height: 168px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #ffffff;
-  padding: 6px;
+  padding: 8px;
+  image-rendering: crisp-edges;
 }
 
 .mec-ord-qr-label {
@@ -154,7 +155,6 @@
 .mini-link:hover {
   text-decoration: underline !important;
 }
-
 
 @media print {
   @page {

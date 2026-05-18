@@ -28,4 +28,7 @@ public class DossierMedicalResponse {
     private String alcool;
     private String activite;
     private String alimentation;
+
+    private String rappelTraitementNom;
+    private String rappelTraitementFrequence;
 }

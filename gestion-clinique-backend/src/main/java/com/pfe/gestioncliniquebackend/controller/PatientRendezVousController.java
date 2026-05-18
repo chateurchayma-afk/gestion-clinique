@@ -1,6 +1,7 @@
 package com.pfe.gestioncliniquebackend.controller;
 
 import com.pfe.gestioncliniquebackend.dto.RendezVousCreateRequest;
+import com.pfe.gestioncliniquebackend.dto.RendezVousReporterRequest;
 import com.pfe.gestioncliniquebackend.dto.RendezVousResponse;
 import com.pfe.gestioncliniquebackend.service.RendezVousPatientService;
 import jakarta.validation.Valid;
@@ -37,6 +38,17 @@ public class PatientRendezVousController {
         try {
             rendezVousPatientService.annuler(id);
             return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{id}/reporter")
+    public ResponseEntity<?> reporter(
+            @PathVariable Long id,
+            @Valid @RequestBody RendezVousReporterRequest body) {
+        try {
+            return ResponseEntity.ok(rendezVousPatientService.reporter(id, body));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

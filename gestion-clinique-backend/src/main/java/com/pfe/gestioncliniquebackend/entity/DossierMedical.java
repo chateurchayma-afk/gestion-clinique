@@ -40,4 +40,12 @@ public class DossierMedical {
     private String alcool;
     private String activite;
     private String alimentation;
+
+    /** Nom du médicament / traitement à suivre (ex. Metformine). */
+    @Column(name = "rappel_traitement_nom", length = 200)
+    private String rappelTraitementNom;
+
+    /** Code (ex. CHAQUE_JOUR) ou libellé libre pour la fréquence du rappel. */
+    @Column(name = "rappel_traitement_frequence", length = 120)
+    private String rappelTraitementFrequence;
 }

@@ -1,0 +1,6 @@
+# Page publique « ordonnance » (index.html + app.js).
+# Sur Netlify avec ce dépôt : définir le dossier de base du site sur `mynetlify`
+# (Site settings → Build & deploy → Base directory). Sinon, déployer ce dossier par glisser-déposer.
+
+[build]
+  publish = "."

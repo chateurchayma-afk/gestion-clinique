@@ -1,5 +1,6 @@
 package com.pfe.gestioncliniquebackend.controller;
 
+import com.pfe.gestioncliniquebackend.dto.PatientProfilResponse;
 import com.pfe.gestioncliniquebackend.dto.PatientUpdateRequest;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.service.PatientAccessService;
@@ -19,15 +20,17 @@ public class PatientProfilController {
     private final PatientService patientService;
 
     @GetMapping
-    public ResponseEntity<Patient> getProfil() {
-        return ResponseEntity.ok(patientAccessService.requireCurrentPatient());
+    public ResponseEntity<PatientProfilResponse> getProfil() {
+        Patient p = patientAccessService.requireCurrentPatient();
+        return ResponseEntity.ok(PatientProfilResponse.from(p));
     }
 
     @PutMapping
     public ResponseEntity<?> updateProfil(@RequestBody PatientUpdateRequest body) {
         try {
             Patient p = patientAccessService.requireCurrentPatient();
-            return ResponseEntity.ok(patientService.updatePatient(p.getId(), body));
+            Patient updated = patientService.updatePatient(p.getId(), body, true);
+            return ResponseEntity.ok(PatientProfilResponse.from(updated));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

@@ -2,9 +2,12 @@ package com.pfe.gestioncliniquebackend.service;
 
 import com.pfe.gestioncliniquebackend.dto.DossierMedicalRequest;
 import com.pfe.gestioncliniquebackend.dto.DossierMedicalResponse;
+import com.pfe.gestioncliniquebackend.dto.RappelTraitementPatientResponse;
 import com.pfe.gestioncliniquebackend.entity.DossierMedical;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
+import com.pfe.gestioncliniquebackend.entity.Utilisateur;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.repository.DossierMedicalRepository;
 import com.pfe.gestioncliniquebackend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +16,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class DossierMedicalService {
 
+    private static final String MSG_RENOUVELLEMENT = "Le patient doit renouveler son traitement.";
+
+    private static final Map<String, String> FREQUENCE_LIBELLES = Map.of(
+            "CHAQUE_JOUR", "Chaque jour",
+            "CHAQUE_SEMAINE", "Chaque semaine",
+            "CHAQUE_MOIS", "Chaque mois",
+            "DEUX_FOIS_JOUR", "Deux fois par jour"
+    );
+
     private final DossierMedicalRepository dossierRepository;
     private final PatientRepository patientRepository;
     private final MedecinAccessService medecinAccessService;
+    private final PatientAccessService patientAccessService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public DossierMedicalResponse getByPatientId(Long patientId) {
@@ -38,9 +56,73 @@ public class DossierMedicalService {
         DossierMedical dossier = dossierRepository.findByPatient_Id(patientId)
                 .orElseGet(() -> DossierMedical.builder().patient(patient).build());
 
+        String ancienNom = dossier.getRappelTraitementNom();
+        String ancienneFreq = dossier.getRappelTraitementFrequence();
+
         applyRequest(dossier, request);
         DossierMedical saved = dossierRepository.save(dossier);
+        notifierRappelTraitementSiBesoin(patient, ancienNom, ancienneFreq, saved);
         return toResponse(saved, patient.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public RappelTraitementPatientResponse getRappelTraitementPourPatientConnecte() {
+        Patient patient = patientAccessService.requireCurrentPatient();
+        Optional<DossierMedical> opt = dossierRepository.findByPatient_Id(patient.getId());
+        if (opt.isEmpty()) {
+            return new RappelTraitementPatientResponse(false, null, null, null);
+        }
+        DossierMedical dossier = opt.get();
+        String nom = dossier.getRappelTraitementNom();
+        if (nom == null || nom.isBlank()) {
+            return new RappelTraitementPatientResponse(false, null, null, null);
+        }
+        String freqLibelle = libelleFrequence(dossier.getRappelTraitementFrequence());
+        return new RappelTraitementPatientResponse(true, nom.trim(), freqLibelle, MSG_RENOUVELLEMENT);
+    }
+
+    private void notifierRappelTraitementSiBesoin(
+            Patient patient,
+            String ancienNom,
+            String ancienneFreq,
+            DossierMedical dossier) {
+        String nouveauNom = dossier.getRappelTraitementNom();
+        if (nouveauNom == null || nouveauNom.isBlank()) {
+            return;
+        }
+        String nouvelleFreq = dossier.getRappelTraitementFrequence();
+        boolean nomChange = ancienNom == null || ancienNom.isBlank() || !ancienNom.trim().equals(nouveauNom.trim());
+        boolean freqChange = !Objects.equals(
+                ancienneFreq == null ? "" : ancienneFreq.trim(),
+                nouvelleFreq == null ? "" : nouvelleFreq.trim());
+        if (!nomChange && !freqChange) {
+            return;
+        }
+        Utilisateur u = patient.getUtilisateur();
+        if (u == null) {
+            return;
+        }
+        String freqLibelle = libelleFrequence(nouvelleFreq);
+        StringBuilder msg = new StringBuilder();
+        msg.append("Votre médecin vous rappelle de renouveler votre traitement : ");
+        msg.append(nouveauNom.trim());
+        if (freqLibelle != null && !freqLibelle.isBlank()) {
+            msg.append(" (").append(freqLibelle).append(')');
+        }
+        msg.append(". Pensez à prendre rendez-vous pour un suivi.");
+        notificationService.createForUser(
+                u,
+                NotificationType.RAPPEL_TRAITEMENT,
+                "Rappel traitement — action importante",
+                msg.toString());
+    }
+
+    private static String libelleFrequence(String codeOuTexte) {
+        if (codeOuTexte == null || codeOuTexte.isBlank()) {
+            return "";
+        }
+        String key = codeOuTexte.trim();
+        return FREQUENCE_LIBELLES.getOrDefault(key, key);
     }
 
     private Patient requirePatient(Long patientId) {
@@ -74,6 +156,8 @@ public class DossierMedicalService {
         dossier.setAlcool(req.getAlcool());
         dossier.setActivite(req.getActivite());
         dossier.setAlimentation(req.getAlimentation());
+        dossier.setRappelTraitementNom(req.getRappelTraitementNom());
+        dossier.setRappelTraitementFrequence(req.getRappelTraitementFrequence());
     }
 
     private DossierMedicalResponse toResponse(DossierMedical dossier, Long patientId) {
@@ -97,7 +181,9 @@ public class DossierMedicalService {
                 dossier.getTabac(),
                 dossier.getAlcool(),
                 dossier.getActivite(),
-                dossier.getAlimentation()
+                dossier.getAlimentation(),
+                dossier.getRappelTraitementNom(),
+                dossier.getRappelTraitementFrequence()
         );
     }
 }
