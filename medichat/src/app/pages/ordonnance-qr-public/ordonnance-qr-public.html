@@ -59,7 +59,13 @@
         <div class="sig">
           <p class="ord-field-label ord-field-label--small">Prescripteur</p>
           <p class="dr">{{ o.medecin || '—' }}</p>
-          @if (o.medecinAddr?.trim()) {
+          @if (o.medecinAdresse?.trim()) {
+            <p class="coordonnees">{{ o.medecinAdresse }}</p>
+          }
+          @if (o.medecinVille?.trim()) {
+            <p class="coordonnees">{{ o.medecinVille }}</p>
+          }
+          @if (!o.medecinAdresse?.trim() && !o.medecinVille?.trim() && o.medecinAddr?.trim()) {
             <p class="coordonnees">{{ o.medecinAddr }}</p>
           }
           @if (o.medecinTel?.trim() && o.medecinTel !== '—') {

@@ -9,6 +9,7 @@
   align-items: center;
   padding: 30px 16px;
   background: linear-gradient(135deg, #eef3f8 0%, #f5f7fb 50%, #e8eef5 100%);
+  color-scheme: light;
 }
 
 .register-card {
@@ -19,6 +20,7 @@
   padding: 28px 34px 34px;
   box-shadow: 0 14px 35px rgba(28, 76, 114, 0.12);
   border: 1px solid #e7edf4;
+  color-scheme: light;
 }
 
 .top-bar {
@@ -84,9 +86,28 @@
   border-radius: 14px;
   padding: 0 16px;
   font-size: 14px;
+  color: #16324f;
   background: #f9fbfd;
   outline: none;
   transition: 0.3s ease;
+  color-scheme: light;
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.form-group select option {
+  color: #16324f;
+  background: #ffffff;
+}
+
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #16324f;
+  box-shadow: 0 0 0 1000px #f9fbfd inset;
 }
 
 .form-group select {

@@ -1,7 +1,7 @@
 :host {
-  --patient-bg: #f4f7fb;
+  --patient-bg: var(--app-bg, #f0f4fa);
   --patient-surface: #ffffff;
-  --patient-border: #e5e7eb;
+  --patient-border: var(--app-border, #e5ebf3);
   --patient-primary: #4f6fa8;
   --patient-primary-2: #6f8fcb;
   --patient-text: var(--text-primary, #3d5f90);
@@ -10,9 +10,10 @@
 
   display: block;
   min-height: 100vh;
-  background: var(--patient-bg);
+  background: var(--gradient-page, var(--patient-bg));
   font-family: var(--font-sans);
   color: var(--patient-text);
+  color-scheme: light;
 }
 
 .patient-layout {
@@ -33,13 +34,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 28px;
-  background: #fff;
-  border-bottom: 1px solid var(--patient-border);
+  padding: 16px 28px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 235, 243, 0.9);
   position: sticky;
   top: 0;
   z-index: 40;
-  box-shadow: none;
+  box-shadow: 0 4px 24px rgba(47, 74, 114, 0.06);
 }
 
 .topbar-left {
@@ -495,7 +498,7 @@ button.user-chip:hover {
 }
 
 .sidebar {
-  background: var(--patient-surface);
+  background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
   border-right: 1px solid var(--patient-border);
   padding: 24px 18px;
   display: flex;
@@ -505,15 +508,16 @@ button.user-chip:hover {
   height: 100vh;
   max-height: 100vh;
   min-height: 0;
-  box-shadow: none;
+  box-shadow: 4px 0 32px rgba(47, 74, 114, 0.04);
   overflow: hidden;
+  color-scheme: light;
 }
 
 .brand {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--patient-text);
+  color: var(--text-heading, #2f4a72);
   margin-bottom: 4px;
   line-height: 1.15;
 }
@@ -535,8 +539,41 @@ button.user-chip:hover {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
-  margin-right: -4px;
+  padding-right: 2px;
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d0e0 #ffffff;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: #ffffff !important;
+  border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #d4deec !important;
+  border-radius: 10px;
+  border: 3px solid #ffffff;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: #b8c5d9 !important;
+}
+
+.sidebar-nav::-webkit-scrollbar-button,
+.sidebar-nav::-webkit-scrollbar-button:single-button {
+  display: none;
+  width: 0;
+  height: 0;
+  background: #ffffff !important;
+}
+
+.sidebar-nav::-webkit-scrollbar-corner {
+  background: #ffffff;
 }
 
 .nav-section {
@@ -645,37 +682,11 @@ button.user-chip:hover {
   border-color: #dbeafe;
 }
 
-.sidebar-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--patient-border);
-  flex-shrink: 0;
-}
-
-.btn-logout {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid #fecaca;
-  background: #fff;
-  color: #b91c1c;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-logout:hover {
-  background: #fef2f2;
-}
-
 .main-content {
   flex: 1;
-  padding: 28px 32px 48px;
+  padding: 28px 32px 56px;
   min-width: 0;
-  background: var(--patient-bg);
+  background: transparent;
 }
 
 @media (max-width: 900px) {

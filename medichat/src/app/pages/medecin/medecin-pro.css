@@ -141,30 +141,31 @@ a.mec-btn--ghost:visited {
 }
 
 .mec-btn--blue {
-  background: #2563eb;
+  background: linear-gradient(135deg, #4f6fa8, #6f8fcb);
   color: #fff;
   border: none;
+  box-shadow: 0 8px 20px rgba(79, 111, 168, 0.25);
 }
 
 .mec-btn--blue:hover {
-  background: #1d4ed8;
+  filter: brightness(1.05);
 }
 
 .mec-btn--blue-outline {
   background: #fff;
-  color: #2563eb;
-  border: 1px solid #2563eb;
+  color: #4f6fa8;
+  border: 1px solid #4f6fa8;
 }
 
 .mec-btn--blue-outline:hover {
-  background: #eff6ff;
+  background: #edf3ff;
 }
 
 .mec-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--app-border, #e5ebf3);
+  border-radius: var(--radius-lg, 20px);
+  box-shadow: var(--shadow-sm, 0 4px 14px rgba(47, 74, 114, 0.08));
   padding: 22px 24px 24px;
   margin-bottom: 20px;
 }

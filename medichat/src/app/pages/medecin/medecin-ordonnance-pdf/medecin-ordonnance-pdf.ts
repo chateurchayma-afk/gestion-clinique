@@ -55,6 +55,8 @@ export class MedecinOrdonnancePdf implements OnInit {
   dateOrdonnance = isoToday();
   medecinLabel = 'Médecin';
   medecinAddr = 'Cabinet — adresse, ville';
+  medecinAdresse = '';
+  medecinVille = '';
   medecinTel = '—';
   medecinEmail = '—';
   private qrTimer: ReturnType<typeof setTimeout> | null = null;
@@ -158,7 +160,9 @@ export class MedecinOrdonnancePdf implements OnInit {
         if (u.telephone) {
           this.medecinTel = u.telephone;
         }
-        const addrParts = [u.adresse, u.ville].filter((x) => x && String(x).trim().length > 0);
+        this.medecinAdresse = u.adresse?.trim() ?? '';
+        this.medecinVille = u.ville?.trim() ?? '';
+        const addrParts = [this.medecinAdresse, this.medecinVille].filter((x) => x.length > 0);
         if (addrParts.length > 0) {
           this.medecinAddr = addrParts.join(', ');
         }
@@ -224,7 +228,11 @@ export class MedecinOrdonnancePdf implements OnInit {
       patient: this.patientName(),
       date: this.dateOrdonnance,
       medecin: this.medecinLabel,
-      meds: this.medicamentsText().trim()
+      meds: this.medicamentsText().trim(),
+      medecinAdresse: this.medecinAdresse,
+      medecinVille: this.medecinVille,
+      medecinTel: this.medecinTel,
+      medecinEmail: this.medecinEmail
     });
   }
 

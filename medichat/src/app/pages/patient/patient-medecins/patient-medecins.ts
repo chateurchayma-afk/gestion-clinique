@@ -3,7 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
-import { CatalogueMedecinsQuery, Medecin, MedecinService } from '../../../services/medecin.service';
+import { Medecin, MedecinService } from '../../../services/medecin.service';
 import { Specialite, SpecialiteService } from '../../../services/specialite.service';
 
 @Component({
@@ -19,15 +19,17 @@ export class PatientMedecins implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
+  /** Catalogue complet (médecins validés). */
+  private readonly allMedecins = signal<Medecin[]>([]);
+
   readonly medecins = signal<Medecin[]>([]);
   readonly specialites = signal<Specialite[]>([]);
   readonly loading = signal(true);
-  /** Catalogue complet trié par nom (suggestions du champ recherche) */
   readonly medecinsPourNoms = signal<Medecin[]>([]);
+  readonly allMedecinsCount = signal(0);
 
   searchNom = '';
   specialiteFilter: number | '' = '';
-  sortKey: 'nom' | 'experience' | 'disponible' = 'nom';
 
   ngOnInit(): void {
     this.specialiteService.getAll().subscribe({
@@ -37,46 +39,77 @@ export class PatientMedecins implements OnInit {
       },
       error: () => this.toast.show('Impossible de charger les spécialités.', 'error')
     });
-    this.medecinService.getCatalogue({ sort: 'nom' }).subscribe({
-      next: (list) => this.medecinsPourNoms.set(list),
-      error: () => this.medecinsPourNoms.set([])
-    });
-    this.reloadMedecins();
+    this.loadAllMedecins();
   }
 
-  /** Valeur datalist : prénom + nom (recherche API plus fiable qu’avec « Dr. »). */
   libelleMedecinDatalist(m: Medecin): string {
     const p = (m.utilisateur.prenom ?? '').trim();
     const n = (m.utilisateur.nom ?? '').trim();
     return `${p} ${n}`.trim();
   }
 
-  reloadMedecins(scrollToResults = false): void {
+  private loadAllMedecins(): void {
     this.loading.set(true);
-    const q: CatalogueMedecinsQuery = {
-      sort: this.sortKey
-    };
-    if (this.specialiteFilter !== '' && this.specialiteFilter != null) {
-      q.specialiteId = Number(this.specialiteFilter);
-    }
-    if (this.searchNom.trim()) {
-      q.q = this.searchNom.trim();
-    }
-    this.medecinService.getCatalogue(q).subscribe({
+    this.medecinService.getCatalogue({ sort: 'nom' }).subscribe({
       next: (list) => {
-        this.medecins.set(list);
+        const rows = list ?? [];
+        this.allMedecins.set(rows);
+        this.allMedecinsCount.set(rows.length);
+        this.medecinsPourNoms.set(rows);
+        this.applyFilters();
         this.loading.set(false);
-        if (scrollToResults) {
-          queueMicrotask(() => {
-            document.getElementById('medecins-resultats')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          });
-        }
       },
       error: () => {
+        this.allMedecins.set([]);
+        this.medecinsPourNoms.set([]);
+        this.medecins.set([]);
         this.loading.set(false);
         this.toast.show('Impossible de charger les médecins.', 'error');
       }
     });
+  }
+
+  reloadMedecins(): void {
+    this.applyFilters();
+  }
+
+  private applyFilters(): void {
+    const needle = this.searchNom.trim().toLowerCase();
+    const specId =
+      this.specialiteFilter !== '' && this.specialiteFilter != null
+        ? Number(this.specialiteFilter)
+        : null;
+
+    let rows = [...this.allMedecins()];
+
+    if (specId != null && Number.isFinite(specId)) {
+      rows = rows.filter((m) => m.specialite?.id === specId);
+    }
+
+    if (needle) {
+      rows = rows.filter((m) => this.matchesSearch(m, needle));
+    }
+
+    rows.sort((a, b) => {
+      const na = `${a.utilisateur.nom} ${a.utilisateur.prenom}`.toLowerCase();
+      const nb = `${b.utilisateur.nom} ${b.utilisateur.prenom}`.toLowerCase();
+      return na.localeCompare(nb, 'fr');
+    });
+
+    this.medecins.set(rows);
+  }
+
+  private matchesSearch(m: Medecin, needle: string): boolean {
+    const prenom = (m.utilisateur.prenom ?? '').toLowerCase();
+    const nom = (m.utilisateur.nom ?? '').toLowerCase();
+    const full = `${prenom} ${nom}`.trim();
+    const fullRev = `${nom} ${prenom}`.trim();
+    return (
+      prenom.includes(needle) ||
+      nom.includes(needle) ||
+      full.includes(needle) ||
+      fullRev.includes(needle)
+    );
   }
 
   estDisponible(m: Medecin): boolean {
@@ -85,18 +118,6 @@ export class PatientMedecins implements OnInit {
 
   libelleDisponibilite(m: Medecin): string {
     return this.estDisponible(m) ? 'Disponible' : 'Occupé';
-  }
-
-  /** Affichage étoiles : note backend ou estimation visuelle si absente. */
-  noteAffichee(m: Medecin): number {
-    if (m.noteMoyenne != null && m.noteMoyenne >= 0 && m.noteMoyenne <= 5) {
-      return Math.round(m.noteMoyenne * 2) / 2;
-    }
-    return 4 + (m.id % 6) * 0.1;
-  }
-
-  aNoteReelle(m: Medecin): boolean {
-    return m.noteMoyenne != null && m.noteMoyenne >= 0;
   }
 
   initiales(m: Medecin): string {
@@ -110,12 +131,10 @@ export class PatientMedecins implements OnInit {
     return p ? p : null;
   }
 
-  /** Page profil dédiée. */
   voirProfil(m: Medecin): void {
     void this.router.navigate(['/patient-dashboard/medecins/profil', m.id]);
   }
 
-  /** Page de réservation (même flux que la fiche médecin). */
   prendreRdvSurPlace(m: Medecin): void {
     if (!this.estDisponible(m)) {
       return;

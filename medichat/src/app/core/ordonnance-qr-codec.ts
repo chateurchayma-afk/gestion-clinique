@@ -1,11 +1,17 @@
 /**
- * Encodage / décodage du contenu du QR ordonnance (compact + gzip si disponible).
+ * Encodage / décodage du contenu du QR ordonnance (compact v2 + gzip si disponible).
+ * Clés v2 : p patient, d date, g médecin, t traitement, a adresse, l ville, n téléphone, e email.
  */
 
 export interface OrdonnanceQrDecoded {
   patient?: string;
   date?: string;
   medecin?: string;
+  /** Adresse (rue) */
+  medecinAdresse?: string;
+  /** Ville */
+  medecinVille?: string;
+  /** Adresse affichée (rue + ville) */
   medecinAddr?: string;
   medecinTel?: string;
   medecinEmail?: string;
@@ -52,25 +58,69 @@ async function gunzipToText(bytes: Uint8Array): Promise<string> {
   return await new Response(stream).text();
 }
 
-/** Construit l’URL complète à encoder dans le QR (fragment #data=…). */
+function joinAddr(adresse: string, ville: string, legacyAddr: string): string {
+  const parts = [adresse.trim(), ville.trim()].filter(Boolean);
+  if (parts.length > 0) {
+    return parts.join(', ');
+  }
+  return legacyAddr.trim();
+}
+
+function mapCompactV2(o: Record<string, unknown>): OrdonnanceQrDecoded {
+  const adresse = o['a'] != null ? String(o['a']) : '';
+  const ville = o['l'] != null ? String(o['l']) : '';
+  return {
+    patient: o['p'] != null ? String(o['p']) : '',
+    date: o['d'] != null ? String(o['d']) : '',
+    medecin: o['g'] != null ? String(o['g']) : '',
+    medecinAdresse: adresse,
+    medecinVille: ville,
+    medecinAddr: joinAddr(adresse, ville, ''),
+    medecinTel: o['n'] != null ? String(o['n']) : '',
+    medecinEmail: o['e'] != null ? String(o['e']) : '',
+    meds: o['t'] != null ? String(o['t']) : ''
+  };
+}
+
+/** Construit l’URL complète à encoder dans le QR (#data=… sur la page Netlify). */
 export async function encodeOrdonnanceQrUrl(args: {
   baseUrl: string;
   patient: string;
   date: string;
   medecin: string;
   meds: string;
+  medecinAdresse?: string;
+  medecinVille?: string;
+  medecinTel?: string;
+  medecinEmail?: string;
 }): Promise<string> {
   const base = args.baseUrl.trim().replace(/\/+$/g, '');
   if (!base) {
     return '';
   }
-  const obj = {
+  const obj: Record<string, string | number> = {
     v: 2,
     p: args.patient,
     d: args.date,
     g: args.medecin,
     t: args.meds
   };
+  const a = (args.medecinAdresse ?? '').trim();
+  const l = (args.medecinVille ?? '').trim();
+  const n = (args.medecinTel ?? '').trim();
+  const e = (args.medecinEmail ?? '').trim();
+  if (a) {
+    obj['a'] = a;
+  }
+  if (l) {
+    obj['l'] = l;
+  }
+  if (n && n !== '—') {
+    obj['n'] = n;
+  }
+  if (e) {
+    obj['e'] = e;
+  }
   const json = JSON.stringify(obj);
   let token: string;
   const plain = toBase64UrlUtf8(json);
@@ -85,8 +135,7 @@ export async function encodeOrdonnanceQrUrl(args: {
   } catch {
     token = plain;
   }
-  const encoded = encodeURIComponent(token);
-  return `${base}/ordonnance?data=${encoded}`;
+  return `${base}/#data=${encodeURIComponent(token)}`;
 }
 
 /** Indique si le contenu décodé ne contient rien d’affichable. */
@@ -121,19 +170,26 @@ export async function decodeOrdonnanceQrData(raw: string): Promise<OrdonnanceQrD
     }
     const o = JSON.parse(jsonStr) as Record<string, unknown>;
     const ver = o['v'];
-    if (ver === 2 || ver === '2' || ver === 'v2') {
-      return {
-        patient: String(o['p'] ?? ''),
-        date: String(o['d'] ?? ''),
-        medecin: String(o['g'] ?? ''),
-        meds: String(o['t'] ?? '')
-      };
+    const compact =
+      ver === 2 ||
+      ver === '2' ||
+      ver === 'v2' ||
+      (Object.prototype.hasOwnProperty.call(o, 'p') &&
+        Object.prototype.hasOwnProperty.call(o, 't') &&
+        !Object.prototype.hasOwnProperty.call(o, 'patient'));
+    if (compact) {
+      return mapCompactV2(o);
     }
+    const legacyAddr = o['medecinAddr'] != null ? String(o['medecinAddr']) : '';
+    const adresse = o['medecinAdresse'] != null ? String(o['medecinAdresse']) : '';
+    const ville = o['medecinVille'] != null ? String(o['medecinVille']) : '';
     return {
       patient: o['patient'] != null ? String(o['patient']) : '',
       date: o['date'] != null ? String(o['date']) : '',
       medecin: o['medecin'] != null ? String(o['medecin']) : '',
-      medecinAddr: o['medecinAddr'] != null ? String(o['medecinAddr']) : '',
+      medecinAdresse: adresse,
+      medecinVille: ville,
+      medecinAddr: joinAddr(adresse, ville, legacyAddr),
       medecinTel: o['medecinTel'] != null ? String(o['medecinTel']) : '',
       medecinEmail: o['medecinEmail'] != null ? String(o['medecinEmail']) : '',
       meds: o['meds'] != null ? String(o['meds']) : ''

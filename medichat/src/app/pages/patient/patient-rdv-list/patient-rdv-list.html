@@ -92,16 +92,26 @@
                       role="group"
                       [attr.aria-label]="'Actions pour le rendez-vous du ' + r.dateRendezVous"
                     >
-                      <button type="button" class="btn-details" (click)="openDetails(r)">Voir</button>
                       <button
                         type="button"
-                        class="btn-cancel-rdv"
+                        class="rdv-action-btn"
+                        title="Voir le détail"
+                        aria-label="Voir le détail"
+                        (click)="openDetails(r)">
+                        👁️
+                      </button>
+                      <button
+                        type="button"
+                        class="rdv-action-btn rdv-action-btn--danger"
                         [title]="peutAnnuler(r) ? 'Annuler le rendez-vous' : 'Annulation impossible (rendez-vous terminé ou annulé)'"
                         [attr.aria-label]="peutAnnuler(r) ? 'Annuler le rendez-vous' : 'Annuler indisponible'"
                         [disabled]="!peutAnnuler(r) || cancellingId() === r.id"
-                        (click)="annuler(r)"
-                      >
-                        {{ cancellingId() === r.id ? 'Annulation…' : 'Annuler' }}
+                        (click)="annuler(r)">
+                        @if (cancellingId() === r.id) {
+                          ⏳
+                        } @else {
+                          🗑️
+                        }
                       </button>
                     </div>
                   </td>
@@ -226,88 +236,68 @@
       </div>
     </div>
     <div class="modal-actions modal-actions--split">
-      @if (peutReporter(rdv)) {
-        <button type="button" class="btn-secondary" (click)="openReport(rdv); closeDetails()">Reporter</button>
-      }
       <button
         type="button"
         class="btn-secondary"
-        [disabled]="recuPdfBusy()"
-        (click)="downloadRecu(rdv)"
+        [disabled]="qrGenerating()"
+        (click)="openQrCode(rdv)"
       >
-        {{ recuPdfBusy() ? 'Génération…' : 'Télécharger reçu' }}
+        {{ qrGenerating() ? 'Génération…' : '🔲 Voir QR Code' }}
       </button>
       <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
     </div>
     </div>
 }
 
-@if (reportRdv(); as rdv) {
-  <div class="modal-backdrop" (click)="closeReport()"></div>
+@if (qrRdv(); as rdv) {
+  <div class="modal-backdrop" (click)="closeQrCode()"></div>
   <div
-    class="modal-panel modal-panel--report"
+    class="modal-panel"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="rdv-report-title"
+    aria-labelledby="rdv-qr-title"
     (click)="$event.stopPropagation()"
+    style="max-width: 400px; text-align: center;"
   >
-    <h2 id="rdv-report-title">Reporter le rendez-vous</h2>
-    <button type="button" class="modal-close" (click)="closeReport()" aria-label="Fermer">×</button>
-    <p class="report-lead">
-      Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}
-      <span class="report-lead-muted">— {{ rdv.specialiteNom ?? 'Consultation' }}</span>
-    </p>
-    <form class="report-form" (ngSubmit)="submitReport()">
-      <label class="report-field">
-        <span>Nouvelle date</span>
-        <input
-          type="date"
-          name="reportDate"
-          [(ngModel)]="reportDate"
-          (ngModelChange)="onReportDateChange()"
-          required
-        />
-      </label>
-
-      @if (loadingCreneaux()) {
-        <p class="report-muted">Chargement des créneaux…</p>
-      } @else if (reportDate && slotsJour().length > 0) {
-        <div class="report-slots">
-          <span class="report-slots-label">Créneaux disponibles (30 min)</span>
-          <div class="report-slot-chips">
-            @for (h of slotsJour(); track $index) {
-              <button
-                type="button"
-                class="report-slot"
-                [class.active]="reportHeureDebut === formatHeureChip(h)"
-                (click)="choisirCreneauReport(h)"
-              >
-                {{ formatHeureChip(h) }}
-              </button>
-            }
-          </div>
+    <h2 id="rdv-qr-title">QR Code du rendez-vous</h2>
+    <button type="button" class="modal-close" (click)="closeQrCode()" aria-label="Fermer">×</button>
+    
+    <div style="padding: 20px;">
+      <p style="margin-bottom: 20px; color: #65748a; font-size: 14px;">
+        Montrez ce code QR au médecin lors de votre rendez-vous
+      </p>
+      
+      @if (qrGenerating()) {
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 300px;">
+          <span class="loader" aria-hidden="true"></span>
         </div>
-      } @else if (reportDate) {
-        <p class="report-muted">Aucun créneau standard libre ce jour. Saisissez l’heure manuellement.</p>
+      } @else if (qrCodeDataUrl()) {
+        <img 
+          [src]="qrCodeDataUrl()" 
+          alt="QR Code du rendez-vous"
+          style="max-width: 300px; border: 2px solid #edf3ff; border-radius: 8px; padding: 10px; background: white;"
+        />
+        
+        <div style="margin-top: 20px; padding: 15px; background: #edf3ff; border-radius: 8px; text-align: left;">
+          <dl style="margin: 0; font-size: 13px; line-height: 1.8;">
+            <div>
+              <dt style="font-weight: 600; color: #26364f;">Patient</dt>
+              <dd style="margin: 0; color: #65748a;">{{ patientLabel() }}</dd>
+            </div>
+            <div>
+              <dt style="font-weight: 600; color: #26364f; margin-top: 8px;">Médecin</dt>
+              <dd style="margin: 0; color: #65748a;">Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd>
+            </div>
+            <div>
+              <dt style="font-weight: 600; color: #26364f; margin-top: 8px;">Date & Heure</dt>
+              <dd style="margin: 0; color: #65748a;">{{ formatDateCourt(rdv) }} à {{ formatHeure(rdv.heureDebut) }}</dd>
+            </div>
+          </dl>
+        </div>
       }
-
-      <label class="report-field">
-        <span>Heure de début</span>
-        <input type="time" name="reportDebut" [(ngModel)]="reportHeureDebut" required />
-      </label>
-      <label class="report-field">
-        <span>Heure de fin (optionnel)</span>
-        <input type="time" name="reportFin" [(ngModel)]="reportHeureFin" />
-      </label>
-
-      <p class="report-hint">Le rendez-vous repassera en statut « En attente » après le report.</p>
-
-      <div class="modal-actions modal-actions--split">
-        <button type="button" class="btn-secondary" (click)="closeReport()">Annuler</button>
-        <button type="submit" class="btn-primary" [disabled]="reportingId() === rdv.id">
-          {{ reportingId() === rdv.id ? 'Enregistrement…' : 'Confirmer le report' }}
-        </button>
-      </div>
-    </form>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" (click)="closeQrCode()">Fermer</button>
+    </div>
   </div>
 }

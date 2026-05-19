@@ -96,18 +96,7 @@
       </div>
 
       <footer class="profile-footer">
-        <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Fermer</a>
-        @if (estDisponible(m)) {
-          <a
-            class="btn btn-primary"
-            [routerLink]="['/patient-dashboard/rendez-vous/nouveau']"
-            [queryParams]="{ medecinId: m.id }"
-          >
-            Prendre rendez-vous
-          </a>
-        } @else {
-          <span class="btn btn-primary btn-disabled">Réservation indisponible</span>
-        }
+        <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Retour</a>
       </footer>
     </article>
   }

@@ -88,6 +88,17 @@
   color: #375986 !important;
 }
 
+.action-btn--on {
+  background: #4f6fa8 !important;
+  color: #ffffff !important;
+  border-color: #4f6fa8 !important;
+}
+
+.action-btn--on:hover {
+  background: #375986 !important;
+  color: #ffffff !important;
+}
+
 .action-btn--danger {
   border-color: #4f6fa8 !important;
   color: #4f6fa8 !important;
@@ -319,6 +330,177 @@
   padding: 0 12px;
   background: #ffffff;
   font-size: 13px;
+}
+
+.details-grid .field-full {
+  grid-column: 1 / -1;
+}
+
+.dossier-grid {
+  margin-bottom: 0;
+}
+
+.dossier-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dossier-block {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8eef6;
+}
+
+.dossier-block:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dossier-section-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #4f6fa8;
+}
+
+.dossier-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.dossier-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+@media (max-width: 960px) {
+  .dossier-grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .dossier-grid--4,
+  .dossier-grid--2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dossier-val {
+  display: inline-block;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.dossier-val--block {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.dossier-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dossier-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #dbe5f5;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.dossier-tag--on {
+  background: #eef4ff;
+  border-color: #c7d9f5;
+  color: #375986;
+}
+
+.dossier-tag--off {
+  opacity: 0.85;
+}
+
+.inline-panel--dossier .inline-panel-link {
+  margin-top: 10px;
+}
+
+.inline-panel {
+  margin-top: 4px;
+}
+
+.inline-panel-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d6fb3;
+  text-decoration: none;
+}
+
+.inline-panel-link:hover {
+  text-decoration: underline;
+}
+
+.inline-rdv-scroll {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.inline-rdv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.inline-rdv-table th,
+.inline-rdv-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5ebf3;
+}
+
+.inline-rdv-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.rdv-statut {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eef4ff;
+  color: #375986;
+}
+
+.rdv-statut[data-statut='CONFIRME'] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rdv-statut[data-statut='EN_ATTENTE'] {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.rdv-statut[data-statut='ANNULE'] {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.rdv-statut[data-statut='TERMINE'] {
+  background: #e2e8f0;
+  color: #475569;
 }
 
 .edit-actions {

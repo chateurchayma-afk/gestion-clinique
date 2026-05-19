@@ -1,0 +1,102 @@
+<div class="rdv-qr-public-page">
+  <header class="rdv-qr-header">
+    <div class="rdv-qr-logo">
+      <h1>🏥 Justificatif de Rendez-vous</h1>
+    </div>
+    <p class="rdv-qr-subtitle">Scanne le QR code du patient pour voir les détails</p>
+  </header>
+
+  <main class="rdv-qr-main">
+    @if (loading()) {
+      <section class="rdv-qr-state">
+        <span class="loader" aria-hidden="true"></span>
+        <p>Chargement des données...</p>
+      </section>
+    } @else if (error()) {
+      <section class="rdv-qr-state rdv-qr-error">
+        <div class="rdv-qr-error-icon">⚠️</div>
+        <h2>Erreur</h2>
+        <p>{{ error() }}</p>
+        <p class="rdv-qr-hint">Assurez-vous que le QR code a été correctement scanné.</p>
+        <a href="/" class="btn-primary">Retour à l'accueil</a>
+      </section>
+    } @else if (payload(); as data) {
+      <section class="rdv-qr-card">
+        <div class="rdv-qr-card-header">
+          <h2>Détails du Rendez-vous</h2>
+          <span
+            class="rdv-qr-statut"
+            [style.background-color]="getStatutColor(data.statut)"
+          >
+            {{ getStatutLabel(data.statut) }}
+          </span>
+        </div>
+
+        <div class="rdv-qr-content">
+          <div class="rdv-qr-section">
+            <h3>Informations Patient</h3>
+            <dl class="rdv-qr-grid">
+              <div>
+                <dt>Patient</dt>
+                <dd>{{ data.patient }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="rdv-qr-section">
+            <h3>Informations Médecin</h3>
+            <dl class="rdv-qr-grid">
+              <div>
+                <dt>Médecin</dt>
+                <dd>{{ data.medecin }}</dd>
+              </div>
+              <div>
+                <dt>Spécialité</dt>
+                <dd>{{ data.specialite ?? 'Consultation générale' }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="rdv-qr-section">
+            <h3>Détails du Rendez-vous</h3>
+            <dl class="rdv-qr-grid">
+              <div>
+                <dt>Date</dt>
+                <dd>{{ formattedDate() }}</dd>
+              </div>
+              <div>
+                <dt>Horaire</dt>
+                <dd>{{ formatHeure(data.heureDebut) }} – {{ formatHeure(data.heureFin) }}</dd>
+              </div>
+              <div>
+                <dt>Mode</dt>
+                <dd>{{ getModeLabel(data.mode) }}</dd>
+              </div>
+              <div>
+                <dt>Statut</dt>
+                <dd>{{ getStatutLabel(data.statut) }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          @if (data.motif) {
+            <div class="rdv-qr-section">
+              <h3>Motif de Consultation</h3>
+              <p class="rdv-qr-motif">{{ data.motif }}</p>
+            </div>
+          }
+
+          <div class="rdv-qr-footer">
+            <p class="rdv-qr-info">
+              ✓ Ce justificatif confirme la présence du patient à cet rendez-vous.
+            </p>
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+
+  <footer class="rdv-qr-footer-section">
+    <p>MediChat © 2024 - Système de Gestion Clinique</p>
+  </footer>
+</div>

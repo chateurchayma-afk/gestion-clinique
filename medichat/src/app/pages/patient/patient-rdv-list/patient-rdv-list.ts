@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import * as QRCode from 'qrcode';
 import { apiErrorMessage } from '../../../core/api-error-message';
+import { encodeRendezVousQrUrl } from '../../../core/rendez-vous-qr-codec';
 import { ToastService } from '../../../core/toast.service';
+import { environment } from '../../../../environments/environment';
 import { CreneauJour, MedecinService } from '../../../services/medecin.service';
 import { PatientProfilService } from '../../../services/patient-profil.service';
 import {
@@ -11,7 +13,6 @@ import {
   RendezVousPatientService,
   StatutRendezVous
 } from '../../../services/rendez-vous-patient.service';
-import { buildRecuData, buildRecuFilename, downloadRdvRecuFromData } from '../patient-rdv-recu-pdf';
 
 function parseIsoToLocalDate(iso: string): Date {
   const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
@@ -59,14 +60,14 @@ function compareHeurePatient(a: RendezVousPatient, b: RendezVousPatient): number
 @Component({
   selector: 'app-patient-rdv-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './patient-rdv-list.html',
   styleUrl: './patient-rdv-list.css'
 })
 export class PatientRdvList implements OnInit {
   private readonly rdvService = inject(RendezVousPatientService);
-  private readonly medecinService = inject(MedecinService);
   private readonly profilService = inject(PatientProfilService);
+  private readonly medecinService = inject(MedecinService);
   private readonly toast = inject(ToastService);
 
   readonly rdvs = signal<RendezVousPatient[]>([]);
@@ -74,17 +75,29 @@ export class PatientRdvList implements OnInit {
   readonly cancellingId = signal<number | null>(null);
   readonly reportingId = signal<number | null>(null);
   readonly selectedRdv = signal<RendezVousPatient | null>(null);
+  readonly qrRdv = signal<RendezVousPatient | null>(null);
+  readonly qrCodeDataUrl = signal<string>('');
+  readonly qrGenerating = signal(false);
+  readonly patientLabel = signal('Patient');
   readonly reportRdv = signal<RendezVousPatient | null>(null);
   readonly creneaux = signal<CreneauJour[]>([]);
   readonly loadingCreneaux = signal(false);
-  readonly recuPdfBusy = signal(false);
-  readonly patientLabel = signal('Patient');
   /** Liste (tableau) ou calendrier hebdomadaire. */
   readonly viewMode = signal<'liste' | 'calendrier'>('liste');
   readonly weekStart = signal<Date>(startOfWeekSunday(new Date()));
+
   reportDate = '';
   reportHeureDebut = '';
   reportHeureFin = '';
+
+  readonly slotsReport = computed((): (string | number[])[] => {
+    const d = this.reportDate;
+    if (!d) {
+      return [];
+    }
+    const jour = this.creneaux().find((c) => c.date === d);
+    return jour?.heuresDebut ?? [];
+  });
 
   readonly calendarWeekDays = computed(() => {
     const start = this.weekStart();
@@ -125,15 +138,6 @@ export class PatientRdvList implements OnInit {
       list.sort(compareHeurePatient);
     }
     return map;
-  });
-
-  readonly slotsJour = computed((): (string | number[])[] => {
-    const d = this.reportDate;
-    if (!d) {
-      return [];
-    }
-    const jour = this.creneaux().find((c) => c.date === d);
-    return jour?.heuresDebut ?? [];
   });
 
   ngOnInit(): void {
@@ -214,12 +218,55 @@ export class PatientRdvList implements OnInit {
   }
 
   openDetails(r: RendezVousPatient): void {
-    this.closeReport();
     this.selectedRdv.set(r);
   }
 
   closeDetails(): void {
     this.selectedRdv.set(null);
+  }
+
+  async openQrCode(r: RendezVousPatient): Promise<void> {
+    if (this.qrGenerating()) {
+      return;
+    }
+    this.closeDetails();
+    this.qrRdv.set(r);
+    await this.generateQrCode(r);
+  }
+
+  closeQrCode(): void {
+    this.qrRdv.set(null);
+    this.qrCodeDataUrl.set('');
+  }
+
+  private async generateQrCode(r: RendezVousPatient): Promise<void> {
+    this.qrGenerating.set(true);
+    try {
+      const qrData = encodeRendezVousQrUrl({
+        baseUrl: environment.ordonnancePublicBaseUrl,
+        id: r.id,
+        patient: this.patientLabel(),
+        medecin: `Dr. ${r.medecinPrenom} ${r.medecinNom}`,
+        specialite: r.specialiteNom,
+        date: r.dateRendezVous,
+        heureDebut: r.heureDebut,
+        heureFin: r.heureFin,
+        mode: r.modeConsultation,
+        motif: r.motif,
+        statut: r.statut
+      });
+
+      const dataUrl = await QRCode.toDataURL(qrData, {
+        width: 300,
+        margin: 2,
+        errorCorrectionLevel: 'H'
+      });
+      this.qrCodeDataUrl.set(dataUrl);
+    } catch (error) {
+      this.toast.show('Impossible de générer le QR code.', 'error');
+    } finally {
+      this.qrGenerating.set(false);
+    }
   }
 
   openReport(r: RendezVousPatient): void {
@@ -301,7 +348,7 @@ export class PatientRdvList implements OnInit {
   private loadCreneaux(medecinId: number): void {
     this.loadingCreneaux.set(true);
     this.medecinService.getCatalogueCreneaux(medecinId, undefined, 21).subscribe({
-      next: (rows) => {
+      next: (rows: CreneauJour[]) => {
         this.creneaux.set(rows);
         this.loadingCreneaux.set(false);
         if (!this.reportDate && rows.length > 0) {
@@ -360,28 +407,7 @@ export class PatientRdvList implements OnInit {
   }
 
   peutReporter(r: RendezVousPatient): boolean {
-    return this.peutAnnuler(r);
-  }
-
-  async downloadRecu(r: RendezVousPatient): Promise<void> {
-    if (this.recuPdfBusy()) {
-      return;
-    }
-    this.recuPdfBusy.set(true);
-    const generatedAt = new Intl.DateTimeFormat('fr-FR', {
-      dateStyle: 'long',
-      timeStyle: 'short'
-    }).format(new Date());
-    const data = buildRecuData(r, this.patientLabel(), generatedAt);
-
-    try {
-      await downloadRdvRecuFromData(data, buildRecuFilename(r));
-      this.toast.show('Reçu PDF enregistré.', 'success');
-    } catch {
-      this.toast.show('Impossible de générer le PDF.', 'error');
-    } finally {
-      this.recuPdfBusy.set(false);
-    }
+    return r.statut !== 'ANNULE' && r.statut !== 'TERMINE';
   }
 
   annuler(r: RendezVousPatient): void {
@@ -409,14 +435,6 @@ export class PatientRdvList implements OnInit {
     });
   }
 
-  private normalizeTime(t: string): string {
-    const s = t.trim();
-    if (s.length === 5) {
-      return `${s}:00`;
-    }
-    return s.length >= 8 ? s.slice(0, 8) : s;
-  }
-
   private normalizeHeureAffichage(raw: string | number[] | unknown): string {
     if (Array.isArray(raw) && raw.length >= 2) {
       const hh = Number(raw[0]);
@@ -427,5 +445,13 @@ export class PatientRdvList implements OnInit {
       return raw.length >= 5 ? raw.slice(0, 5) : raw;
     }
     return '';
+  }
+
+  private normalizeTime(t: string): string {
+    const s = t.trim();
+    if (s.length === 5) {
+      return `${s}:00`;
+    }
+    return s.length >= 8 ? s.slice(0, 8) : s;
   }
 }

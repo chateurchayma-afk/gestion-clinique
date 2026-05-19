@@ -31,3 +31,150 @@
   border-color: #fecaca;
   background: #fef2f2;
 }
+
+.consult-dossier-wrap {
+  margin-top: 4px;
+}
+
+.consult-dossier-hint,
+.consult-dossier-empty {
+  margin: 0;
+  font-size: 13px;
+}
+
+.consult-dossier-panel {
+  background: #f8fbff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px 12px;
+}
+
+.consult-dossier-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d6fb3;
+  text-decoration: none;
+}
+
+.consult-dossier-link:hover {
+  text-decoration: underline;
+}
+
+.consult-dossier-empty a {
+  color: #2d6fb3;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.consult-dossier-empty a:hover {
+  text-decoration: underline;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 18px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.details-grid .label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.dossier-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dossier-block {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8eef6;
+}
+
+.dossier-block:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dossier-section-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #4f6fa8;
+}
+
+.dossier-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.dossier-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.dossier-grid-span {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 960px) {
+  .dossier-grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .dossier-grid--4,
+  .dossier-grid--2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dossier-val {
+  display: inline-block;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.dossier-val--block {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.dossier-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dossier-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #dbe5f5;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.dossier-tag--on {
+  background: #eef4ff;
+  border-color: #c7d9f5;
+  color: #375986;
+}
+
+.dossier-tag--off {
+  opacity: 0.85;
+}

@@ -202,7 +202,7 @@ tbody tr:hover {
 th.th-actions,
 td.actions {
   width: 1%;
-  min-width: 118px;
+  min-width: 96px;
   vertical-align: middle;
   text-align: right;
 }
@@ -217,30 +217,48 @@ td.actions {
 
 .actions-col {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  min-width: 112px;
 }
 
-.actions-col .btn-details,
-.actions-col .btn-cancel-rdv {
-  width: 100%;
-  min-height: 38px;
-  padding: 8px 14px;
-  font-size: 13px;
+.rdv-action-btn {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #cfe0fb;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
-.actions-col .btn-cancel-rdv:not(:disabled) {
+.rdv-action-btn:hover:not(:disabled) {
+  background: #edf3ff;
+  border-color: #4f6fa8;
+}
+
+.rdv-action-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.rdv-action-btn--danger:hover:not(:disabled) {
+  background: #fef2f2;
   border-color: #fecaca;
-  color: #b91c1c !important;
 }
 
-.actions-col .btn-cancel-rdv:not(:disabled):hover {
-  background: #fef2f2 !important;
-  border-color: #f87171 !important;
-  color: #991b1b !important;
+.rdv-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .modal-backdrop {

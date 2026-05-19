@@ -1,8 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
+import {
+  DossierMedicalResponse,
+  DossierMedicalService
+} from '../../../services/dossier-medical.service';
 import { MedecinPortalService } from '../../../services/medecin-portal.service';
 import { Patient } from '../../../services/patient.service';
 import {
@@ -21,18 +25,22 @@ export interface LigneOrdonnance {
 @Component({
   selector: 'app-medecin-consultation',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './medecin-consultation.html',
   styleUrls: ['./medecin-consultation.css', '../medecin-pro.css']
 })
 export class MedecinConsultation implements OnInit {
   private readonly medecinPortal = inject(MedecinPortalService);
+  private readonly dossierMedical = inject(DossierMedicalService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly patients = signal<Patient[]>([]);
+  readonly dossierData = signal<DossierMedicalResponse | null>(null);
+  readonly dossierLoading = signal(false);
+
   patientId: number | null = null;
-  antecedents = '';
   symptomes = '';
   diagnostic = '';
   notes = '';
@@ -51,17 +59,15 @@ export class MedecinConsultation implements OnInit {
           try {
             const o = JSON.parse(raw) as {
               patientId?: number;
-              antecedents?: string;
               symptomes?: string;
               diagnostic?: string;
               notes?: string;
               lignes?: LigneOrdonnance[];
             };
             this.patientId = o.patientId ?? L[0]?.id ?? null;
-            this.antecedents = o.antecedents ?? '';
             this.symptomes = o.symptomes ?? '';
             this.diagnostic = o.diagnostic ?? '';
-            this.notes = o.notes ?? '';
+            this.notes = this.sanitizeNotesFromDraft(o.notes ?? '');
             if (o.lignes?.length) {
               this.lignes = o.lignes;
             }
@@ -74,9 +80,82 @@ export class MedecinConsultation implements OnInit {
         if (this.patientId != null && !L.some((p) => p.id === this.patientId)) {
           this.patientId = L[0]?.id ?? null;
         }
+
+        const qp = this.route.snapshot.queryParamMap.get('patientId');
+        if (qp) {
+          const id = Number(qp);
+          if (Number.isFinite(id) && L.some((p) => p.id === id)) {
+            this.patientId = id;
+            this.loadDossier(id, true);
+            return;
+          }
+        }
+
+        if (this.patientId != null) {
+          this.loadDossier(this.patientId, false);
+        }
       },
       error: () => this.toast.show('Chargement patients impossible.', 'error')
     });
+  }
+
+  onPatientChange(patientId: number | null): void {
+    this.patientId = patientId;
+    if (patientId == null) {
+      this.dossierData.set(null);
+      this.persist();
+      return;
+    }
+    this.loadDossier(patientId, true);
+  }
+
+  /** Ignore les anciennes notes générées automatiquement depuis le dossier. */
+  private sanitizeNotesFromDraft(notes: string): string {
+    const t = notes.trim();
+    if (/^Alimentation\s*:/i.test(t) || /^Traitement en cours\s*:/i.test(t)) {
+      return '';
+    }
+    return notes;
+  }
+
+  private loadDossier(patientId: number, resetTraitement: boolean): void {
+    this.dossierLoading.set(true);
+    this.dossierData.set(null);
+    this.dossierMedical.getByPatientId(patientId).subscribe({
+      next: (d) => {
+        this.dossierData.set(d);
+        this.dossierLoading.set(false);
+        if (resetTraitement) {
+          this.notes = '';
+          this.lignes = [
+            { medicament: '', posologie: '', dureeJours: '' },
+            { medicament: '', posologie: '', dureeJours: '' }
+          ];
+        }
+        this.persist();
+      },
+      error: () => {
+        this.dossierData.set(null);
+        this.dossierLoading.set(false);
+        this.persist();
+      }
+    });
+  }
+
+  displayDossierVal(value: string | null | undefined): string {
+    const t = (value ?? '').trim();
+    return t || '—';
+  }
+
+  antecedentsFamiliaux(d: DossierMedicalResponse): { label: string; actif: boolean }[] {
+    return [
+      { label: 'Diabète', actif: !!d.famDiabete },
+      { label: 'Hypertension', actif: !!d.famHypertension },
+      { label: 'Asthme', actif: !!d.famAsthme },
+      { label: 'Maladies cardiaques', actif: !!d.famCardiaque },
+      { label: 'Troubles de santé mentale', actif: !!d.famMentaux },
+      { label: 'Cancer', actif: !!d.famCancer }
+    ];
   }
 
   addLigne(): void {
@@ -100,7 +179,6 @@ export class MedecinConsultation implements OnInit {
         LS_CONSULTATION_BROUILLON,
         JSON.stringify({
           patientId: this.patientId,
-          antecedents: this.antecedents,
           symptomes: this.symptomes,
           diagnostic: this.diagnostic,
           notes: this.notes,

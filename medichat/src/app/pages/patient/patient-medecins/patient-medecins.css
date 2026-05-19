@@ -71,26 +71,23 @@
 
 /* --- Toolbar --- */
 .medecins-toolbar {
-  padding: 24px 28px 26px;
+  padding: 22px 26px 24px;
   margin-bottom: 20px;
 }
 
-.toolbar-innov {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
+.toolbar-filters-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  gap: 20px 24px;
+  align-items: end;
 }
 
-.toolbar-combo {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
+.medecins-field--search {
+  min-width: 0;
 }
 
-.toolbar-combo .medecins-field--grow {
-  width: 100%;
-  max-width: none;
+.medecins-field--spec {
+  min-width: 0;
 }
 
 .combo-input-wrap {
@@ -137,24 +134,14 @@
   box-shadow: none !important;
 }
 
-.toolbar-filters-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px 24px;
-  width: 100%;
-  align-items: end;
-  padding-top: 4px;
-  border-top: 1px solid var(--m-bg-subtle);
-}
-
-@media (max-width: 520px) {
-  .toolbar-filters-grid {
+@media (max-width: 720px) {
+  .toolbar-filters-row {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 16px;
   }
 
   .medecins-toolbar {
-    padding: 20px 18px 22px;
+    padding: 18px 18px 20px;
   }
 }
 
@@ -400,12 +387,6 @@
   padding-inline: 16px;
 }
 
-.catalog-note-inline {
-  font-weight: 800;
-  color: var(--m-ink);
-  font-variant-numeric: tabular-nums;
-}
-
 .catalog-tr {
   transition:
     background 0.15s ease,
@@ -475,12 +456,6 @@
   font-weight: 600;
   color: var(--m-brand);
   line-height: 1.35;
-}
-
-.catalog-note-star {
-  color: #fbbf24;
-  margin-left: 2px;
-  font-size: 12px;
 }
 
 .catalog-status {

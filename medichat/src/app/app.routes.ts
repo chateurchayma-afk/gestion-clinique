@@ -21,6 +21,7 @@ import { DashboardShell } from './layout/dashboard-shell';
 import { ADMIN_SHELL, MEDECIN_SHELL, PATIENT_SHELL } from './layout/dashboard-shell.config';
 import { NotFound } from './pages/not-found/not-found';
 import { OrdonnanceQrPublic } from './pages/ordonnance-qr-public/ordonnance-qr-public';
+import { RendezVousQrPublic } from './pages/rendez-vous-qr-public/rendez-vous-qr-public';
 import { MedecinAccueil } from './pages/medecin/medecin-accueil/medecin-accueil';
 import { MedecinConsultation } from './pages/medecin/medecin-consultation/medecin-consultation';
 import { MedecinDossierMedical } from './pages/medecin/medecin-dossier-medical/medecin-dossier-medical';
@@ -45,6 +46,7 @@ import { patientGuard } from './core/patient.guard';
 export const routes: Routes = [
   { path: '', component: Home },
   { path: 'ordonnance', component: OrdonnanceQrPublic },
+  { path: 'rendez-vous', component: RendezVousQrPublic },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'register/medecin', component: RegisterMedecin },

@@ -34,6 +34,26 @@
   --leading-body: 1.55;
   --leading-tight: 1.2;
   --letter-tight: -0.02em;
+
+  /* Surfaces & élévation */
+  --app-bg: #f0f4fa;
+  --app-surface: #ffffff;
+  --app-border: #e5ebf3;
+  --app-border-strong: #d4deec;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --shadow-xs: 0 1px 2px rgba(47, 74, 114, 0.06);
+  --shadow-sm: 0 4px 14px rgba(47, 74, 114, 0.08);
+  --shadow-md: 0 12px 32px rgba(47, 74, 114, 0.1);
+  --shadow-lg: 0 20px 48px rgba(47, 74, 114, 0.12);
+  --gradient-brand: linear-gradient(135deg, #4f6fa8 0%, #6f8fcb 55%, #8aa6d8 100%);
+  --gradient-page: radial-gradient(ellipse 120% 80% at 0% -10%, rgba(79, 111, 168, 0.14), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(111, 143, 203, 0.1), transparent 50%),
+    var(--app-bg);
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.22s ease;
 }
 
 html {
@@ -302,4 +322,54 @@ button:disabled,
 .mec-btn:disabled {
   opacity: 0.62 !important;
   cursor: not-allowed !important;
+}
+
+/* Cartes & champs partagés (pages dashboard) */
+.app-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-input,
+.mec-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--app-border-strong);
+  background: #fff;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-heading);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.app-input:focus,
+.mec-input:focus {
+  outline: none;
+  border-color: var(--app-button-blue);
+  box-shadow: 0 0 0 3px rgba(79, 111, 168, 0.18);
+}
+
+/* Pages publiques (connexion / inscription) : texte des champs lisible même si thème sombre en mémoire */
+html[data-theme='dark'] .register-page,
+html[data-theme='dark'] .register-card,
+html[data-theme='dark'] .page,
+html[data-theme='dark'] .page .card {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] .register-page input,
+html[data-theme='dark'] .register-page select,
+html[data-theme='dark'] .page .input-field {
+  color: #16324f !important;
+  -webkit-text-fill-color: #16324f;
+}
+
+/* Barres de défilement claires (évite le noir forcé par l’ancien mode sombre) */
+html[data-theme='dark'] .sidebar,
+html[data-theme='dark'] .sidebar-nav {
+  color-scheme: light;
+  scrollbar-color: #c5d0e0 #ffffff;
 }

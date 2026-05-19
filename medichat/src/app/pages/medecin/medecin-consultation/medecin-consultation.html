@@ -17,7 +17,7 @@
             id="p"
             name="p"
             [(ngModel)]="patientId"
-            (ngModelChange)="persist()"
+            (ngModelChange)="onPatientChange($event)"
           >
             <option [ngValue]="null" disabled>— Sélectionner —</option>
             <option *ngFor="let p of patients()" [ngValue]="p.id">
@@ -25,19 +25,69 @@
             </option>
           </select>
         </div>
-        <div class="mec-field">
-          <label class="mec-label" for="a">Antécédents médicaux (pour rappel)</label>
-          <input
-            class="mec-input"
-            type="text"
-            id="a"
-            name="a"
-            [(ngModel)]="antecedents"
-            (ngModelChange)="persist()"
-            placeholder="Rappel court"
-            autocomplete="off"
-          />
+
+        <div class="mec-field consult-dossier-wrap">
+          <label class="mec-label">Antécédents médicaux (pour rappel)</label>
+          <p class="muted consult-dossier-hint" *ngIf="patientId == null">
+            Sélectionnez un patient pour afficher ses antécédents médicaux.
+          </p>
+          <p *ngIf="patientId != null && dossierLoading()" class="muted">Chargement du dossier…</p>
+
+          <div
+            *ngIf="patientId != null && !dossierLoading() && dossierData() as d"
+            class="consult-dossier-panel">
+            <div class="details-grid dossier-grid dossier-grid--4">
+              <div>
+                <span class="label">Allergies</span>
+                <span class="dossier-val">{{ displayDossierVal(d.allergies) }}</span>
+              </div>
+              <div>
+                <span class="label">Médicaments actuels</span>
+                <span class="dossier-val">{{ displayDossierVal(d.medicaments) }}</span>
+              </div>
+              <div>
+                <span class="label">Maladies chroniques</span>
+                <span class="dossier-val">{{ displayDossierVal(d.maladiesChroniques) }}</span>
+              </div>
+              <div>
+                <span class="label">Interventions chirurgicales</span>
+                <span class="dossier-val dossier-val--block">{{ displayDossierVal(d.interventions) }}</span>
+              </div>
+              <div>
+                <span class="label">Hospitalisations</span>
+                <span class="dossier-val dossier-val--block">{{ displayDossierVal(d.hospitalisations) }}</span>
+              </div>
+              <div class="dossier-grid-span">
+                <span class="label">Antécédents familiaux</span>
+                <div class="dossier-tags">
+                  <span
+                    *ngFor="let item of antecedentsFamiliaux(d)"
+                    class="dossier-tag"
+                    [class.dossier-tag--on]="item.actif"
+                    [class.dossier-tag--off]="!item.actif">
+                    {{ item.label }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <a
+              class="consult-dossier-link"
+              [routerLink]="['/medecin-dashboard/dossier-medical']"
+              [queryParams]="{ patientId: patientId }">
+              Modifier le dossier médical →
+            </a>
+          </div>
+
+          <p *ngIf="patientId != null && !dossierLoading() && !dossierData()" class="muted consult-dossier-empty">
+            Aucun dossier médical enregistré.
+            <a
+              [routerLink]="['/medecin-dashboard/dossier-medical']"
+              [queryParams]="{ patientId: patientId }">
+              Compléter le dossier
+            </a>
+          </p>
         </div>
+
         <div class="mec-field">
           <label class="mec-label" for="s">Les symptômes</label>
           <input

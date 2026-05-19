@@ -6,7 +6,12 @@
       <p class="mec-sub muted">Enregistrer les informations de santé du patient (brouillon local).</p>
       <div class="mec-pill-tab">Informations médicales</div>
     </div>
-    <a routerLink="/medecin-dashboard/consultation" class="mec-btn mec-btn--dark">Nouvelle consultation</a>
+    <a
+      class="mec-btn mec-btn--dark"
+      [routerLink]="['/medecin-dashboard/consultation']"
+      [queryParams]="patientId != null ? { patientId: patientId } : null">
+      Nouvelle consultation
+    </a>
   </div>
 
   <div class="mec-field mec-patient-pick" style="max-width: 480px; margin-bottom: 16px">

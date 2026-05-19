@@ -47,35 +47,41 @@
               <button
                 type="button"
                 class="action-btn"
+                [class.action-btn--on]="isPanelActive(p, 'coords')"
                 (click)="toggleDetails(p)"
                 [disabled]="!canView(p)"
-                [attr.title]="expandedId === p.id ? 'Masquer le patient' : 'Voir la fiche'">
+                [attr.data-tip]="tipVoir(p)"
+                [attr.aria-label]="tipVoir(p)">
                 👁️
               </button>
-              <a
-                class="action-btn action-link"
-                [routerLink]="['/medecin-dashboard/dossier-medical']"
-                [queryParams]="{ patientId: p.id }"
-                [class.disabled]="!canAccessDossier(p)"
-                [attr.aria-disabled]="!canAccessDossier(p)"
-                [attr.title]="canAccessDossier(p) ? 'Accéder au dossier médical' : 'Action indisponible'">
-                🩺
-              </a>
-              <a
-                class="action-btn action-link"
-                [routerLink]="['/medecin-dashboard/rendez-vous']"
-                [queryParams]="{ patientId: p.id }"
-                [class.disabled]="!canAccessDossier(p)"
-                [attr.aria-disabled]="!canAccessDossier(p)"
-                title="Voir les rendez-vous">
-                📅
-              </a>
               <button
                 type="button"
                 class="action-btn"
-                (click)="startEdit(p)"
+                [class.action-btn--on]="isPanelActive(p, 'dossier')"
+                (click)="openDossier(p)"
+                [disabled]="!canAccessDossier(p)"
+                [attr.data-tip]="tipDossier(p)"
+                [attr.aria-label]="tipDossier(p)">
+                🩺
+              </button>
+              <button
+                type="button"
+                class="action-btn"
+                [class.action-btn--on]="isPanelActive(p, 'rdv')"
+                (click)="openRendezVous(p)"
+                [disabled]="!canAccessDossier(p)"
+                [attr.data-tip]="tipRdv(p)"
+                [attr.aria-label]="tipRdv(p)">
+                📅
+              </button>
+              <button
+                type="button"
+                class="action-btn"
+                [class.action-btn--on]="isPanelActive(p, 'edit')"
+                (click)="toggleEdit(p)"
                 [disabled]="isActionDisabled(p)"
-                [attr.title]="isActionDisabled(p) ? 'Patient désactivé' : 'Modifier le patient'">
+                [attr.data-tip]="tipEdit(p)"
+                [attr.aria-label]="tipEdit(p)">
                 ✏️
               </button>
               <button
@@ -102,10 +108,10 @@
               <div class="details-card">
                 <div class="details-header">
                   <div>
-                    <strong>Coordonnées patient</strong>
-                    <p class="muted">Informations personnelles et dossier.</p>
+                    <strong>{{ panelTitle(p) }}</strong>
+                    <p class="muted">{{ panelSubtitle(p) }}</p>
                   </div>
-                  <div class="details-badges" *ngIf="p.methodeContactPreferee">
+                  <div class="details-badges" *ngIf="panelMode === 'coords' && p.methodeContactPreferee">
                     <span class="badge">Préférence: {{ p.methodeContactPreferee }}</span>
                   </div>
                 </div>
@@ -125,7 +131,7 @@
                   </div>
                 </div>
 
-                <div *ngIf="editingId !== p.id; else editTpl" class="details-grid">
+                <div *ngIf="panelMode === 'coords'" class="details-grid">
                   <div>
                     <span class="label">Adresse</span>
                     <span>{{ p.utilisateur.adresse || '—' }}</span>
@@ -168,7 +174,153 @@
                   </div>
                 </div>
 
-                <ng-template #editTpl>
+                <div *ngIf="panelMode === 'dossier'" class="inline-panel inline-panel--dossier">
+                  <p *ngIf="dossierLoading()" class="muted">Chargement du dossier…</p>
+                  <ng-container *ngIf="!dossierLoading() && dossierData() as d">
+                    <div class="dossier-sections">
+                      <section class="dossier-block">
+                        <h3 class="dossier-section-title">Informations médicales</h3>
+                        <div class="details-grid dossier-grid dossier-grid--4">
+                          <div>
+                            <span class="label">Groupe sanguin</span>
+                            <span>{{ displayDossierVal(d.groupeSanguin) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Taille</span>
+                            <span>{{ formatDossierTaille(d.tailleCm) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Poids</span>
+                            <span>{{ formatDossierPoids(d.poidsKg) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Allergies</span>
+                            <span class="dossier-val">{{ displayDossierVal(d.allergies) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Médicaments actuels</span>
+                            <span class="dossier-val">{{ displayDossierVal(d.medicaments) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Maladies chroniques</span>
+                            <span class="dossier-val">{{ displayDossierVal(d.maladiesChroniques) }}</span>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="dossier-block">
+                        <h3 class="dossier-section-title">Rappel traitement</h3>
+                        <div class="details-grid dossier-grid dossier-grid--4">
+                          <div>
+                            <span class="label">Traitement</span>
+                            <span class="dossier-val">{{ displayDossierVal(d.rappelTraitementNom) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Fréquence du rappel</span>
+                            <span>{{ labelRappelFrequence(d.rappelTraitementFrequence) }}</span>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="dossier-block">
+                        <h3 class="dossier-section-title">Antécédents médicaux</h3>
+                        <div class="details-grid dossier-grid dossier-grid--2">
+                          <div>
+                            <span class="label">Interventions chirurgicales</span>
+                            <span class="dossier-val dossier-val--block">{{ displayDossierVal(d.interventions) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Hospitalisations</span>
+                            <span class="dossier-val dossier-val--block">{{ displayDossierVal(d.hospitalisations) }}</span>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="dossier-block">
+                        <h3 class="dossier-section-title">Antécédents familiaux</h3>
+                        <div class="dossier-tags">
+                          <span
+                            *ngFor="let item of antecedentsFamiliaux(d)"
+                            class="dossier-tag"
+                            [class.dossier-tag--on]="item.actif"
+                            [class.dossier-tag--off]="!item.actif">
+                            {{ item.label }}
+                          </span>
+                        </div>
+                      </section>
+
+                      <section class="dossier-block">
+                        <h3 class="dossier-section-title">Mode de vie</h3>
+                        <div class="details-grid dossier-grid dossier-grid--4">
+                          <div>
+                            <span class="label">Tabac</span>
+                            <span>{{ labelTabac(d.tabac) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Alcool</span>
+                            <span>{{ labelAlcool(d.alcool) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Activité physique</span>
+                            <span>{{ labelActivite(d.activite) }}</span>
+                          </div>
+                          <div>
+                            <span class="label">Alimentation</span>
+                            <span class="dossier-val">{{ displayDossierVal(d.alimentation) }}</span>
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                    <a
+                      class="inline-panel-link"
+                      [routerLink]="['/medecin-dashboard/dossier-medical']"
+                      [queryParams]="{ patientId: p.id }">
+                      Modifier le dossier complet →
+                    </a>
+                  </ng-container>
+                  <p *ngIf="!dossierLoading() && !dossierData()" class="muted">
+                    Aucun dossier médical enregistré pour ce patient.
+                  </p>
+                </div>
+
+                <div *ngIf="panelMode === 'rdv'" class="inline-panel">
+                  <p *ngIf="rdvLoading()" class="muted">Chargement des rendez-vous…</p>
+                  <div *ngIf="!rdvLoading() && rdvRows().length > 0" class="inline-rdv-scroll">
+                    <table class="inline-rdv-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Heure</th>
+                          <th>Statut</th>
+                          <th>Motif</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let r of rdvRows()">
+                          <td>{{ formatRdvDate(r.dateRendezVous) }}</td>
+                          <td>{{ formatRdvHeure(r.heureDebut) }} – {{ formatRdvHeure(r.heureFin) }}</td>
+                          <td>
+                            <span class="rdv-statut" [attr.data-statut]="r.statut">
+                              {{ labelRdvStatut(r.statut) }}
+                            </span>
+                          </td>
+                          <td>{{ r.motif || '—' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p *ngIf="!rdvLoading() && rdvRows().length === 0" class="muted">
+                    Aucun rendez-vous pour ce patient.
+                  </p>
+                  <a
+                    class="inline-panel-link"
+                    [routerLink]="['/medecin-dashboard/rendez-vous']"
+                    [queryParams]="{ patientId: p.id }">
+                    Ouvrir le planning complet →
+                  </a>
+                </div>
+
+                <div *ngIf="panelMode === 'edit'">
                   <div class="edit-grid" *ngIf="editModel">
                     <div class="field">
                       <label>Prénom</label>
@@ -305,7 +457,7 @@
                       {{ savingId === p.id ? 'Enregistrement…' : 'Enregistrer' }}
                     </button>
                   </div>
-                </ng-template>
+                </div>
               </div>
             </td>
           </tr>
