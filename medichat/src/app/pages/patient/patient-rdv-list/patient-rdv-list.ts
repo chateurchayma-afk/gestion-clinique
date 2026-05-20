@@ -251,8 +251,8 @@ export class PatientRdvList implements OnInit {
         date: r.dateRendezVous,
         heureDebut: r.heureDebut,
         heureFin: r.heureFin,
-        mode: r.modeConsultation,
-        motif: r.motif,
+        mode: 'PRESENTIEL',
+        motif: null,
         statut: r.statut
       });
 

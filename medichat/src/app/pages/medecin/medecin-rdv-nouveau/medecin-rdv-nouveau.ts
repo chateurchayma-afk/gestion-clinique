@@ -10,7 +10,6 @@ import {
 } from '../../../services/admin-rendez-vous.service';
 import { MedecinPortalService } from '../../../services/medecin-portal.service';
 import { Patient } from '../../../services/patient.service';
-import type { ModeConsultation } from '../../../services/rendez-vous-patient.service';
 
 function todayIso(): string {
   const d = new Date();
@@ -51,8 +50,6 @@ export class MedecinRdvNouveau implements OnInit {
   dateRdv = todayIso();
   heureDebut = '09:00';
   heureFin = '';
-  mode: ModeConsultation = 'PRESENTIEL';
-  motif = '';
 
   ngOnInit(): void {
     this.medecinPortal.getMesPatients().subscribe({
@@ -83,8 +80,8 @@ export class MedecinRdvNouveau implements OnInit {
       medecinId: medId,
       dateRendezVous: this.dateRdv,
       heureDebut: normalizeTime(this.heureDebut),
-      modeConsultation: this.mode,
-      motif: this.motif.trim() || null
+      modeConsultation: 'PRESENTIEL',
+      motif: null
     };
     const fin = this.heureFin.trim();
     if (fin.length > 0) {

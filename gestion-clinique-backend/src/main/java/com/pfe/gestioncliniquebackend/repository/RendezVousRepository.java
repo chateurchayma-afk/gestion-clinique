@@ -100,4 +100,7 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
                     + "JOIN FETCH m.utilisateur WHERE r.statut = :statut ORDER BY r.dateRendezVous DESC, r.heureDebut DESC"
     )
     List<RendezVous> findAllGestionByStatutOrdered(@Param("statut") StatutRendezVous statut);
+
+    /** Trouver les rendez-vous par prix de consultation */
+    List<RendezVous> findByPrixConsultation(Double prixConsultation);
 }

@@ -39,13 +39,6 @@ function formatHeure(value) {
   return value.length >= 5 ? value.slice(0, 5) : value;
 }
 
-function labelMode(value) {
-  var v = String(value || '').trim().toUpperCase();
-  if (v === 'ONLINE') return 'En ligne';
-  if (v === 'PRESENTIEL') return 'Présentiel';
-  return value || '—';
-}
-
 function labelStatut(value) {
   switch (value) {
     case 'EN_ATTENTE':
@@ -292,18 +285,14 @@ async function initRendezVous() {
   var date = payload.date || params.get('date');
   var heureDebut = payload.heureDebut || params.get('heureDebut');
   var heureFin = payload.heureFin || params.get('heureFin');
-  var mode = payload.mode || params.get('mode');
   var statut = payload.statut || params.get('statut');
-  var motif = payload.motif || params.get('motif');
 
   setText('rdv-patient', patient);
   setText('rdv-medecin', medecin);
   setText('rdv-specialite', specialite);
   setText('rdv-date', formatDate(date));
   setText('rdv-heure', [formatHeure(heureDebut), formatHeure(heureFin)].filter(Boolean).join(' - '));
-  setText('rdv-mode', labelMode(mode));
   setText('rdv-statut', labelStatut(statut));
-  setBloc('rdv-motif', motif || 'Aucun motif renseigné');
   show('rdv-error', !patient && !medecin && !date && !heureDebut);
 }
 

@@ -42,6 +42,8 @@ export interface Medecin {
   noteMoyenne?: number | null;
   specialite: Specialite | null;
   serviceMedical: ServiceMedical | null;
+  /** Prix de consultation du médecin */
+  prixConsultation?: number | null;
 }
 
 export interface CatalogueMedecinsQuery {

@@ -90,11 +90,6 @@
           <input class="mec-input" type="date" [ngModel]="filterTo()" (ngModelChange)="filterTo.set($event)" />
         </div>
       </div>
-      <div class="rdv-actions">
-        <button type="button" class="mec-btn mec-btn--ghost" (click)="refreshAll()">
-          Actualiser
-        </button>
-      </div>
     </div>
 
     <div class="rdv-filter-hint" *ngIf="listeFiltreExcludeTout() && viewMode() === 'liste'">
@@ -246,10 +241,6 @@
               <span class="label">Heure</span>
               <span>{{ formatTime(r.heureDebut) }} – {{ formatTime(r.heureFin) }}</span>
             </div>
-            <div>
-              <span class="label">Motif</span>
-              <span>{{ r.motif || '—' }}</span>
-            </div>
           </div>
         </div>
       </div>
@@ -262,9 +253,7 @@
             <col class="rdv-col rdv-col--patient" />
             <col class="rdv-col rdv-col--date" />
             <col class="rdv-col rdv-col--heure" />
-            <col class="rdv-col rdv-col--mode" />
             <col class="rdv-col rdv-col--statut" />
-            <col class="rdv-col rdv-col--motif" />
             <col class="rdv-col rdv-col--actions" />
           </colgroup>
           <thead>
@@ -272,9 +261,7 @@
               <th scope="col">Patient</th>
               <th scope="col">Date</th>
               <th scope="col">Heure</th>
-              <th scope="col">Mode</th>
               <th scope="col">Statut</th>
-              <th scope="col">Motif</th>
               <th scope="col" class="rdv-th-actions">Actions</th>
             </tr>
           </thead>
@@ -288,19 +275,17 @@
                 <td class="rdv-td rdv-td--heure">
                   {{ formatTime(r.heureDebut) }} <span class="muted">→</span> {{ formatTime(r.heureFin) }}
                 </td>
-                <td class="rdv-td rdv-td--mode">{{ r.modeConsultation }}</td>
                 <td class="rdv-td rdv-td--statut">
                   <span class="status" [class.active]="r.statut === 'CONFIRME'" [class.inactive]="r.statut === 'ANNULE'">
                     {{ statutLabel(r.statut) }}
                   </span>
                 </td>
-                <td class="rdv-td rdv-td--motif">{{ r.motif || '—' }}</td>
                 <td class="rdv-td rdv-td--actions">
                   <button type="button" class="action-btn" (click)="toggleDetails(r.id)">Voir</button>
                 </td>
               </tr>
               <tr class="details-row" [hidden]="selectedId() !== r.id">
-                <td colspan="7">
+                <td colspan="5">
                   <div class="details-card">
                     <div class="details-grid">
                       <div>
@@ -310,10 +295,6 @@
                       <div>
                         <span class="label">Patient ID</span>
                         <span>{{ r.patientId }}</span>
-                      </div>
-                      <div>
-                        <span class="label">Mode</span>
-                        <span>{{ r.modeConsultation }}</span>
                       </div>
                       <div>
                         <span class="label">Statut</span>
@@ -329,7 +310,7 @@
         <ng-template #emptyTpl>
           <p class="muted" *ngIf="rdvRows().length === 0">
             Aucun rendez-vous renvoyé pour votre compte. Vérifiez que le backend contient des RDV pour ce
-            médecin, puis cliquez sur « Actualiser ».
+            médecin.
           </p>
           <p class="muted" *ngIf="rdvRows().length > 0">
             Aucune ligne à afficher avec les filtres actuels — utilisez le bandeau jaune ci-dessus ou élargissez

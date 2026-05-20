@@ -34,8 +34,6 @@
                 <th>Heure</th>
                 <th>Patient</th>
                 <th>Médecin</th>
-                <th>Mode</th>
-                <th>Motif</th>
                 <th>Statut</th>
               </tr>
             </thead>
@@ -47,8 +45,6 @@
                   <td>{{ heureRange(r) }}</td>
                   <td><strong>{{ r.patientPrenom }} {{ r.patientNom }}</strong></td>
                   <td>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</td>
-                  <td>{{ labelMode(r.modeConsultation) }}</td>
-                  <td class="cell-motif">{{ motifCourt(r.motif) }}</td>
                   <td class="actions">
                     <span [class]="pillClass(r.statut)">{{ labelStatut(r.statut) }}</span>
                     @if (statutSelectDisabled(r)) {

@@ -196,15 +196,7 @@
           <dt>Médecin</dt>
           <dd>Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd>
         </div>
-        <div>
-          <dt>Mode</dt>
-          <dd>{{ labelMode(rdv.modeConsultation) }}</dd>
-        </div>
       </dl>
-      <div class="rdv-detail-motif">
-        <span class="rdv-detail-motif-label">Motif</span>
-        <p>{{ motifOuDefaut(rdv.motif) }}</p>
-      </div>
     </div>
     <div class="modal-actions modal-actions--detail">
       <button type="button" class="btn-primary" (click)="closeRdvDetails()">Fermer</button>
@@ -245,17 +237,6 @@
       <label>
         Heure fin (optionnel)
         <input type="time" [(ngModel)]="formHeureFin" name="hFin" />
-      </label>
-      <label>
-        Mode
-        <select [(ngModel)]="formMode" name="mode">
-          <option value="PRESENTIEL">Présentiel</option>
-          <option value="ONLINE">En ligne</option>
-        </select>
-      </label>
-      <label>
-        Motif (optionnel)
-        <input type="text" [(ngModel)]="formMotif" name="motif" />
       </label>
     </div>
     <div class="modal-actions">

@@ -53,4 +53,7 @@ public class RendezVous {
     @Column(name = "annule_par_patient", nullable = false)
     @Builder.Default
     private boolean annuleParPatient = false;
+
+    /** Prix de consultation pour ce rendez-vous */
+    private Double prixConsultation;
 }

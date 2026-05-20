@@ -67,6 +67,13 @@ export class RendezVousQrPublic implements OnInit {
   readonly loading = signal(true);
   readonly formattedDate = signal<string>('');
 
+  /** Map des couleurs pour les statuts */
+  private colorMap: { [key: string]: string } = {
+    'validé': 'green',
+    'en attente': 'orange',
+    'annulé': 'red'
+  };
+
   ngOnInit(): void {
     this.route.queryParamMap
       .pipe(map((pm) => (pm.get('data') ?? '').trim()))
@@ -141,48 +148,19 @@ export class RendezVousQrPublic implements OnInit {
     this.loading.set(false);
   }
 
-  getStatutColor(statut: string | null | undefined): string {
-    switch (statut) {
-      case 'CONFIRME':
-        return '#13aa55';
-      case 'EN_ATTENTE':
-        return '#f5a623';
-      case 'ANNULE':
-        return '#d0021b';
-      case 'TERMINE':
-        return '#4f6fa8';
-      default:
-        return '#65748a';
-    }
+  getStatutColor(statut: string | undefined): string {
+    return statut ? this.colorMap[statut] : 'default-color';
   }
 
-  getStatutLabel(statut: string | null | undefined): string {
-    switch (statut) {
-      case 'EN_ATTENTE':
-        return 'En attente';
-      case 'CONFIRME':
-        return 'Confirme';
-      case 'ANNULE':
-        return 'Annule';
-      case 'TERMINE':
-        return 'Termine';
-      default:
-        return statut || '-';
-    }
+  getStatutLabel(statut: string | undefined): string {
+    return statut || 'Non spécifié';
   }
 
-  getModeLabel(mode: string | null | undefined): string {
-    const upper = (mode ?? '').trim().toUpperCase();
-    if (upper === 'ONLINE') {
-      return 'En ligne';
-    }
-    if (upper === 'PRESENTIEL') {
-      return 'Presentiel';
-    }
-    return mode || '-';
+  formatHeure(heure: string | undefined): string {
+    return heure || 'Non spécifiée';
   }
 
-  formatHeure(time: string | null | undefined): string {
-    return formatHeure(time ?? '');
+  getModeLabel(mode: string | undefined): string {
+    return mode || 'Non spécifié';
   }
 }

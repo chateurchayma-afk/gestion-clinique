@@ -72,9 +72,9 @@
             <thead>
               <tr>
                 <th scope="col">Médecin</th>
-                <th scope="col">Service</th>
                 <th scope="col">Expérience</th>
                 <th scope="col">Disponibilité</th>
+                <th scope="col">Prix (Dinars)</th>
                 <th scope="col" class="catalog-th-action">Action</th>
               </tr>
             </thead>
@@ -98,17 +98,13 @@
                       </div>
                     </div>
                   </td>
-                  <td class="catalog-td-text">{{ m.serviceMedical?.nom ?? '—' }}</td>
-                  <td class="catalog-td-text catalog-td-nowrap">{{ m.experienceAnnees != null ? m.experienceAnnees + ' ans' : '—' }}</td>
-                  <td class="catalog-td-dispo">
-                    <span
-                      class="catalog-status"
-                      [class.catalog-status--ok]="estDisponible(m)"
-                      [class.catalog-status--off]="!estDisponible(m)"
-                    >
-                      {{ libelleDisponibilite(m) }}
+                  <td>{{ m.experienceAnnees != null ? m.experienceAnnees + ' ans' : '—' }}</td>
+                  <td>
+                    <span class="status" [class.disponible]="m.disponible">
+                      {{ m.disponible ? 'Disponible' : 'Indisponible' }}
                     </span>
                   </td>
+                  <td>{{ m.prixConsultation || '-' }} DZD</td>
                   <td class="catalog-td-action">
                     <div
                       class="catalog-action-btns"

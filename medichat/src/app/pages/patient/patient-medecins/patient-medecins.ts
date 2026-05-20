@@ -70,7 +70,27 @@ export class PatientMedecins implements OnInit {
   }
 
   reloadMedecins(): void {
-    this.applyFilters();
+    this.loading.set(true);
+    this.medecinService.getAllMedecins().subscribe({
+      next: (list: Medecin[]) => {
+        this.allMedecins.set(list);
+        this.medecins.set(list);
+        this.allMedecinsCount.set(list.length);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.toast.show('Impossible de charger la liste des médecins.', 'error');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  voirMedecin(medecin: Medecin): void {
+    this.router.navigate(['/patient-dashboard/medecins', medecin.id]);
+  }
+
+  reserverMedecin(medecin: Medecin): void {
+    this.router.navigate(['/patient-dashboard/rendez-vous', medecin.id]);
   }
 
   private applyFilters(): void {

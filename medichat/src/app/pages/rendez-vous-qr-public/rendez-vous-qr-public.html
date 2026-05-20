@@ -69,22 +69,11 @@
                 <dd>{{ formatHeure(data.heureDebut) }} – {{ formatHeure(data.heureFin) }}</dd>
               </div>
               <div>
-                <dt>Mode</dt>
-                <dd>{{ getModeLabel(data.mode) }}</dd>
-              </div>
-              <div>
                 <dt>Statut</dt>
                 <dd>{{ getStatutLabel(data.statut) }}</dd>
               </div>
             </dl>
           </div>
-
-          @if (data.motif) {
-            <div class="rdv-qr-section">
-              <h3>Motif de Consultation</h3>
-              <p class="rdv-qr-motif">{{ data.motif }}</p>
-            </div>
-          }
 
           <div class="rdv-qr-footer">
             <p class="rdv-qr-info">

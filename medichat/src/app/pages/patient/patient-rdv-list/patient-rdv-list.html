@@ -49,7 +49,6 @@
           <p class="rdv-kicker">Historique</p>
           <h2>{{ viewMode() === 'liste' ? 'Liste des rendez-vous' : 'Calendrier de la semaine' }}</h2>
         </div>
-        <button type="button" class="btn-secondary rdv-refresh" (click)="reload()">Actualiser</button>
       </div>
 
       @if (viewMode() === 'liste') {
@@ -61,7 +60,6 @@
                 <th>Horaire</th>
                 <th>Médecin</th>
                 <th>Spécialité</th>
-                <th>Mode</th>
                 <th>Disponibilité</th>
                 <th class="th-actions">Actions</th>
               </tr>
@@ -75,7 +73,6 @@
                     <strong>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</strong>
                   </td>
                   <td>{{ r.specialiteNom ?? 'Consultation' }}</td>
-                  <td>{{ labelMode(r.modeConsultation) }}</td>
                   <td class="td-disponibilite">
                     <span
                       class="pill"
@@ -222,18 +219,10 @@
           <dd>{{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}</dd>
         </div>
         <div>
-          <dt>Mode</dt>
-          <dd>{{ labelMode(rdv.modeConsultation) }}</dd>
-        </div>
-        <div>
           <dt>Statut</dt>
           <dd>{{ labelStatut(rdv.statut) }}</dd>
         </div>
       </dl>
-      <div class="rdv-detail-motif">
-        <span class="rdv-detail-motif-label">Motif</span>
-        <p>{{ motifOuDefaut(rdv.motif) }}</p>
-      </div>
     </div>
     <div class="modal-actions modal-actions--split">
       <button

@@ -130,7 +130,6 @@
             </div>
             <p class="next-when">{{ formatLongDate(nx.dateRendezVous) }}</p>
             <p class="next-slot">{{ formatHeureRange(nx) }}</p>
-            <p class="next-mode muted">{{ labelMode(nx.modeConsultation) }}</p>
             <div class="next-actions">
               <a class="btn-next-outline" [routerLink]="['/patient-dashboard', 'rendez-vous']">Gérer mes RDV</a>
             </div>
@@ -157,7 +156,6 @@
             <tr>
               <th>Médecin</th>
               <th>Date &amp; heure</th>
-              <th>Mode</th>
               <th>Statut</th>
             </tr>
           </thead>
@@ -177,7 +175,6 @@
                   <div class="cell-date">{{ r.dateRendezVous }}</div>
                   <div class="cell-time muted">{{ formatHeureRange(r) }}</div>
                 </td>
-                <td>{{ labelMode(r.modeConsultation) }}</td>
                 <td>
                   <span class="pill" [ngClass]="statutClass(r.statut)">{{ labelStatut(r.statut) }}</span>
                 </td>

@@ -37,4 +37,7 @@ public interface MedecinRepository extends JpaRepository<Medecin, Long> {
                     + "WHERE m.statutValidation = :statut ORDER BY m.id DESC"
     )
     List<Medecin> findAllValidatedForCatalogue(@Param("statut") StatutValidationMedecin statut);
+
+    /** Trouver les médecins par prix de consultation */
+    List<Medecin> findByPrixConsultation(Double prixConsultation);
 }

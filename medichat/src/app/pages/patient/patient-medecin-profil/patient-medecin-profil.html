@@ -29,16 +29,9 @@
             <span class="pill" [class.pill--off]="!estDisponible(m)">
               {{ estDisponible(m) ? 'Disponible pour rendez-vous' : 'Réservation fermée' }}
             </span>
-          </div>
-          <div class="stars" [attr.title]="aNoteReelle(m) ? 'Note patients' : 'Indication'">
-            @for (i of [1, 2, 3, 4, 5]; track i) {
-              <span
-                class="star"
-                [class.on]="i <= etoilesPleines(m)"
-                [class.half]="etoileDemi(m) && i === etoilesPleines(m) + 1"
-                >★</span>
-            }
-            <span class="star-note">{{ noteAffichee(m).toFixed(1) }}</span>
+            <span class="pill pill--price">
+              Prix de consultation : {{ m.prixConsultation || 'Non spécifié' }} DZD
+            </span>
           </div>
         </div>
       </div>

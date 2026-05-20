@@ -527,8 +527,8 @@ export class PlanningMedecins implements OnInit {
       medecinId: this.formMedecinId,
       dateRendezVous: this.formDate,
       heureDebut: this.normalizeTime(this.formHeureDebut),
-      modeConsultation: this.formMode,
-      motif: this.formMotif.trim() || null
+      modeConsultation: 'PRESENTIEL',
+      motif: null
     };
     const fin = this.formHeureFin.trim();
     if (fin.length > 0) {

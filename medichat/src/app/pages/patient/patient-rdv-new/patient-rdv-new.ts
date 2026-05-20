@@ -4,11 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { CreneauJour, Medecin, MedecinService } from '../../../services/medecin.service';
-import {
-  ModeConsultation,
-  RendezVousCreatePayload,
-  RendezVousPatientService
-} from '../../../services/rendez-vous-patient.service';
+import { RendezVousCreatePayload, RendezVousPatientService } from '../../../services/rendez-vous-patient.service';
 
 @Component({
   selector: 'app-patient-rdv-new',
@@ -38,8 +34,6 @@ export class PatientRdvNew implements OnInit {
   dateRendezVous = '';
   heureDebut = '';
   heureFin = '';
-  modeConsultation: ModeConsultation = 'PRESENTIEL';
-  motif = '';
 
   readonly slotsJour = computed((): (string | number[])[] => {
     const d = this.dateRendezVous;
@@ -49,6 +43,10 @@ export class PatientRdvNew implements OnInit {
     const jour = this.creneaux().find((c) => c.date === d);
     return jour?.heuresDebut ?? [];
   });
+
+  readonly joursDisponibles = computed((): CreneauJour[] =>
+    this.creneaux().filter((c) => (c.heuresDebut?.length ?? 0) > 0)
+  );
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((pm) => {
@@ -127,8 +125,18 @@ export class PatientRdvNew implements OnInit {
       next: (rows) => {
         this.creneaux.set(rows);
         this.loadingCreneaux.set(false);
-        if (!this.dateRendezVous && rows.length > 0) {
-          this.dateRendezVous = rows[0].date;
+        const firstAvailable = rows.find((r) => (r.heuresDebut?.length ?? 0) > 0);
+        const selectedStillAvailable = rows.some(
+          (r) => r.date === this.dateRendezVous && (r.heuresDebut?.length ?? 0) > 0
+        );
+        if ((!this.dateRendezVous || !selectedStillAvailable) && firstAvailable) {
+          this.dateRendezVous = firstAvailable.date;
+          this.heureDebut = '';
+          this.heureFin = '';
+        } else if (!firstAvailable) {
+          this.dateRendezVous = '';
+          this.heureDebut = '';
+          this.heureFin = '';
         }
       },
       error: () => {
@@ -160,11 +168,17 @@ export class PatientRdvNew implements OnInit {
   submit(): void {
     const m = this.medecin();
     if (!m || !this.dateRendezVous || !this.heureDebut) {
-      this.toast.show('Veuillez renseigner la date et l’heure de début.', 'error');
+      this.toast.show('Veuillez choisir un créneau disponible.', 'error');
       return;
     }
     if (m.disponible === false) {
       this.toast.show('Ce médecin n’accepte pas de nouveaux rendez-vous.', 'error');
+      return;
+    }
+    if (!this.creneauSelectionneDisponible()) {
+      this.toast.show('Ce créneau n’est plus disponible. Choisissez un autre horaire.', 'error');
+      this.heureDebut = '';
+      this.heureFin = '';
       return;
     }
     const fin = this.heureFin.trim();
@@ -172,8 +186,8 @@ export class PatientRdvNew implements OnInit {
       medecinId: m.id,
       dateRendezVous: this.dateRendezVous,
       heureDebut: this.normalizeTime(this.heureDebut),
-      modeConsultation: this.modeConsultation,
-      motif: this.motif.trim() || null
+      modeConsultation: 'PRESENTIEL',
+      motif: null
     };
     if (fin.length > 0) {
       payload.heureFin = this.normalizeTime(fin);
@@ -220,5 +234,27 @@ export class PatientRdvNew implements OnInit {
 
   formatHeureChip(raw: string | number[] | unknown): string {
     return this.normalizeHeureAffichage(raw);
+  }
+
+  formatDateOption(iso: string): string {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      return iso;
+    }
+    const [y, m, d] = iso.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  creneauSelectionneDisponible(): boolean {
+    const selected = this.normalizeHeureAffichage(this.heureDebut);
+    if (!selected) {
+      return false;
+    }
+    return this.slotsJour().some((h) => this.normalizeHeureAffichage(h) === selected);
   }
 }

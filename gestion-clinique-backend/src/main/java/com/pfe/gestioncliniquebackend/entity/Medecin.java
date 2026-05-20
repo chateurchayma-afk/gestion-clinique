@@ -36,6 +36,9 @@ public class Medecin {
     /** Note affichée (0–5). Nullable si pas encore renseignée. */
     private Double noteMoyenne;
 
+    /** Prix de consultation du médecin */
+    private Double prixConsultation;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "specialite_id")
     private Specialite specialite;
