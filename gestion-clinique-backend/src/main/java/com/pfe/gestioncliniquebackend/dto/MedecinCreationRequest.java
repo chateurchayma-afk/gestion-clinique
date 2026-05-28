@@ -42,7 +42,6 @@ public class MedecinCreationRequest {
     /** Texte libre ; sinon rempli à partir des champs détaillés côté service */
     private String biographie;
     private Long specialiteId;
-    private Long serviceMedicalId;
     private Boolean disponible = true;
 
     private String qualifications;

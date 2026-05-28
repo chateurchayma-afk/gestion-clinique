@@ -40,21 +40,19 @@ public class MedecinCatalogueService {
     private final MedecinRepository medecinRepository;
     private final RendezVousRepository rendezVousRepository;
 
-    public List<Medecin> getCatalogue(
+        public List<Medecin> getCatalogue(
             Long specialiteId,
-            Long serviceMedicalId,
             String q,
             Boolean disponible,
             String sort
-    ) {
+        ) {
         List<Medecin> base = medecinRepository.findAllValidatedForCatalogue(StatutValidationMedecin.VALIDE);
         String needle = q == null ? "" : q.trim().toLowerCase(Locale.ROOT);
 
         List<Medecin> filtered = base.stream()
                 .filter(m -> specialiteId == null
                         || (m.getSpecialite() != null && specialiteId.equals(m.getSpecialite().getId())))
-                .filter(m -> serviceMedicalId == null
-                        || (m.getServiceMedical() != null && serviceMedicalId.equals(m.getServiceMedical().getId())))
+                
                 .filter(m -> needle.isEmpty() || matchesNom(m, needle))
                 .filter(m -> filterDisponibilite(m, disponible))
                 .collect(Collectors.toCollection(ArrayList::new));

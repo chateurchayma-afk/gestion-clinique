@@ -46,7 +46,6 @@ export const ADMIN_SHELL: DashboardShellConfig = {
         { label: '👥 Liste des patients', path: '/admin/patients' },
         { label: '➕ Ajouter un patient', path: '/admin/add-patient' },
         { label: '📅 Rendez-vous', path: '/admin/rdv' },
-        { label: '🏥 Liste des services', path: '/admin/services' },
         { label: '🩺 Liste des spécialités', path: '/admin/specialites' }
       ]
     }

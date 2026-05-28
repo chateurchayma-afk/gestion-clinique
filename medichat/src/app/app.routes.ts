@@ -13,8 +13,7 @@ import { PatientsList } from './pages/admin/patients-list/patients-list';
 import { AddPatient } from './pages/admin/add-patient/add-patient';
 import { SpecialitesList } from './pages/admin/specialites-list/specialites-list';
 import { AddSpecialite } from './pages/admin/add-specialite/add-specialite';
-import { ServicesList } from './pages/admin/services-list/services-list';
-import { AddService } from './pages/admin/add-service/add-service';
+
 import { PlanningMedecins } from './pages/admin/planning-medecins/planning-medecins';
 import { AdminRendezVousList } from './pages/admin/admin-rendez-vous-list/admin-rendez-vous-list';
 import { DashboardShell } from './layout/dashboard-shell';
@@ -73,8 +72,6 @@ export const routes: Routes = [
       { path: 'edit-patient/:id', component: AddPatient },
       { path: 'specialites', component: SpecialitesList },
       { path: 'add-specialite', component: AddSpecialite },
-      { path: 'services', component: ServicesList },
-      { path: 'add-service', component: AddService },
       { path: 'planning-medecins', component: PlanningMedecins },
       { path: 'rendez-vous', pathMatch: 'full', redirectTo: 'rdv' },
       { path: 'rdv', component: AdminRendezVousList },

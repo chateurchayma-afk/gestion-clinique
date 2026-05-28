@@ -50,13 +50,11 @@ export class MedecinsList implements OnInit {
         `${m.utilisateur.prenom} ${m.utilisateur.nom}`.toLowerCase();
 
       const specialite = m.specialite?.nom?.toLowerCase() || '';
-      const service = m.serviceMedical?.nom?.toLowerCase() || '';
       const email = m.utilisateur.email.toLowerCase();
 
       return (
         fullName.includes(term) ||
         specialite.includes(term) ||
-        service.includes(term) ||
         email.includes(term)
       );
     });

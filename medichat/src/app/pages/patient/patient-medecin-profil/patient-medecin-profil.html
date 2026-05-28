@@ -22,9 +22,6 @@
         <div class="hero-text">
           <h2 class="hero-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</h2>
           <p class="hero-spec">{{ m.specialite?.nom ?? 'Spécialité à préciser' }}</p>
-          @if (m.serviceMedical?.nom) {
-            <p class="hero-svc">{{ m.serviceMedical!.nom }}</p>
-          }
           <div class="hero-meta">
             <span class="pill" [class.pill--off]="!estDisponible(m)">
               {{ estDisponible(m) ? 'Disponible pour rendez-vous' : 'Réservation fermée' }}
@@ -37,7 +34,7 @@
       </div>
 
       <div class="profile-sections">
-        @if (m.specialite?.description?.trim() || m.serviceMedical?.description?.trim()) {
+        @if (m.specialite?.description?.trim()) {
           <section class="prof-section" aria-labelledby="sec-activity">
             <h3 id="sec-activity" class="prof-section-title">À propos de l’activité</h3>
             <div class="prof-detail-grid">
@@ -47,12 +44,7 @@
                   <p class="prof-detail-body">{{ m.specialite!.description!.trim() }}</p>
                 </div>
               }
-              @if (m.serviceMedical?.description?.trim()) {
-                <div class="prof-detail-card">
-                  <h4 class="prof-detail-heading">Service</h4>
-                  <p class="prof-detail-body">{{ m.serviceMedical!.description!.trim() }}</p>
-                </div>
-              }
+              
             </div>
           </section>
         }

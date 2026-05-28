@@ -43,7 +43,5 @@ public class Medecin {
     @JoinColumn(name = "specialite_id")
     private Specialite specialite;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "service_medical_id")
-    private ServiceMedical serviceMedical;
+    
 }

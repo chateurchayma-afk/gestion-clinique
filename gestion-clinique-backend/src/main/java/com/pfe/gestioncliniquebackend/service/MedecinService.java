@@ -4,14 +4,12 @@ import com.pfe.gestioncliniquebackend.dto.MedecinFullUpdateRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinValidationRequest;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
-import com.pfe.gestioncliniquebackend.entity.ServiceMedical;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
-import com.pfe.gestioncliniquebackend.repository.ServiceMedicalRepository;
 import com.pfe.gestioncliniquebackend.repository.SpecialiteRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import com.pfe.gestioncliniquebackend.util.ProfessionnelBio;
@@ -28,7 +26,7 @@ public class MedecinService {
     private final MedecinRepository medecinRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final SpecialiteRepository specialiteRepository;
-    private final ServiceMedicalRepository serviceMedicalRepository;
+    
 
     public List<Medecin> getAllMedecins() {
         return medecinRepository.findAll();
@@ -88,11 +86,6 @@ public class MedecinService {
                     .orElseThrow(() -> new RuntimeException("Spécialité introuvable"));
         }
 
-        ServiceMedical serviceMedical = null;
-        if (request.getServiceMedicalId() != null) {
-            serviceMedical = serviceMedicalRepository.findById(request.getServiceMedicalId())
-                    .orElseThrow(() -> new RuntimeException("Service médical introuvable"));
-        }
 
         Medecin medecin = Medecin.builder()
                 .utilisateur(utilisateur)
@@ -102,7 +95,6 @@ public class MedecinService {
                 .statutValidation(StatutValidationMedecin.EN_ATTENTE)
                 .disponible(request.getDisponible() != null ? request.getDisponible() : true)
                 .specialite(specialite)
-                .serviceMedical(serviceMedical)
                 .build();
 
         return medecinRepository.save(medecin);
@@ -153,13 +145,7 @@ public class MedecinService {
             medecin.setSpecialite(null);
         }
 
-        if (req.getServiceMedicalId() != null) {
-            ServiceMedical serviceMedical = serviceMedicalRepository.findById(req.getServiceMedicalId())
-                    .orElseThrow(() -> new IllegalArgumentException("Service médical introuvable"));
-            medecin.setServiceMedical(serviceMedical);
-        } else {
-            medecin.setServiceMedical(null);
-        }
+        
 
         medecin.setExperienceAnnees(req.getExperienceAnnees());
         medecin.setMatricule(normalizeOptional(req.getMatricule()));

@@ -21,7 +21,7 @@ public interface MedecinRepository extends JpaRepository<Medecin, Long> {
     /** Anciennes lignes avec {@code statut_validation} NULL traitées comme « en attente ». */
     @Query(
             "SELECT DISTINCT m FROM Medecin m JOIN FETCH m.utilisateur u "
-                    + "LEFT JOIN FETCH m.specialite LEFT JOIN FETCH m.serviceMedical "
+                    + "LEFT JOIN FETCH m.specialite "
                     + "WHERE m.statutValidation = :st OR m.statutValidation IS NULL "
                     + "ORDER BY m.id DESC"
     )
@@ -33,7 +33,7 @@ public interface MedecinRepository extends JpaRepository<Medecin, Long> {
     /** Tous les médecins validés (filtres métier appliqués en service). */
     @Query(
             "SELECT DISTINCT m FROM Medecin m JOIN FETCH m.utilisateur u "
-                    + "LEFT JOIN FETCH m.specialite s LEFT JOIN FETCH m.serviceMedical sm "
+                    + "LEFT JOIN FETCH m.specialite s "
                     + "WHERE m.statutValidation = :statut ORDER BY m.id DESC"
     )
     List<Medecin> findAllValidatedForCatalogue(@Param("statut") StatutValidationMedecin statut);

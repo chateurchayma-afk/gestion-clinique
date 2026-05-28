@@ -8,7 +8,6 @@ import com.pfe.gestioncliniquebackend.dto.RegisterRequest;
 import com.pfe.gestioncliniquebackend.entity.Administrateur;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
-import com.pfe.gestioncliniquebackend.entity.ServiceMedical;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.MethodeContact;
@@ -18,7 +17,6 @@ import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
 import com.pfe.gestioncliniquebackend.repository.AdministrateurRepository;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
 import com.pfe.gestioncliniquebackend.repository.PatientRepository;
-import com.pfe.gestioncliniquebackend.repository.ServiceMedicalRepository;
 import com.pfe.gestioncliniquebackend.repository.SpecialiteRepository;
 import com.pfe.gestioncliniquebackend.repository.UtilisateurRepository;
 import com.pfe.gestioncliniquebackend.security.JwtService;
@@ -38,7 +36,7 @@ public class AuthService {
     private final MedecinRepository medecinRepository;
     private final AdministrateurRepository administrateurRepository;
     private final SpecialiteRepository specialiteRepository;
-    private final ServiceMedicalRepository serviceMedicalRepository;
+    
     private final JwtService jwtService;
 
     public String registerPatient(RegisterRequest request) {
@@ -193,11 +191,6 @@ public class AuthService {
                     .orElseThrow(() -> new IllegalArgumentException("Spécialité introuvable"));
         }
 
-        ServiceMedical serviceMedical = null;
-        if (request.getServiceMedicalId() != null) {
-            serviceMedical = serviceMedicalRepository.findById(request.getServiceMedicalId())
-                    .orElseThrow(() -> new IllegalArgumentException("Service médical introuvable"));
-        }
 
         String biographie = ProfessionnelBio.merge(
                 request.getBiographie(),
@@ -235,7 +228,6 @@ public class AuthService {
                 .statutValidation(StatutValidationMedecin.EN_ATTENTE)
                 .disponible(request.getDisponible() != null ? request.getDisponible() : true)
                 .specialite(specialite)
-                .serviceMedical(serviceMedical)
                 .build();
 
         medecinRepository.save(medecin);

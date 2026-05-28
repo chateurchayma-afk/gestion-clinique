@@ -9,6 +9,5 @@ public class MedecinRequest {
     private String matricule;
     private String biographie;
     private Long specialiteId;
-    private Long serviceMedicalId;
     private Boolean disponible;
 }

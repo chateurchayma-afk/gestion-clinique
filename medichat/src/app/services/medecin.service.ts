@@ -24,11 +24,6 @@ export interface Specialite {
   description?: string | null;
 }
 
-export interface ServiceMedical {
-  id: number;
-  nom: string;
-  description?: string | null;
-}
 
 export interface Medecin {
   id: number;
@@ -41,14 +36,12 @@ export interface Medecin {
   /** Note 0–5 (optionnelle, côté admin / base). */
   noteMoyenne?: number | null;
   specialite: Specialite | null;
-  serviceMedical: ServiceMedical | null;
   /** Prix de consultation du médecin */
   prixConsultation?: number | null;
 }
 
 export interface CatalogueMedecinsQuery {
   specialiteId?: number | null;
-  serviceMedicalId?: number | null;
   q?: string | null;
   disponible?: boolean | null;
   sort?: string | null;
@@ -89,7 +82,7 @@ export interface MedecinFullUpdatePayload {
   matricule?: string | null;
   biographie?: string | null;
   specialiteId?: number | null;
-  serviceMedicalId?: number | null;
+  
   disponible?: boolean | null;
   qualifications?: string | null;
   formation?: string | null;
@@ -116,9 +109,7 @@ export class MedecinService {
     if (q.specialiteId != null && q.specialiteId > 0) {
       params = params.set('specialiteId', String(q.specialiteId));
     }
-    if (q.serviceMedicalId != null && q.serviceMedicalId > 0) {
-      params = params.set('serviceMedicalId', String(q.serviceMedicalId));
-    }
+    
     if (q.q != null && q.q.trim()) {
       params = params.set('q', q.q.trim());
     }

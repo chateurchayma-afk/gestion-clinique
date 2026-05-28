@@ -49,8 +49,7 @@ export class AddMedecin implements OnInit {
   errorMessage = '';
   isEdit = false;
   medecinId: number | null = null;
-  /** Conserve service / disponibilité à l’édition (pas de champs dédiés dans le formulaire). */
-  private serviceMedicalIdSnapshot: number | null = null;
+  /** Conserve disponibilité à l’édition (pas de champs dédiés dans le formulaire). */
   private disponibleSnapshot = true;
 
   constructor(
@@ -130,7 +129,6 @@ export class AddMedecin implements OnInit {
         : ''
       : '';
 
-    this.serviceMedicalIdSnapshot = m.serviceMedical?.id ?? null;
     this.disponibleSnapshot = m.disponible ?? true;
 
     this.medecinForm.patchValue({
@@ -219,7 +217,6 @@ export class AddMedecin implements OnInit {
         departement: v.departement?.trim() || null,
         position: v.position?.trim() || null,
         specialiteId,
-        serviceMedicalId: this.serviceMedicalIdSnapshot,
         disponible: this.disponibleSnapshot
       };
 
@@ -260,7 +257,6 @@ export class AddMedecin implements OnInit {
       departement: v.departement?.trim() || null,
       position: v.position?.trim() || null,
       specialiteId,
-      serviceMedicalId: null,
       disponible: true
     };
 

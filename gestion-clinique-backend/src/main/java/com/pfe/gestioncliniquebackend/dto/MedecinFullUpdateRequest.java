@@ -46,7 +46,6 @@ public class MedecinFullUpdateRequest {
     private String biographie;
 
     private Long specialiteId;
-    private Long serviceMedicalId;
     private Boolean disponible;
 
     private String qualifications;

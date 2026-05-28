@@ -309,9 +309,7 @@ export class DashboardShell {
     if (url.includes('/admin/specialites') || url.includes('/admin/add-specialite')) {
       return 'Spécialités';
     }
-    if (url.includes('/admin/services') || url.includes('/admin/add-service')) {
-      return 'Services';
-    }
+    
     if (url.includes('/admin/mon-profil') || url.includes('/medecin-dashboard/mon-profil')) {
       return 'Mon profil';
     }

@@ -37,18 +37,17 @@ public class MedecinController {
     }
 
     /**
-     * Catalogue public : filtres {@code specialiteId}, {@code serviceMedicalId}, {@code q} (nom / prénom),
+     * Catalogue public : filtres {@code specialiteId}, {@code q} (nom / prénom),
      * {@code disponible} (true / false, omis = tous), {@code sort} = nom | experience | disponible.
      */
     @GetMapping("/catalogue")
     public List<Medecin> getCatalogue(
             @RequestParam(required = false) Long specialiteId,
-            @RequestParam(required = false) Long serviceMedicalId,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Boolean disponible,
             @RequestParam(required = false) String sort
     ) {
-        return medecinCatalogueService.getCatalogue(specialiteId, serviceMedicalId, q, disponible, sort);
+        return medecinCatalogueService.getCatalogue(specialiteId, q, disponible, sort);
     }
 
     @GetMapping("/catalogue/{id}/creneaux")
