@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ToastService } from '../../../core/toast.service';
 import {
   AdminRendezVousPlanningItem,
@@ -62,6 +63,10 @@ type RdvStatut = string;
 
 type TopScope = 'annee' | 'mois' | 'semaine';
 
+const PBI_TABLE = 'DIM_MEDECIN';
+const PBI_COLUMN = 'medecin_id';
+const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=274b2dc7-9e27-492a-98ce-20980633bb92&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
+
 @Component({
   selector: 'app-medecin-accueil',
   standalone: true,
@@ -73,6 +78,9 @@ export class MedecinAccueil implements OnInit {
   private readonly medecinService = inject(MedecinService);
   private readonly rdvService = inject(AdminRendezVousService);
   private readonly toast = inject(ToastService);
+  private readonly sanitizer = inject(DomSanitizer);
+
+  pbiUrl: SafeResourceUrl = '';
 
   readonly years = this.buildYearOptions();
   selectedYear = signal(new Date().getFullYear());
@@ -196,6 +204,11 @@ export class MedecinAccueil implements OnInit {
     this.resolveMedecinAndLoad();
   }
 
+  private buildPbiUrl(medecinId: number): void {
+    const url = `${PBI_REPORT_URL}&filter=${PBI_TABLE}/${PBI_COLUMN} eq ${medecinId}`;
+    this.pbiUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
   onSelectYear(yr: string): void {
     const n = Number(yr);
     if (!Number.isFinite(n)) {
@@ -249,6 +262,7 @@ export class MedecinAccueil implements OnInit {
           return;
         }
         this.medecinId.set(m.id);
+        this.buildPbiUrl(m.id);
         this.loadPlanning(m.id);
       },
       error: () => {

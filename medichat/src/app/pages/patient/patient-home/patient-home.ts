@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { UserSessionService } from '../../../core/user-session.service';
 import { CatalogueHighlights, Medecin, MedecinService } from '../../../services/medecin.service';
+import { PatientProfilService } from '../../../services/patient-profil.service';
 import { PatientRappelTraitementService, RappelTraitementPatient } from '../../../services/patient-rappel-traitement.service';
 import {
   NotificationItem,
@@ -33,6 +35,11 @@ function minutesFromMidnight(t: string): number {
   return (hh ?? 0) * 60 + (mm ?? 0);
 }
 
+// Nom de la table Power BI et colonne email — à adapter selon votre modèle Power BI
+const PBI_TABLE_PATIENT = 'DIM_PATIENT';
+const PBI_COLUMN_PATIENT = 'patient_id';
+const PBI_REPORT_URL_PATIENT = 'https://app.powerbi.com/reportEmbed?reportId=1e35b4c1-39b6-4f8a-9036-74fc2c358855&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
+
 @Component({
   selector: 'app-patient-home',
   standalone: true,
@@ -47,6 +54,10 @@ export class PatientHome implements OnInit {
   private readonly rappelTraitementService = inject(PatientRappelTraitementService);
   private readonly notificationService = inject(NotificationService);
   private readonly userSession = inject(UserSessionService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly patientProfil = inject(PatientProfilService);
+
+  pbiUrl: SafeResourceUrl = '';
 
   readonly loading = signal(true);
   readonly rdvs = signal<RendezVousPatient[]>([]);
@@ -193,6 +204,7 @@ export class PatientHome implements OnInit {
   }
 
   ngOnInit(): void {
+    this.buildPbiUrl();
     this.refreshPatientPrenomFromStorage();
     this.loading.set(true);
     forkJoin({
@@ -252,6 +264,18 @@ export class PatientHome implements OnInit {
     return (
       items.find((n) => !n.isRead && !n.archived && isPatientSpecialNotification(n.type)) ?? null
     );
+  }
+
+  private buildPbiUrl(): void {
+    this.patientProfil.getProfil().subscribe({
+      next: (patient) => {
+        const url = `${PBI_REPORT_URL_PATIENT}&filter=${PBI_TABLE_PATIENT}/${PBI_COLUMN_PATIENT} eq ${patient.id}`;
+        this.pbiUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      },
+      error: () => {
+        this.pbiUrl = this.sanitizer.bypassSecurityTrustResourceUrl(PBI_REPORT_URL_PATIENT);
+      }
+    });
   }
 
   private refreshPatientPrenomFromStorage(): void {
