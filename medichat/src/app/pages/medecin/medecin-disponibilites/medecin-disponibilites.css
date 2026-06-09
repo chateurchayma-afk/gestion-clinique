@@ -1,0 +1,118 @@
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+.dispo-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+
+.dispo-tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+}
+
+.dispo-tab:hover {
+  color: #4f6fa8;
+  background: #f0f4ff;
+}
+
+.dispo-tab--active {
+  color: #4f6fa8;
+  border-bottom-color: #4f6fa8;
+  background: #f0f4ff;
+}
+
+/* ── Card header avec bouton ─────────────────────────────────────────────── */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.th-actions {
+  width: 90px;
+  text-align: center;
+}
+
+.td-actions {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.time-cell {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #334155;
+}
+
+.motif-cell {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* ── Jour badge ──────────────────────────────────────────────────────────── */
+.jour-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+/* ── Statut congé ────────────────────────────────────────────────────────── */
+.statut-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statut-badge--actif {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.statut-badge--avenir {
+  background: #fef9c3;
+  color: #92400e;
+}
+
+.statut-badge--passe {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+.action-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: background 0.15s ease;
+}
+
+.action-btn--edit:hover { background: #eff6ff; }
+.action-btn--del:hover  { background: #fef2f2; }

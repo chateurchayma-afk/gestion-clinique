@@ -66,7 +66,8 @@ export const MEDECIN_SHELL: DashboardShellConfig = {
         { label: '📅 Rendez-vous', path: '/medecin-dashboard/rendez-vous' },
         { label: '📂 Dossier médical', path: '/medecin-dashboard/dossier-medical' },
         { label: '🩺 Consultation', path: '/medecin-dashboard/consultation' },
-        { label: '📄 Ordonnance', path: '/medecin-dashboard/ordonnance-pdf' }
+        { label: '📄 Ordonnance', path: '/medecin-dashboard/ordonnance-pdf' },
+        { label: '📅 Mes disponibilités', path: '/medecin-dashboard/disponibilites' }
       ]
     }
   ]

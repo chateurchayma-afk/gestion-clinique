@@ -23,7 +23,7 @@
       [(ngModel)]="patientId"
       (ngModelChange)="onPatientChange()"
     >
-      <option [ngValue]="null" disabled>— Sélectionner un patient —</option>
+      <option [ngValue]="null">— Sélectionner un patient —</option>
       <option *ngFor="let p of patients()" [ngValue]="p.id">
         {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
       </option>
@@ -35,7 +35,11 @@
     automatique).
   </p>
 
-  <form (ngSubmit)="save()">
+  <div *ngIf="loadingDossier()" style="padding: 20px 0; color: #64748b; font-size: 14px;">
+    Chargement du dossier…
+  </div>
+
+  <form (ngSubmit)="save()" *ngIf="!loadingDossier()">
     <div class="mec-card">
       <h2 class="mec-card-title">informations médicales</h2>
       <p class="mec-section-hint">
@@ -198,59 +202,29 @@
       <h2 class="mec-card-title">Antécédents médicaux familiaux</h2>
       <div class="mec-cb-grid">
         <label class="mec-cb"
-          ><input
-            type="checkbox"
-            name="c1"
-            [(ngModel)]="form.famDiabete"
-            (ngModelChange)="queueAutoSave()"
-          />
-          Diabète</label
-        >
+          ><input type="checkbox" name="c1"
+            [(ngModel)]="form.famDiabete" (ngModelChange)="queueAutoSave()" />
+          Diabète</label>
         <label class="mec-cb"
-          ><input
-            type="checkbox"
-            name="c2"
-            [(ngModel)]="form.famHypertension"
-            (ngModelChange)="queueAutoSave()"
-          />
-          Hypertension</label
-        >
+          ><input type="checkbox" name="c2"
+            [(ngModel)]="form.famHypertension" (ngModelChange)="queueAutoSave()" />
+          Hypertension</label>
         <label class="mec-cb"
-          ><input
-            type="checkbox"
-            name="c3"
-            [(ngModel)]="form.famAsthme"
-            (ngModelChange)="queueAutoSave()"
-          />
-          Asthme</label
-        >
+          ><input type="checkbox" name="c3"
+            [(ngModel)]="form.famAsthme" (ngModelChange)="queueAutoSave()" />
+          Asthme</label>
         <label class="mec-cb"
-          ><input
-            type="checkbox"
-            name="c4"
-            [(ngModel)]="form.famCardiaque"
-            (ngModelChange)="queueAutoSave()"
-          />
-          Maladies cardiaques</label
-        >
+          ><input type="checkbox" name="c4"
+            [(ngModel)]="form.famCardiaque" (ngModelChange)="queueAutoSave()" />
+          Maladies cardiaques</label>
         <label class="mec-cb"
-          ><input
-            type="checkbox"
-            name="c5"
-            [(ngModel)]="form.famMentaux"
-            (ngModelChange)="queueAutoSave()"
-          />
-          Troubles de santé mentale</label
-        >
+          ><input type="checkbox" name="c5"
+            [(ngModel)]="form.famMentaux" (ngModelChange)="queueAutoSave()" />
+          Troubles de santé mentale</label>
         <label class="mec-cb"
-          ><input
-            type="checkbox"
-            name="c6"
-            [(ngModel)]="form.famCancer"
-            (ngModelChange)="queueAutoSave()"
-          />
-          Cancer</label
-        >
+          ><input type="checkbox" name="c6"
+            [(ngModel)]="form.famCancer" (ngModelChange)="queueAutoSave()" />
+          Cancer</label>
       </div>
     </div>
 
@@ -259,12 +233,8 @@
       <div class="mec-form-grid mec-form-grid--1" style="margin-top: 8px">
         <div class="mec-field">
           <label class="mec-label" for="tabac">Statut tabagique</label>
-          <select
-            class="mec-select"
-            id="tabac"
-            name="tabac"
-            [(ngModel)]="form.tabac"
-            (ngModelChange)="queueAutoSave()">
+          <select class="mec-select" id="tabac" name="tabac"
+            [(ngModel)]="form.tabac" (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner le statut</option>
             <option value="jamais">Jamais</option>
             <option value="ancien">Ancien fumeur</option>
@@ -274,12 +244,8 @@
         </div>
         <div class="mec-field">
           <label class="mec-label" for="alc">Consommation d'alcool</label>
-          <select
-            class="mec-select"
-            id="alc"
-            name="alc"
-            [(ngModel)]="form.alcool"
-            (ngModelChange)="queueAutoSave()">
+          <select class="mec-select" id="alc" name="alc"
+            [(ngModel)]="form.alcool" (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner la consommation</option>
             <option value="aucune">Aucune</option>
             <option value="moderee">Modérée</option>
@@ -288,12 +254,8 @@
         </div>
         <div class="mec-field">
           <label class="mec-label" for="act">Fréquence d'activité physique</label>
-          <select
-            class="mec-select"
-            id="act"
-            name="act"
-            [(ngModel)]="form.activite"
-            (ngModelChange)="queueAutoSave()">
+          <select class="mec-select" id="act" name="act"
+            [(ngModel)]="form.activite" (ngModelChange)="queueAutoSave()">
             <option value="">Sélectionner la fréquence</option>
             <option value="faible">Faible</option>
             <option value="moderee2">Modérée</option>
@@ -319,10 +281,7 @@
     <div class="mec-btn-row">
       <button type="button" class="mec-btn mec-btn--ghost" (click)="reset()">Effacer brouillon</button>
       <div style="display: flex; gap: 10px; margin-left: auto">
-        <button
-          type="button"
-          routerLink="/medecin-dashboard"
-          class="mec-btn mec-btn--secondary">
+        <button type="button" routerLink="/medecin-dashboard" class="mec-btn mec-btn--secondary">
           Annuler
         </button>
         <button

@@ -92,24 +92,6 @@ export class MedecinOrdonnancePdf implements OnInit {
   ngOnInit(): void {
     this.hydrateUser();
     this.hydrateFromApi();
-    const rawMeta = localStorage.getItem(LS_ORDONNANCE_META);
-    if (rawMeta) {
-      try {
-        const o = JSON.parse(rawMeta) as { dateOrdonnance?: string; patientId?: number };
-        if (o.dateOrdonnance) {
-          this.dateOrdonnance = o.dateOrdonnance;
-        }
-        if (o.patientId) {
-          this.patientId = o.patientId;
-        }
-      } catch {
-        /* */
-      }
-    }
-    const rawTxt = localStorage.getItem(LS_ORDONNANCE_TEXTE);
-    if (rawTxt) {
-      this.medicamentsText.set(rawTxt);
-    }
 
     this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
@@ -117,7 +99,13 @@ export class MedecinOrdonnancePdf implements OnInit {
         this.patients.set(L);
         this.importFromConsultation(L);
         if (this.patientId != null && !L.some((p) => p.id === this.patientId)) {
-          this.patientId = L[0]?.id ?? null;
+          this.patientId = null;
+        }
+        // Aucun patient valide → formulaire complètement vide
+        if (this.patientId == null) {
+          this.medicamentsText.set('');
+          this.dateOrdonnance = isoToday();
+          this.persist();
         }
         this.scheduleQrUpdate();
       },
@@ -173,22 +161,15 @@ export class MedecinOrdonnancePdf implements OnInit {
     });
   }
 
-  private importFromConsultation(list: Patient[]): void {
+  private importFromConsultation(_list: Patient[]): void {
     const cons = parseConsultationBrouillon(localStorage.getItem(LS_CONSULTATION_BROUILLON));
-    const fromConsultation = cons
-      ? formatLignesPourOrdonnance(cons.lignes ?? [], cons.notes)
-      : '';
-    if (fromConsultation.trim().length > 0 && !this.medicamentsText().trim()) {
+    if (!cons?.patientId) return;
+    const fromConsultation = formatLignesPourOrdonnance(cons.lignes ?? [], cons.notes);
+    if (fromConsultation.trim().length > 0) {
       this.medicamentsText.set(fromConsultation);
-      this.patientId = cons?.patientId ?? this.patientId ?? list[0]?.id ?? null;
+      this.patientId = cons.patientId;
       this.persist();
-      return;
     }
-    if (this.medicamentsText().trim().length > 0) {
-      this.patientId = this.patientId ?? list[0]?.id ?? null;
-      return;
-    }
-    this.patientId = this.patientId ?? list[0]?.id ?? null;
   }
 
   persist(): void {
@@ -331,6 +312,10 @@ export class MedecinOrdonnancePdf implements OnInit {
             next: () => {
               this.toast.show('Ordonnance enregistrée.', 'success');
               this.saveBusy.set(false);
+              this.patientId = null;
+              this.medicamentsText.set('');
+              this.dateOrdonnance = isoToday();
+              this.persist();
             },
             error: (err) => {
               try {

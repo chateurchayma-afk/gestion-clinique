@@ -1,0 +1,228 @@
+<div class="mec-page">
+  <!-- Hero -->
+  <div class="mec-hero">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Planning</p>
+      <h1 class="mec-title">Mes disponibilités</h1>
+      <p class="mec-sub muted">Gérez vos horaires de travail et vos périodes de congé.</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="dispo-tabs">
+    <button
+      class="dispo-tab"
+      [class.dispo-tab--active]="tab() === 'disponibilites'"
+      (click)="setTab('disponibilites')">
+      🗓️ Disponibilités
+    </button>
+    <button
+      class="dispo-tab"
+      [class.dispo-tab--active]="tab() === 'conges'"
+      (click)="setTab('conges')">
+      🌴 Congés
+    </button>
+  </div>
+
+  <!-- ── DISPONIBILITÉS ──────────────────────────────────────────────────── -->
+  <div *ngIf="tab() === 'disponibilites'">
+
+    <!-- Formulaire ajout / modification -->
+    <div class="mec-card" *ngIf="showDispForm">
+      <h2 class="mec-card-title">
+        {{ editDispId != null ? 'Modifier la disponibilité' : 'Ajouter une disponibilité' }}
+      </h2>
+      <div class="mec-form-grid">
+        <div class="mec-field">
+          <label class="mec-label" for="jour">Jour de la semaine</label>
+          <select class="mec-select" id="jour" name="jour" [(ngModel)]="dispForm.jour">
+            <option *ngFor="let j of JOURS" [value]="j.value">{{ j.label }}</option>
+          </select>
+        </div>
+        <div class="mec-field"></div>
+        <div class="mec-field">
+          <label class="mec-label" for="hdebut">Heure de début</label>
+          <input
+            class="mec-input"
+            type="time"
+            id="hdebut"
+            name="hdebut"
+            [(ngModel)]="dispForm.heureDebut"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="hfin">Heure de fin</label>
+          <input
+            class="mec-input"
+            type="time"
+            id="hfin"
+            name="hfin"
+            [(ngModel)]="dispForm.heureFin"
+          />
+        </div>
+      </div>
+      <div class="mec-btn-row" style="margin-top: 16px; padding-top: 12px">
+        <button type="button" class="mec-btn mec-btn--ghost" (click)="cancelDisp()">Annuler</button>
+        <button
+          type="button"
+          class="mec-btn mec-btn--primary"
+          [disabled]="saving()"
+          (click)="saveDisp()">
+          {{ saving() ? 'Enregistrement…' : (editDispId != null ? 'Modifier' : 'Ajouter') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Tableau disponibilités -->
+    <div class="mec-card">
+      <div class="card-header">
+        <h2 class="mec-card-title" style="margin: 0">Horaires de disponibilité</h2>
+        <button
+          *ngIf="!showDispForm"
+          type="button"
+          class="mec-btn mec-btn--primary"
+          (click)="openAddDisp()">
+          + Ajouter
+        </button>
+      </div>
+
+      <p class="muted" *ngIf="disponibilites().length === 0" style="margin-top: 12px">
+        Aucune disponibilité définie. Cliquez sur « Ajouter » pour commencer.
+      </p>
+
+      <div class="table-wrap" *ngIf="disponibilites().length > 0">
+        <table class="mec-data-table">
+          <thead>
+            <tr>
+              <th>Jour</th>
+              <th>Heure début</th>
+              <th>Heure fin</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of disponibilites()">
+              <td><span class="jour-badge">{{ jourLabel[d.jour] }}</span></td>
+              <td class="time-cell">{{ d.heureDebut | slice:0:5 }}</td>
+              <td class="time-cell">{{ d.heureFin | slice:0:5 }}</td>
+              <td class="td-actions">
+                <button type="button" class="action-btn action-btn--edit" (click)="openEditDisp(d)">
+                  ✏️
+                </button>
+                <button type="button" class="action-btn action-btn--del" (click)="deleteDisp(d.id)">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONGÉS ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="tab() === 'conges'">
+
+    <!-- Formulaire ajout / modification congé -->
+    <div class="mec-card" *ngIf="showCongeForm">
+      <h2 class="mec-card-title">
+        {{ editCongeId != null ? 'Modifier le congé' : 'Ajouter un congé' }}
+      </h2>
+      <div class="mec-form-grid">
+        <div class="mec-field">
+          <label class="mec-label" for="ddebut">Date de début</label>
+          <input
+            class="mec-input"
+            type="date"
+            id="ddebut"
+            name="ddebut"
+            [(ngModel)]="congeForm.dateDebut"
+          />
+        </div>
+        <div class="mec-field">
+          <label class="mec-label" for="dfin">Date de fin</label>
+          <input
+            class="mec-input"
+            type="date"
+            id="dfin"
+            name="dfin"
+            [(ngModel)]="congeForm.dateFin"
+          />
+        </div>
+        <div class="mec-field" style="grid-column: 1 / -1">
+          <label class="mec-label" for="motif">Motif (optionnel)</label>
+          <input
+            class="mec-input"
+            type="text"
+            id="motif"
+            name="motif"
+            [(ngModel)]="congeForm.motif"
+            placeholder="ex. Vacances, Formation…"
+          />
+        </div>
+      </div>
+      <div class="mec-btn-row" style="margin-top: 16px; padding-top: 12px">
+        <button type="button" class="mec-btn mec-btn--ghost" (click)="cancelConge()">Annuler</button>
+        <button
+          type="button"
+          class="mec-btn mec-btn--primary"
+          [disabled]="saving()"
+          (click)="saveConge()">
+          {{ saving() ? 'Enregistrement…' : (editCongeId != null ? 'Modifier' : 'Ajouter') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Tableau congés -->
+    <div class="mec-card">
+      <div class="card-header">
+        <h2 class="mec-card-title" style="margin: 0">Périodes de congé</h2>
+        <button
+          *ngIf="!showCongeForm"
+          type="button"
+          class="mec-btn mec-btn--primary"
+          (click)="openAddConge()">
+          + Ajouter
+        </button>
+      </div>
+
+      <p class="muted" *ngIf="conges().length === 0" style="margin-top: 12px">
+        Aucun congé déclaré. Cliquez sur « Ajouter » pour déclarer une période de congé.
+      </p>
+
+      <div class="table-wrap" *ngIf="conges().length > 0">
+        <table class="mec-data-table">
+          <thead>
+            <tr>
+              <th>Date début</th>
+              <th>Date fin</th>
+              <th>Motif</th>
+              <th>Statut</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of conges()">
+              <td>{{ formatDate(c.dateDebut) }}</td>
+              <td>{{ formatDate(c.dateFin) }}</td>
+              <td class="motif-cell">{{ c.motif || '—' }}</td>
+              <td>
+                <span class="statut-badge statut-badge--actif" *ngIf="isCongeActif(c)">En cours</span>
+                <span class="statut-badge statut-badge--avenir" *ngIf="isCongeAVenir(c)">À venir</span>
+                <span class="statut-badge statut-badge--passe" *ngIf="!isCongeActif(c) && !isCongeAVenir(c)">Passé</span>
+              </td>
+              <td class="td-actions">
+                <button type="button" class="action-btn action-btn--edit" (click)="openEditConge(c)">
+                  ✏️
+                </button>
+                <button type="button" class="action-btn action-btn--del" (click)="deleteConge(c.id)">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

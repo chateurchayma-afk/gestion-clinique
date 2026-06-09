@@ -99,16 +99,28 @@ export class AccountProfil implements OnInit {
       return false;
     }
     try {
-      const u = JSON.parse(raw) as { email?: string; nom?: string; prenom?: string };
+      const u = JSON.parse(raw) as {
+        email?: string; nom?: string; prenom?: string;
+        telephone?: string; adresse?: string; ville?: string;
+        gouvernorat?: string; codePostal?: string; actif?: boolean;
+      };
       const email = (u?.email ?? '').trim();
       if (!email) {
         return false;
       }
       this.form.patchValue({
-        nom: (u.nom ?? '').trim(),
-        prenom: (u.prenom ?? '').trim(),
-        email
+        nom:         (u.nom          ?? '').trim(),
+        prenom:      (u.prenom       ?? '').trim(),
+        email,
+        telephone:   (u.telephone    ?? '').trim(),
+        adresse:     (u.adresse      ?? '').trim(),
+        ville:       (u.ville        ?? '').trim(),
+        gouvernorat: (u.gouvernorat  ?? '').trim(),
+        codePostal:  (u.codePostal   ?? '').trim()
       });
+      if (this.currentUser === null && u.actif !== undefined) {
+        this.currentUser = { actif: u.actif } as UtilisateurMe;
+      }
       return true;
     } catch {
       return false;
@@ -208,10 +220,16 @@ export class AccountProfil implements OnInit {
     }
     try {
       const cur = JSON.parse(raw) as Record<string, unknown>;
-      cur['email'] = u.email;
-      cur['nom'] = u.nom;
-      cur['prenom'] = u.prenom;
-      cur['id'] = u.id;
+      cur['email']       = u.email;
+      cur['nom']         = u.nom;
+      cur['prenom']      = u.prenom;
+      cur['id']          = u.id;
+      cur['telephone']   = u.telephone   ?? null;
+      cur['adresse']     = u.adresse     ?? null;
+      cur['ville']       = u.ville       ?? null;
+      cur['gouvernorat'] = u.gouvernorat ?? null;
+      cur['codePostal']  = u.codePostal  ?? null;
+      cur['actif']       = u.actif       ?? true;
       localStorage.setItem('user', JSON.stringify(cur));
     } catch {
       /* ignore */

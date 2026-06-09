@@ -64,7 +64,7 @@ export class MedecinConsultation implements OnInit {
               notes?: string;
               lignes?: LigneOrdonnance[];
             };
-            this.patientId = o.patientId ?? L[0]?.id ?? null;
+            this.patientId = o.patientId ?? null;
             this.symptomes = o.symptomes ?? '';
             this.diagnostic = o.diagnostic ?? '';
             this.notes = this.sanitizeNotesFromDraft(o.notes ?? '');
@@ -72,15 +72,16 @@ export class MedecinConsultation implements OnInit {
               this.lignes = o.lignes;
             }
           } catch {
-            this.patientId = L[0]?.id ?? null;
+            this.patientId = null;
           }
         } else {
-          this.patientId = L[0]?.id ?? null;
+          this.patientId = null;
         }
         if (this.patientId != null && !L.some((p) => p.id === this.patientId)) {
-          this.patientId = L[0]?.id ?? null;
+          this.patientId = null;
         }
 
+        // Si query param patientId → sélection automatique depuis un lien externe
         const qp = this.route.snapshot.queryParamMap.get('patientId');
         if (qp) {
           const id = Number(qp);
@@ -91,9 +92,20 @@ export class MedecinConsultation implements OnInit {
           }
         }
 
-        if (this.patientId != null) {
-          this.loadDossier(this.patientId, false);
+        // Aucun patient sélectionné → formulaire complètement vide + efface le brouillon stale
+        if (this.patientId == null) {
+          this.symptomes = '';
+          this.diagnostic = '';
+          this.notes = '';
+          this.lignes = [
+            { medicament: '', posologie: '', dureeJours: '' },
+            { medicament: '', posologie: '', dureeJours: '' }
+          ];
+          this.persist();
+          return;
         }
+
+        this.loadDossier(this.patientId, false);
       },
       error: () => this.toast.show('Chargement patients impossible.', 'error')
     });
@@ -210,6 +222,16 @@ export class MedecinConsultation implements OnInit {
   save(): void {
     this.persist();
     this.toast.show('Consultation enregistrée (brouillon sur cet appareil).', 'success');
+    this.patientId = null;
+    this.symptomes = '';
+    this.diagnostic = '';
+    this.notes = '';
+    this.lignes = [
+      { medicament: '', posologie: '', dureeJours: '' },
+      { medicament: '', posologie: '', dureeJours: '' }
+    ];
+    this.dossierData.set(null);
+    this.persist();
   }
 
   genererOrdonnance(): void {

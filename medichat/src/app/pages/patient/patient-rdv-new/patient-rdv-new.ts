@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
-import { CreneauJour, Medecin, MedecinService } from '../../../services/medecin.service';
+import { CongePublic, CreneauJour, DisponibilitePublic, Medecin, MedecinService } from '../../../services/medecin.service';
 import { RendezVousCreatePayload, RendezVousPatientService } from '../../../services/rendez-vous-patient.service';
 
 @Component({
@@ -29,6 +29,14 @@ export class PatientRdvNew implements OnInit {
   readonly submitting = signal(false);
   readonly creneaux = signal<CreneauJour[]>([]);
   readonly loadingCreneaux = signal(false);
+  readonly congesMedecin = signal<CongePublic[]>([]);
+  readonly disponibilitesMedecin = signal<DisponibilitePublic[]>([]);
+  readonly showCreneaux = signal(false);
+
+  readonly JOUR_LABELS: Record<string, string> = {
+    LUNDI: 'Lundi', MARDI: 'Mardi', MERCREDI: 'Mercredi', JEUDI: 'Jeudi',
+    VENDREDI: 'Vendredi', SAMEDI: 'Samedi', DIMANCHE: 'Dimanche'
+  };
 
   medecinId: number | null = null;
   dateRendezVous = '';
@@ -47,6 +55,16 @@ export class PatientRdvNew implements OnInit {
   readonly joursDisponibles = computed((): CreneauJour[] =>
     this.creneaux().filter((c) => (c.heuresDebut?.length ?? 0) > 0)
   );
+
+  /** Date du premier jour après le congé actif (ou null si pas de congé actif). */
+  readonly prochainDispoApresConge = computed((): string | null => {
+    const today = new Date().toISOString().slice(0, 10);
+    const actif = this.congesMedecin().find(c => c.dateDebut <= today && today <= c.dateFin);
+    if (!actif) return null;
+    const fin = new Date(actif.dateFin + 'T00:00:00');
+    fin.setDate(fin.getDate() + 1);
+    return fin.toISOString().slice(0, 10);
+  });
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((pm) => {
@@ -102,13 +120,21 @@ export class PatientRdvNew implements OnInit {
     return m.disponible !== false;
   }
 
+  ouvrirCreneaux(): void {
+    this.showCreneaux.set(true);
+  }
+
   private loadMedecin(id: number): void {
     this.loadingMed.set(true);
+    this.showCreneaux.set(false);
+    this.congesMedecin.set([]);
+    this.disponibilitesMedecin.set([]);
     this.medecinService.getCatalogueMedecin(id).subscribe({
       next: (m) => {
         this.medecin.set(m);
         this.loadingMed.set(false);
         this.loadCreneaux(id);
+        this.loadCongesEtDisponibilites(id);
       },
       error: () => {
         this.medecin.set(null);
@@ -121,7 +147,7 @@ export class PatientRdvNew implements OnInit {
 
   private loadCreneaux(medecinId: number): void {
     this.loadingCreneaux.set(true);
-    this.medecinService.getCatalogueCreneaux(medecinId, undefined, 21).subscribe({
+    this.medecinService.getCatalogueCreneaux(medecinId, undefined, 180).subscribe({
       next: (rows) => {
         this.creneaux.set(rows);
         this.loadingCreneaux.set(false);
@@ -209,6 +235,32 @@ export class PatientRdvNew implements OnInit {
         this.toast.show(msg, 'error');
       }
     });
+  }
+
+  private loadCongesEtDisponibilites(medecinId: number): void {
+    this.medecinService.getCongesMedecin(medecinId).subscribe({
+      next: (list) => this.congesMedecin.set(list),
+      error: () => this.congesMedecin.set([])
+    });
+    this.medecinService.getDisponibilitesMedecin(medecinId).subscribe({
+      next: (list) => this.disponibilitesMedecin.set(list),
+      error: () => this.disponibilitesMedecin.set([])
+    });
+  }
+
+  formatDate(iso: string): string {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  isCongeActif(c: CongePublic): boolean {
+    const today = new Date().toISOString().slice(0, 10);
+    return c.dateDebut <= today && today <= c.dateFin;
+  }
+
+  formatHeure(raw: string | number[] | unknown): string {
+    return this.normalizeHeureAffichage(raw);
   }
 
   private normalizeTime(t: string): string {

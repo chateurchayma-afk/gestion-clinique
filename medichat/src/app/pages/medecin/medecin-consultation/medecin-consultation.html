@@ -19,7 +19,7 @@
             [(ngModel)]="patientId"
             (ngModelChange)="onPatientChange($event)"
           >
-            <option [ngValue]="null" disabled>— Sélectionner —</option>
+            <option [ngValue]="null">— Sélectionner un patient —</option>
             <option *ngFor="let p of patients()" [ngValue]="p.id">
               {{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}
             </option>

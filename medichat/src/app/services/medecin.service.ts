@@ -58,6 +58,20 @@ export interface CreneauJour {
   heuresDebut: (string | number[])[];
 }
 
+export interface CongePublic {
+  id: number;
+  dateDebut: string;
+  dateFin: string;
+  motif: string | null;
+}
+
+export interface DisponibilitePublic {
+  id: number;
+  jour: string;
+  heureDebut: string | number[];
+  heureFin: string | number[];
+}
+
 export interface ProchainCreneau {
   date: string;
   heureDebut: string | number[];
@@ -161,5 +175,13 @@ export class MedecinService {
 
   deleteMedecin(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getCongesMedecin(medecinId: number): Observable<CongePublic[]> {
+    return this.http.get<CongePublic[]>(`${this.apiUrl}/${medecinId}/conges`);
+  }
+
+  getDisponibilitesMedecin(medecinId: number): Observable<DisponibilitePublic[]> {
+    return this.http.get<DisponibilitePublic[]>(`${this.apiUrl}/${medecinId}/disponibilites`);
   }
 }

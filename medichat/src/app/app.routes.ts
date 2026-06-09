@@ -30,6 +30,7 @@ import { MedecinAddPatient } from './pages/medecin/medecin-add-patient/medecin-a
 import { MedecinPatientsList } from './pages/medecin/medecin-patients-list/medecin-patients-list';
 import { MedecinRendezVous } from './pages/medecin/medecin-rendez-vous/medecin-rendez-vous';
 import { MedecinRdvNouveau } from './pages/medecin/medecin-rdv-nouveau/medecin-rdv-nouveau';
+import { MedecinDisponibilites } from './pages/medecin/medecin-disponibilites/medecin-disponibilites';
 import { PatientHome } from './pages/patient/patient-home/patient-home';
 import { PatientMedecins } from './pages/patient/patient-medecins/patient-medecins';
 import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-list';
@@ -96,6 +97,7 @@ export const routes: Routes = [
       { path: 'dossier-medical', component: MedecinDossierMedical },
       { path: 'consultation', component: MedecinConsultation },
       { path: 'ordonnance-pdf', component: MedecinOrdonnancePdf },
+      { path: 'disponibilites', component: MedecinDisponibilites },
       { path: 'notifications', component: NotificationsPage }
     ]
   },

@@ -3,13 +3,17 @@ package com.pfe.gestioncliniquebackend.service;
 import com.pfe.gestioncliniquebackend.dto.RendezVousCreateRequest;
 import com.pfe.gestioncliniquebackend.dto.RendezVousReporterRequest;
 import com.pfe.gestioncliniquebackend.dto.RendezVousResponse;
+import com.pfe.gestioncliniquebackend.entity.Disponibilite;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.RendezVous;
+import com.pfe.gestioncliniquebackend.enums.JourSemaine;
 import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.StatutRendezVous;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
+import com.pfe.gestioncliniquebackend.repository.CongeRepository;
+import com.pfe.gestioncliniquebackend.repository.DisponibiliteRepository;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
 import com.pfe.gestioncliniquebackend.repository.RendezVousRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +29,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RendezVousPatientService {
 
-    private final RendezVousRepository rendezVousRepository;
-    private final MedecinRepository medecinRepository;
-    private final PatientAccessService patientAccessService;
-    private final NotificationService notificationService;
+    private final RendezVousRepository   rendezVousRepository;
+    private final MedecinRepository      medecinRepository;
+    private final PatientAccessService   patientAccessService;
+    private final NotificationService    notificationService;
+    private final CongeRepository        congeRepository;
+    private final DisponibiliteRepository disponibiliteRepository;
 
     public List<RendezVousResponse> listerPourPatientConnecte() {
         Patient patient = patientAccessService.requireCurrentPatient();
@@ -66,6 +72,31 @@ public class RendezVousPatientService {
             LocalDateTime limite = LocalDateTime.of(date, debut);
             if (limite.isBefore(LocalDateTime.now())) {
                 throw new IllegalArgumentException("L'heure choisie est déjà passée aujourd'hui");
+            }
+        }
+
+        // Vérification congé
+        if (congeRepository.existsByMedecinIdAndDateDebutLessThanEqualAndDateFinGreaterThanEqual(
+                medecin.getId(), date, date)) {
+            throw new IllegalArgumentException(
+                    "Le médecin est en congé à cette date. Veuillez choisir une autre date.");
+        }
+
+        // Vérification disponibilité (seulement si le médecin a défini son planning)
+        List<Disponibilite> allDispos = disponibiliteRepository.findByMedecinId(medecin.getId());
+        if (!allDispos.isEmpty()) {
+            JourSemaine jourSemaine = JourSemaine.fromDayOfWeek(date.getDayOfWeek());
+            List<Disponibilite> disposJour = allDispos.stream()
+                    .filter(d -> d.getJour() == jourSemaine).toList();
+            if (disposJour.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Le médecin ne travaille pas ce jour de la semaine.");
+            }
+            boolean dansPlage = disposJour.stream().anyMatch(d ->
+                    !debut.isBefore(d.getHeureDebut()) && !fin.isAfter(d.getHeureFin()));
+            if (!dansPlage) {
+                throw new IllegalArgumentException(
+                        "Ce créneau n'est pas dans les horaires de travail du médecin.");
             }
         }
 

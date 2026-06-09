@@ -88,20 +88,16 @@ export class MedecinDossierMedical implements OnInit {
     this.medecinPortal.getMesPatients().subscribe({
       next: (list) => {
         this.patients.set(list ?? []);
-        const pick =
-          this.pendingPatientId != null
-            ? list.find((p) => p.id === this.pendingPatientId) ?? null
-            : null;
-        if (pick) {
-          this.patientId = pick.id;
-          this.pendingPatientId = null;
-          this.loadDossier();
-          return;
+        // Si un patientId est passé en query param, le sélectionner
+        if (this.pendingPatientId != null) {
+          const pick = list.find((p) => p.id === this.pendingPatientId) ?? null;
+          if (pick) {
+            this.patientId = pick.id;
+            this.pendingPatientId = null;
+            this.loadDossier();
+          }
         }
-        if (list[0]) {
-          this.patientId = list[0].id;
-          this.loadDossier();
-        }
+        // Sinon : aucune sélection automatique, formulaire reste vide
       },
       error: () => this.toast.show('Impossible de charger les patients.', 'error')
     });
@@ -109,6 +105,7 @@ export class MedecinDossierMedical implements OnInit {
 
   onPatientChange(): void {
     this.clearAutoSave();
+    this.form = emptyDossier();
     this.loadDossier();
   }
 
@@ -153,54 +150,40 @@ export class MedecinDossierMedical implements OnInit {
       this.toast.show('Sélectionnez un patient.', 'error');
       return;
     }
-
     this.saveInternal(true);
   }
 
   queueAutoSave(): void {
-    if (this.patientId == null || this.loadingDossier()) {
-      return;
-    }
+    if (this.patientId == null || this.loadingDossier()) return;
     this.hasPendingChanges = true;
     this.clearAutoSave();
     this.autoSaveTimer = setTimeout(() => {
-      if (!this.hasPendingChanges) {
-        return;
-      }
-      this.saveInternal(false);
+      if (this.hasPendingChanges) this.saveInternal(false);
     }, 800);
   }
 
   private saveInternal(showToast: boolean): void {
-    if (this.patientId == null) {
-      return;
-    }
+    if (this.patientId == null) return;
 
     this.savingDossier.set(true);
     this.dossierMedical.saveForPatient(this.patientId, this.form).subscribe({
-      next: (dossier) => {
-        this.form = { ...emptyDossier(), ...dossier };
+      next: () => {
         this.savingDossier.set(false);
         this.hasPendingChanges = false;
         if (showToast) {
           this.toast.show('Dossier enregistré dans la base.', 'success');
+          this.patientId = null;
+          this.form = emptyDossier();
         }
       },
       error: (err) => {
         this.savingDossier.set(false);
-        if (err instanceof HttpErrorResponse) {
-          const msg =
-            typeof err.error?.message === 'string' && err.error.message.trim()
-              ? err.error.message
-              : `Enregistrement impossible (erreur ${err.status}).`;
-          if (showToast) {
-            this.toast.show(msg, 'error');
-          }
-          return;
-        }
-        if (showToast) {
-          this.toast.show('Enregistrement impossible.', 'error');
-        }
+        if (!showToast) return;
+        const msg =
+          err instanceof HttpErrorResponse && typeof err.error?.message === 'string'
+            ? err.error.message
+            : 'Enregistrement impossible.';
+        this.toast.show(msg, 'error');
       }
     });
   }
@@ -213,12 +196,8 @@ export class MedecinDossierMedical implements OnInit {
   }
 
   reset(): void {
-    if (this.patientId == null) {
-      return;
-    }
-    if (!confirm('Effacer le brouillon de dossier pour ce patient ?')) {
-      return;
-    }
+    if (this.patientId == null) return;
+    if (!confirm('Effacer le brouillon de dossier pour ce patient ?')) return;
     this.form = emptyDossier();
     this.saveInternal(true);
   }

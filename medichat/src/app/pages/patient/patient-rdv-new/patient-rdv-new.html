@@ -1,4 +1,4 @@
-<div class="page">
+﻿<div class="page">
   <a class="back" routerLink="/patient-dashboard/medecins">← Retour</a>
 
   <h1 class="title">Nouveau rendez-vous</h1>
@@ -10,7 +10,7 @@
       <p class="muted">Chargement des médecins…</p>
     } @else if (catalogueError()) {
       <div class="card card--warn">
-        <p>Impossible de charger l’annuaire.</p>
+        <p>Impossible de charger l'annuaire.</p>
         <a routerLink="/patient-dashboard/medecins" class="link">Liste des médecins</a>
       </div>
     } @else if (catalogueMedecins().length === 0) {
@@ -50,67 +50,117 @@
         }
       </div>
 
-      @if (!estDisponible(doc)) {
-        <p class="warn-inline">Ce praticien n’accepte pas de nouvelles réservations.</p>
+      <!-- Horaires de travail -->
+      @if (disponibilitesMedecin().length > 0) {
+        <div class="info-section">
+          <span class="info-section-title">🕐 Horaires de consultation</span>
+          <div class="horaires-list">
+            @for (d of disponibilitesMedecin(); track d.id) {
+              <span class="horaire-chip">
+                <strong>{{ JOUR_LABELS[d.jour] ?? d.jour }}</strong>
+                &nbsp;{{ formatHeure(d.heureDebut) }}–{{ formatHeure(d.heureFin) }}
+              </span>
+            }
+          </div>
+        </div>
       }
 
-      <form (ngSubmit)="submit()">
-        @if (loadingCreneaux()) {
-          <p class="muted small">Recherche des créneaux disponibles…</p>
-        } @else if (joursDisponibles().length === 0) {
-          <div class="card card--warn rdv-no-slots">
-            <p>Aucun créneau disponible pour ce médecin sur les prochains jours.</p>
-          </div>
-        } @else {
-          <label class="field">
-            <span class="label">Date disponible</span>
-            <select
-              class="input select"
-              name="date"
-              [(ngModel)]="dateRendezVous"
-              (ngModelChange)="onDateChange()"
-              required
-            >
-              @for (jour of joursDisponibles(); track jour.date) {
-                <option [value]="jour.date">{{ formatDateOption(jour.date) }}</option>
-              }
-            </select>
-          </label>
-
-          <div class="field">
-            <span class="label">Horaires disponibles</span>
-            <div class="chips">
-              @for (h of slotsJour(); track $index) {
-                <button
-                  type="button"
-                  class="chip"
-                  [class.chip--on]="heureDebut === formatHeureChip(h)"
-                  (click)="choisirCreneau(h)"
-                >
-                  {{ formatHeureChip(h) }}
-                </button>
-              }
+      <!-- Congés à venir / en cours -->
+      @if (congesMedecin().length > 0) {
+        <div class="conge-banner">
+          <span class="conge-banner-title">⚠️ Congés planifiés</span>
+          @for (c of congesMedecin(); track c.id) {
+            <div class="conge-row">
+              <span>Du <strong>{{ formatDate(c.dateDebut) }}</strong> au <strong>{{ formatDate(c.dateFin) }}</strong></span>
+              @if (c.motif) { <span class="conge-motif"> · {{ c.motif }}</span> }
+              @if (isCongeActif(c)) { <span class="badge-actif">En cours</span> }
             </div>
-          </div>
-        }
-
-        @if (heureDebut) {
-          <div class="selected-slot">
-            Créneau choisi : <strong>{{ heureDebut }} - {{ heureFin }}</strong>
-          </div>
-        }
-
-        <div class="actions">
-          <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Annuler</a>
-          <button
-            type="submit"
-            class="btn btn-primary"
-            [disabled]="submitting() || doc.disponible === false || !creneauSelectionneDisponible()"
-          >
-            {{ submitting() ? 'Envoi…' : 'Confirmer' }}
-          </button>
+          }
         </div>
-      </form>
+      }
+
+      @if (!estDisponible(doc)) {
+        <p class="warn-inline">Ce praticien n'accepte pas de nouvelles réservations.</p>
+      }
+
+      @if (!showCreneaux()) {
+        <div class="creneau-cta-wrap">
+          @if (prochainDispoApresConge(); as nextDate) {
+            <p class="info-next-dispo">
+              Prochains créneaux disponibles à partir du <strong>{{ formatDate(nextDate) }}</strong>.
+            </p>
+          }
+          <div class="actions">
+            <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Annuler</a>
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="ouvrirCreneaux()"
+              [disabled]="!estDisponible(doc)"
+            >
+              🗓️ Choisir un créneau
+            </button>
+          </div>
+        </div>
+      } @else {
+        <form (ngSubmit)="submit()">
+          @if (loadingCreneaux()) {
+            <p class="muted small">Recherche des créneaux disponibles…</p>
+          } @else if (joursDisponibles().length === 0) {
+            <div class="card card--warn rdv-no-slots">
+              <p>Aucun créneau disponible pour ce médecin sur les prochains jours.</p>
+            </div>
+          } @else {
+            <label class="field">
+              <span class="label">Date disponible</span>
+              <select
+                class="input select"
+                name="date"
+                [(ngModel)]="dateRendezVous"
+                (ngModelChange)="onDateChange()"
+                required
+              >
+                @for (jour of joursDisponibles(); track jour.date) {
+                  <option [value]="jour.date">{{ formatDateOption(jour.date) }}</option>
+                }
+              </select>
+            </label>
+
+            <div class="field">
+              <span class="label">Horaires disponibles</span>
+              <div class="chips">
+                @for (h of slotsJour(); track $index) {
+                  <button
+                    type="button"
+                    class="chip"
+                    [class.chip--on]="heureDebut === formatHeureChip(h)"
+                    (click)="choisirCreneau(h)"
+                  >
+                    {{ formatHeureChip(h) }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (heureDebut) {
+            <div class="selected-slot">
+              Créneau choisi : <strong>{{ heureDebut }} - {{ heureFin }}</strong>
+            </div>
+          }
+
+          <div class="actions">
+            <a class="btn btn-ghost" routerLink="/patient-dashboard/medecins">Annuler</a>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="submitting() || doc.disponible === false || !creneauSelectionneDisponible()"
+            >
+              {{ submitting() ? 'Envoi...' : 'Confirmer' }}
+            </button>
+          </div>
+        </form>
+      }
     </div>
   }
 </div>
