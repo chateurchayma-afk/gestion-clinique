@@ -1,5 +1,6 @@
 package com.pfe.gestioncliniquebackend.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -53,4 +54,7 @@ public class MedecinFullUpdateRequest {
     private String certifications;
     private String departement;
     private String position;
+
+    @DecimalMin(value = "0.0", message = "Le prix de consultation doit être positif ou nul")
+    private Double prixConsultation;
 }

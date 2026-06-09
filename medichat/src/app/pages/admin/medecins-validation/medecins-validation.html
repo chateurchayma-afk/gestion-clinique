@@ -1,0 +1,87 @@
+<div class="val-page">
+
+  <!-- Header -->
+  <div class="val-header">
+    <div>
+      <h1 class="val-title">Validation des médecins</h1>
+      <p class="val-sub">Acceptez ou refusez les demandes d'inscription des médecins.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="val-state">
+      <div class="spinner"></div>
+      <p>Chargement…</p>
+    </div>
+  } @else if (medecins().length === 0) {
+    <div class="val-empty">
+      <span class="empty-icon">✅</span>
+      <p>Aucun médecin en attente de validation.</p>
+    </div>
+  } @else {
+    <div class="val-count">
+      <span class="count-badge">{{ medecins().length }}</span>
+      médecin(s) en attente
+    </div>
+
+    <div class="cards-grid">
+      @for (m of medecins(); track m.id) {
+        <div class="medecin-card" [class.card-saving]="savingId() === m.id">
+
+          <div class="card-top">
+            <div class="med-avatar">{{ initiales(m) }}</div>
+            <div class="med-info">
+              <span class="med-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</span>
+              <span class="med-specialite">{{ m.specialite?.nom || 'Spécialité non précisée' }}</span>
+            </div>
+            <span class="badge-attente">⏳ En attente</span>
+          </div>
+
+          <div class="card-details">
+            <div class="detail-row">
+              <span class="detail-icon">✉️</span>
+              <span>{{ m.utilisateur.email }}</span>
+            </div>
+            @if (m.utilisateur.telephone) {
+              <div class="detail-row">
+                <span class="detail-icon">📞</span>
+                <span>{{ m.utilisateur.telephone }}</span>
+              </div>
+            }
+            @if (m.experienceAnnees) {
+              <div class="detail-row">
+                <span class="detail-icon">🏥</span>
+                <span>{{ m.experienceAnnees }} ans d'expérience</span>
+              </div>
+            }
+            @if (m.matricule) {
+              <div class="detail-row">
+                <span class="detail-icon">🪪</span>
+                <span>Matricule : {{ m.matricule }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="card-actions">
+            <button
+              class="btn-accepter"
+              (click)="valider(m)"
+              [disabled]="savingId() === m.id"
+            >
+              ✔ Accepter
+            </button>
+            <button
+              class="btn-refuser"
+              (click)="refuser(m)"
+              [disabled]="savingId() === m.id"
+            >
+              ✖ Refuser
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

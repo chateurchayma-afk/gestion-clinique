@@ -104,7 +104,7 @@
                       {{ m.disponible ? 'Disponible' : 'Indisponible' }}
                     </span>
                   </td>
-                  <td>{{ m.prixConsultation || '-' }} DZD</td>
+                  <td>{{ m.prixConsultation != null ? (m.prixConsultation | number:'1.0-2') + ' DT' : '-' }}</td>
                   <td class="catalog-td-action">
                     <div
                       class="catalog-action-btns"

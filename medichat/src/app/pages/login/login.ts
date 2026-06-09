@@ -26,6 +26,7 @@ export class Login implements OnInit, AfterViewInit {
   email = '';
   motDePasse = '';
   errorMessage = '';
+  pendingMessage = '';
   googleLoading = signal(false);
   /** Évite un double rendu du widget Google sur l’écran d’accueil. */
   private googleWelcomeMounted = false;
@@ -43,6 +44,7 @@ export class Login implements OnInit, AfterViewInit {
         this.showForm.set(true);
         this.guardHint = '';
         this.errorMessage = '';
+        this.pendingMessage = '';
         this.email = '';
         this.motDePasse = '';
         this.googleWelcomeMounted = false;
@@ -159,6 +161,7 @@ export class Login implements OnInit, AfterViewInit {
 
   onLogin() {
     this.errorMessage = '';
+    this.pendingMessage = '';
     const data = {
       email: this.email.trim().toLowerCase(),
       motDePasse: this.motDePasse,
@@ -166,9 +169,25 @@ export class Login implements OnInit, AfterViewInit {
 
     this.authService.login(data).subscribe({
       next: (response) => {
+        const role = (response?.role ?? '').toString().trim().toUpperCase();
+        const token = response?.token ?? null;
+        const message: string = (response?.message ?? '').toString().trim();
+
+        // Pas de token = login bloqué (EN_ATTENTE, REFUSE, mauvais credentials)
+        if (!token || !role) {
+          const msgLower = message.toLowerCase();
+          if (msgLower.includes('attente') || msgLower.includes('validation')) {
+            this.pendingMessage = message || 'Votre compte est en attente de validation par l\'administrateur.';
+          } else if (msgLower.includes('refus')) {
+            this.errorMessage = message || 'Votre compte a été refusé. Contactez l\'administrateur.';
+          } else {
+            this.errorMessage = message || 'Email ou mot de passe incorrect';
+          }
+          return;
+        }
+
         localStorage.setItem('user', JSON.stringify(response));
 
-        const role = (response?.role ?? '').toString().trim().toUpperCase();
         if (role === 'ADMIN') {
           const ru = this.returnUrl;
           if (ru && /^[a-zA-Z0-9/_-]+$/.test(ru)) {
@@ -190,7 +209,6 @@ export class Login implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        console.error(error);
         const body = error?.error;
         if (typeof body?.message === 'string') {
           this.errorMessage = body.message;

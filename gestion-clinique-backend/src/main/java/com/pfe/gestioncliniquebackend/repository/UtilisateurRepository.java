@@ -15,4 +15,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     boolean existsByEmailAndIdNot(String email, Long id);
 
     long countByRole(Role role);
+
+    java.util.List<Utilisateur> findAllByRole(Role role);
 }

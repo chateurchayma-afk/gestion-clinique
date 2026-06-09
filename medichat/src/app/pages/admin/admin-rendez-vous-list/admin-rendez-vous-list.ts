@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../core/toast.service';
 import {
@@ -63,7 +63,7 @@ function normalizeHeureAffichage(raw: unknown): string {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-rendez-vous-list.html',
-  styleUrls: ['../admin-dashboard/admin-dashboard.css', './admin-rendez-vous-list.css']
+  styleUrls: ['./admin-rendez-vous-list.css']
 })
 export class AdminRendezVousList implements OnInit {
   private readonly adminRdv = inject(AdminRendezVousService);
@@ -74,6 +74,17 @@ export class AdminRendezVousList implements OnInit {
   readonly savingId = signal<number | null>(null);
 
   filtreStatut: '' | StatutRendezVousAdmin = '';
+  readonly searchQuery = signal('');
+
+  readonly filteredRows = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return this.rows();
+    return this.rows().filter((r) => {
+      const patient = `${r.patientPrenom ?? ''} ${r.patientNom ?? ''}`.toLowerCase();
+      const medecin = `${r.medecinPrenom ?? ''} ${r.medecinNom ?? ''}`.toLowerCase();
+      return patient.includes(q) || medecin.includes(q);
+    });
+  });
 
   readonly statutOptions: { value: StatutRendezVousAdmin; label: string }[] = [
     { value: 'EN_ATTENTE', label: 'En attente' },
@@ -162,6 +173,16 @@ export class AdminRendezVousList implements OnInit {
       default:
         return 'pill pill-wait';
     }
+  }
+
+  countStatut(s: StatutRendezVousAdmin): number {
+    return this.rows().filter((r) => r.statut === s).length;
+  }
+
+  initiales(prenom: string | null | undefined, nom: string | null | undefined): string {
+    const p = (prenom ?? '').trim().charAt(0).toUpperCase();
+    const n = (nom ?? '').trim().charAt(0).toUpperCase();
+    return `${p}${n}` || '?';
   }
 
   onStatutChange(r: AdminRendezVousPlanningItem, nouveau: StatutRendezVousAdmin): void {

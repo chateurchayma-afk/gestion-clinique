@@ -222,6 +222,12 @@
           <dt>Statut</dt>
           <dd>{{ labelStatut(rdv.statut) }}</dd>
         </div>
+        @if (rdv.prixConsultation != null) {
+          <div>
+            <dt>Prix de consultation</dt>
+            <dd>{{ rdv.prixConsultation | number:'1.0-2' }} DT</dd>
+          </div>
+        }
       </dl>
     </div>
     <div class="modal-actions modal-actions--split">

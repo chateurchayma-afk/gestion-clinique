@@ -6,6 +6,7 @@ import com.pfe.gestioncliniquebackend.dto.MedecinValidationRequest;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
@@ -26,6 +27,7 @@ public class MedecinService {
     private final MedecinRepository medecinRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final SpecialiteRepository specialiteRepository;
+    private final NotificationService notificationService;
     
 
     public List<Medecin> getAllMedecins() {
@@ -65,7 +67,25 @@ public class MedecinService {
         }
 
         medecin.setStatutValidation(nouveau);
-        return medecinRepository.save(medecin);
+        Medecin saved = medecinRepository.save(medecin);
+
+        String nomComplet = "Dr. " + medecin.getUtilisateur().getPrenom() + " " + medecin.getUtilisateur().getNom();
+        if (nouveau == StatutValidationMedecin.VALIDE) {
+            notificationService.createForUser(
+                    medecin.getUtilisateur(),
+                    NotificationType.ALERTE_SYSTEME,
+                    "Compte validé",
+                    "Votre compte médecin a été validé. Vous pouvez maintenant vous connecter et accéder à votre espace."
+            );
+        } else if (nouveau == StatutValidationMedecin.REFUSE) {
+            notificationService.createForUser(
+                    medecin.getUtilisateur(),
+                    NotificationType.ALERTE_SYSTEME,
+                    "Compte refusé",
+                    "Votre demande d'inscription a été refusée. Veuillez contacter l'administrateur pour plus d'informations."
+            );
+        }
+        return saved;
     }
 
     public Medecin ajouterMedecinComplet(MedecinRequest request) {
@@ -160,6 +180,7 @@ public class MedecinService {
         if (req.getDisponible() != null) {
             medecin.setDisponible(req.getDisponible());
         }
+        medecin.setPrixConsultation(req.getPrixConsultation());
 
         return medecinRepository.save(medecin);
     }

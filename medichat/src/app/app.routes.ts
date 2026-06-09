@@ -16,6 +16,7 @@ import { AddSpecialite } from './pages/admin/add-specialite/add-specialite';
 
 import { PlanningMedecins } from './pages/admin/planning-medecins/planning-medecins';
 import { AdminRendezVousList } from './pages/admin/admin-rendez-vous-list/admin-rendez-vous-list';
+import { MedecinsValidation } from './pages/admin/medecins-validation/medecins-validation';
 import { DashboardShell } from './layout/dashboard-shell';
 import { ADMIN_SHELL, MEDECIN_SHELL, PATIENT_SHELL } from './layout/dashboard-shell.config';
 import { NotFound } from './pages/not-found/not-found';
@@ -75,6 +76,7 @@ export const routes: Routes = [
       { path: 'planning-medecins', component: PlanningMedecins },
       { path: 'rendez-vous', pathMatch: 'full', redirectTo: 'rdv' },
       { path: 'rdv', component: AdminRendezVousList },
+      { path: 'medecins-validation', component: MedecinsValidation },
       { path: 'notifications', component: NotificationsPage }
     ]
   },

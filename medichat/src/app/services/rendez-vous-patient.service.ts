@@ -18,6 +18,7 @@ export interface RendezVousPatient {
   modeConsultation: ModeConsultation;
   motif: string | null;
   statut: StatutRendezVous;
+  prixConsultation: number | null;
 }
 
 export interface RendezVousCreatePayload {

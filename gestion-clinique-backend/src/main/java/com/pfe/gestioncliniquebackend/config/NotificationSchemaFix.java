@@ -19,6 +19,11 @@ public class NotificationSchemaFix implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        fixIsReadColumn();
+        fixTypeEnum();
+    }
+
+    private void fixIsReadColumn() {
         try {
             if (!columnExists("notification", "is_read")) {
                 jdbcTemplate.execute(
@@ -31,7 +36,28 @@ public class NotificationSchemaFix implements ApplicationRunner {
                 log.info("Schema fix: notification.lu synchronise vers is_read.");
             }
         } catch (Exception ex) {
-            log.warn("NotificationSchemaFix non applique: {}", ex.getMessage());
+            log.warn("NotificationSchemaFix (is_read) non applique: {}", ex.getMessage());
+        }
+    }
+
+    private void fixTypeEnum() {
+        try {
+            jdbcTemplate.execute(
+                "ALTER TABLE notification MODIFY COLUMN `type` ENUM(" +
+                "'ALERTE_SYSTEME'," +
+                "'CONSULTATION_TERMINEE'," +
+                "'NOUVEAU_MEDECIN'," +
+                "'NOUVEAU_PATIENT'," +
+                "'NOUVEAU_RENDEZ_VOUS'," +
+                "'ORDONNANCE_CREEE'," +
+                "'PROFIL_MODIFIE'," +
+                "'RAPPEL_TRAITEMENT'," +
+                "'RENDEZ_VOUS_ANNULE'" +
+                ") DEFAULT NULL"
+            );
+            log.info("Schema fix: notification.type ENUM mis a jour avec toutes les valeurs.");
+        } catch (Exception ex) {
+            log.warn("NotificationSchemaFix (type enum) non applique: {}", ex.getMessage());
         }
     }
 

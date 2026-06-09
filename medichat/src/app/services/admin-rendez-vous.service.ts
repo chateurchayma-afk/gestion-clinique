@@ -21,6 +21,7 @@ export interface AdminRendezVousPlanningItem {
   medecinPrenom: string;
   /** Annulation depuis l’espace patient : l’admin ne peut pas réactiver ce rendez-vous. */
   annuleParPatient?: boolean;
+  prixConsultation?: number | null;
 }
 
 export type StatutRendezVousAdmin = 'EN_ATTENTE' | 'CONFIRME' | 'ANNULE' | 'TERMINE';

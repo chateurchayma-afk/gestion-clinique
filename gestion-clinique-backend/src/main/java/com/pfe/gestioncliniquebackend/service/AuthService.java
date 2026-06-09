@@ -11,6 +11,7 @@ import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.Specialite;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.MethodeContact;
+import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.Sexe;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
@@ -38,6 +39,7 @@ public class AuthService {
     private final SpecialiteRepository specialiteRepository;
     
     private final JwtService jwtService;
+    private final NotificationService notificationService;
 
     public String registerPatient(RegisterRequest request) {
         if (request.getNom() == null || request.getNom().trim().isEmpty()) {
@@ -150,6 +152,14 @@ public class AuthService {
 
         medecinRepository.save(medecin);
 
+        notificationService.createForRole(
+                Role.ADMIN,
+                NotificationType.NOUVEAU_MEDECIN,
+                "Nouveau médecin inscrit",
+                "Dr. " + savedUser.getPrenom() + " " + savedUser.getNom() +
+                " vient de créer un compte médecin. Son dossier est en attente de validation."
+        );
+
         return "Médecin créé avec succès";
     }
 
@@ -228,9 +238,19 @@ public class AuthService {
                 .statutValidation(StatutValidationMedecin.EN_ATTENTE)
                 .disponible(request.getDisponible() != null ? request.getDisponible() : true)
                 .specialite(specialite)
+                .prixConsultation(request.getPrixConsultation())
                 .build();
 
         medecinRepository.save(medecin);
+
+        String specialiteNom = medecin.getSpecialite() != null ? medecin.getSpecialite().getNom() : "non précisée";
+        notificationService.createForRole(
+                Role.ADMIN,
+                NotificationType.NOUVEAU_MEDECIN,
+                "Nouveau médecin inscrit",
+                "Dr. " + savedUser.getPrenom() + " " + savedUser.getNom() +
+                " (spécialité : " + specialiteNom + ") vient de créer un compte. Son dossier est en attente de validation."
+        );
 
         return "Médecin créé avec succès";
     }
@@ -294,6 +314,24 @@ public class AuthService {
             return new AuthResponse("Mot de passe incorrect", null, null, null, null, null, null);
         }
 
+        if (user.getRole() == Role.MEDECIN) {
+            Optional<com.pfe.gestioncliniquebackend.entity.Medecin> medecin =
+                    medecinRepository.findByUtilisateurId(user.getId());
+            if (medecin.isPresent()) {
+                StatutValidationMedecin statut = medecin.get().getStatutValidation();
+                if (statut == StatutValidationMedecin.EN_ATTENTE || statut == null) {
+                    return new AuthResponse(
+                            "Votre compte est en attente de validation par l'administrateur.",
+                            null, null, null, null, null, null);
+                }
+                if (statut == StatutValidationMedecin.REFUSE) {
+                    return new AuthResponse(
+                            "Votre compte a été refusé. Veuillez contacter l'administrateur.",
+                            null, null, null, null, null, null);
+                }
+            }
+        }
+
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
         return new AuthResponse(
@@ -305,6 +343,20 @@ public class AuthService {
                 user.getNom(),
                 user.getPrenom()
         );
+    }
+
+    @Transactional
+    public void resetPassword(String email, String newPassword) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("L'adresse e-mail est obligatoire");
+        }
+        if (newPassword == null || newPassword.trim().length() < 6) {
+            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caractères");
+        }
+        Utilisateur user = utilisateurRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new IllegalArgumentException("Aucun compte trouvé avec cet email"));
+        user.setMotDePasse(newPassword.trim());
+        utilisateurRepository.save(user);
     }
 
     private static String normalizeOptional(String value) {

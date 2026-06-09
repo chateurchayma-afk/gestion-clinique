@@ -6,6 +6,7 @@ import com.pfe.gestioncliniquebackend.dto.LoginRequest;
 import com.pfe.gestioncliniquebackend.dto.MedecinCreationRequest;
 import com.pfe.gestioncliniquebackend.dto.RegisterAdminRequest;
 import com.pfe.gestioncliniquebackend.dto.RegisterRequest;
+import com.pfe.gestioncliniquebackend.dto.ResetPasswordRequest;
 import com.pfe.gestioncliniquebackend.service.AuthService;
 import com.pfe.gestioncliniquebackend.service.GoogleAuthService;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -88,6 +89,18 @@ public class AuthController {
      * POST /api/auth/google
      * Body: { "token": "google_id_token" }
      */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getEmail(), request.getNewPassword());
+            return ResponseEntity.ok("Mot de passe mis à jour avec succès");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erreur lors de la réinitialisation du mot de passe");
+        }
+    }
+
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> authenticateGoogle(@RequestBody GoogleAuthRequest request) {
         try {

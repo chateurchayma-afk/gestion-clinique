@@ -27,4 +27,5 @@ public class RendezVousResponse {
     private ModeConsultation modeConsultation;
     private String motif;
     private StatutRendezVous statut;
+    private Double prixConsultation;
 }

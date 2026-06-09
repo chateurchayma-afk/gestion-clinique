@@ -115,6 +115,7 @@ public class AdminRendezVousService {
                 .modeConsultation(req.getModeConsultation())
                 .motif(motif)
                 .statut(StatutRendezVous.EN_ATTENTE)
+                .prixConsultation(medecin.getPrixConsultation())
                 .build();
 
         RendezVous saved = rendezVousRepository.save(rdv);
@@ -190,6 +191,7 @@ public class AdminRendezVousService {
                 .medecinNom(r.getMedecin().getUtilisateur().getNom())
                 .medecinPrenom(r.getMedecin().getUtilisateur().getPrenom())
                 .annuleParPatient(r.isAnnuleParPatient())
+                .prixConsultation(r.getPrixConsultation())
                 .build();
     }
 }

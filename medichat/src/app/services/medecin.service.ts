@@ -89,6 +89,7 @@ export interface MedecinFullUpdatePayload {
   certifications?: string | null;
   departement?: string | null;
   position?: string | null;
+  prixConsultation?: number | null;
 }
 
 @Injectable({

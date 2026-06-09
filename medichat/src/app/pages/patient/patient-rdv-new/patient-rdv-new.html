@@ -41,6 +41,13 @@
           <strong>Dr. {{ doc.utilisateur.prenom }} {{ doc.utilisateur.nom }}</strong>
           <span class="muted"> · {{ doc.specialite?.nom ?? 'Consultation' }}</span>
         </div>
+        @if (doc.prixConsultation != null) {
+          <div class="prix-tag">
+            💰 {{ doc.prixConsultation | number:'1.0-2' }} DT
+          </div>
+        } @else {
+          <div class="prix-tag prix-tag--none">Prix non spécifié</div>
+        }
       </div>
 
       @if (!estDisponible(doc)) {

@@ -33,6 +33,7 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
   telephone = '';
   motDePasse = '';
   adresse = '';
+  prixConsultation = '';
   message = '';
   errorMessage = '';
 
@@ -93,13 +94,15 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
       return;
     }
 
+    const prix = this.prixConsultation.trim();
     const data = {
       nom: this.nom.trim(),
       prenom: this.prenom.trim(),
       email: this.email.trim().toLowerCase(),
       motDePasse: this.motDePasse,
       telephone: this.telephone.trim(),
-      specialiteId: parseInt(this.specialiteId, 10)
+      specialiteId: parseInt(this.specialiteId, 10),
+      prixConsultation: prix !== '' ? parseFloat(prix) : null
     };
 
     this.authService.registerMedecin(data).subscribe({

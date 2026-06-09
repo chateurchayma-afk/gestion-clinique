@@ -276,6 +276,17 @@
               <textarea formControlName="biographie" rows="4" placeholder="Résumé professionnel, publications, etc."></textarea>
             </div>
           </div>
+
+          <div class="sub-section">
+            <h3>Tarification</h3>
+            <div class="field">
+              <label>Prix de consultation (DT)</label>
+              <input type="number" formControlName="prixConsultation" min="0" step="0.5" placeholder="Ex : 50" />
+              <span class="error" *ngIf="medecinForm.get('prixConsultation')?.errors?.['min']">
+                Le prix doit être positif ou nul.
+              </span>
+            </div>
+          </div>
         </div>
 
       </div>

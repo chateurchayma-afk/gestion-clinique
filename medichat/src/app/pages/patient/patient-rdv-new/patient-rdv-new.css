@@ -82,6 +82,25 @@
   font-weight: 800;
 }
 
+.prix-tag {
+  margin-top: 8px;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  border-radius: 20px;
+  padding: 3px 12px;
+}
+
+.prix-tag--none {
+  color: var(--muted);
+  background: #f1f5f9;
+  border-color: var(--line);
+  font-weight: 500;
+}
+
 .warn-inline {
   margin: 0 0 16px;
   padding: 10px 12px;

@@ -6,11 +6,16 @@
         <h1>Liste des médecins</h1>
         <p>Gérez les médecins de votre clinique</p>
       </div>
-
-      <button class="primary-btn" routerLink="/admin/add-medecin">
-        + Ajouter un médecin
-      </button>
+      <button class="primary-btn" routerLink="/admin/add-medecin">+ Ajouter un médecin</button>
     </div>
+
+    <!-- Pending alert -->
+    @if (pendingCount() > 0) {
+      <div class="pending-alert">
+        <span class="pending-icon">⏳</span>
+        <span><strong>{{ pendingCount() }}</strong> médecin(s) en attente de validation</span>
+      </div>
+    }
 
     <div class="card">
       <div class="toolbar">
@@ -21,62 +26,66 @@
         />
       </div>
 
-      <div *ngIf="loading()" class="state">Chargement...</div>
-
-      <div *ngIf="!loading() && filteredMedecins().length === 0" class="state">
-        Aucun médecin trouvé
-      </div>
-
-      <div class="table-wrapper" *ngIf="!loading() && filteredMedecins().length > 0">
-        <table>
-          <thead>
-            <tr>
-              <th>Nom</th>
-              <th>Spécialité</th>
-              <th>Statut</th>
-              <th>Email</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr *ngFor="let m of filteredMedecins()">
-              <td>
-                <div class="doctor">
-                  <div class="avatar">
-                    {{ m.utilisateur.prenom.charAt(0) }}{{ m.utilisateur.nom.charAt(0) }}
-                  </div>
-
-                  <div>
-                    <strong>
-                      Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}
-                    </strong>
-                  </div>
-                </div>
-              </td>
-
-              <td>
-                {{ m.specialite?.nom || 'Non définie' }}
-              </td>
-
-
-              <td>
-                <span class="status"
-                  [class.active]="m.disponible"
-                  [class.inactive]="!m.disponible">
-                  {{ m.disponible ? 'Disponible' : 'Indisponible' }}
-                </span>
-              </td>
-
-              <td>{{ m.utilisateur.email }}</td>
-              <td class="actions-cell">
-                <a class="link-edit" [routerLink]="['/admin/edit-medecin', m.id]">Modifier</a>
-                <button type="button" class="link-danger" (click)="deleteMedecin(m, $event)">Supprimer</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      @if (loading()) {
+        <div class="state">Chargement...</div>
+      } @else if (filteredMedecins().length === 0) {
+        <div class="state">Aucun médecin trouvé</div>
+      } @else {
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Spécialité</th>
+                <th>Validation</th>
+                <th>Disponibilité</th>
+                <th>Email</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of filteredMedecins(); track m.id) {
+                <tr [class.row-pending]="m.statutValidation === 'EN_ATTENTE' || !m.statutValidation">
+                  <td>
+                    <div class="doctor">
+                      <div class="avatar">{{ m.utilisateur.prenom.charAt(0) }}{{ m.utilisateur.nom.charAt(0) }}</div>
+                      <strong>Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</strong>
+                    </div>
+                  </td>
+                  <td>{{ m.specialite?.nom || 'Non définie' }}</td>
+                  <td>
+                    <span class="validation-badge" [class]="validationClass(m.statutValidation)">
+                      {{ validationLabel(m.statutValidation) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status" [class.active]="m.disponible" [class.inactive]="!m.disponible">
+                      {{ m.disponible ? 'Disponible' : 'Indisponible' }}
+                    </span>
+                  </td>
+                  <td>{{ m.utilisateur.email }}</td>
+                  <td class="actions-cell">
+                    @if (m.statutValidation === 'EN_ATTENTE' || !m.statutValidation) {
+                      <button
+                        class="btn-valider"
+                        (click)="valider(m)"
+                        [disabled]="savingId() === m.id"
+                      >✔ Accepter</button>
+                      <button
+                        class="btn-refuser"
+                        (click)="refuser(m)"
+                        [disabled]="savingId() === m.id"
+                      >✖ Refuser</button>
+                    }
+                    <a class="link-edit" [routerLink]="['/admin/edit-medecin', m.id]">Modifier</a>
+                    <button type="button" class="link-danger" (click)="deleteMedecin(m, $event)">Supprimer</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
 
   </div>

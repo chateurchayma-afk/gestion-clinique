@@ -27,7 +27,11 @@
               {{ estDisponible(m) ? 'Disponible pour rendez-vous' : 'Réservation fermée' }}
             </span>
             <span class="pill pill--price">
-              Prix de consultation : {{ m.prixConsultation || 'Non spécifié' }} DZD
+              @if (m.prixConsultation != null) {
+                Prix de consultation : {{ m.prixConsultation | number:'1.0-2' }} DT
+              } @else {
+                Prix de consultation : Non spécifié
+              }
             </span>
           </div>
         </div>

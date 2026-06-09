@@ -78,7 +78,8 @@ export class AddMedecin implements OnInit {
       certifications: [''],
       departement: [''],
       position: [''],
-      biographie: ['']
+      biographie: [''],
+      prixConsultation: [null as number | null, [Validators.min(0)]]
     });
   }
 
@@ -152,7 +153,8 @@ export class AddMedecin implements OnInit {
       formation: '',
       certifications: '',
       departement: '',
-      position: ''
+      position: '',
+      prixConsultation: m.prixConsultation ?? null
     });
   }
 
@@ -217,7 +219,8 @@ export class AddMedecin implements OnInit {
         departement: v.departement?.trim() || null,
         position: v.position?.trim() || null,
         specialiteId,
-        disponible: this.disponibleSnapshot
+        disponible: this.disponibleSnapshot,
+        prixConsultation: v.prixConsultation != null && v.prixConsultation !== '' ? parseFloat(String(v.prixConsultation)) : null
       };
 
       this.medecinService.updateMedecin(this.medecinId, payload).subscribe({

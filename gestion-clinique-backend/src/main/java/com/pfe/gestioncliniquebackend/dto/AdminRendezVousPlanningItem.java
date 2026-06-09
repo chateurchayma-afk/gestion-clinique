@@ -41,4 +41,6 @@ public class AdminRendezVousPlanningItem {
 
     /** Indique une annulation initiée par le patient (non réactivable par l’admin). */
     private boolean annuleParPatient;
+
+    private Double prixConsultation;
 }

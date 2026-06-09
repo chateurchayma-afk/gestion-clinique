@@ -7,6 +7,7 @@ import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.RendezVous;
 import com.pfe.gestioncliniquebackend.enums.NotificationType;
+import com.pfe.gestioncliniquebackend.enums.Role;
 import com.pfe.gestioncliniquebackend.enums.StatutRendezVous;
 import com.pfe.gestioncliniquebackend.enums.StatutValidationMedecin;
 import com.pfe.gestioncliniquebackend.repository.MedecinRepository;
@@ -84,6 +85,7 @@ public class RendezVousPatientService {
                 .modeConsultation(req.getModeConsultation())
                 .motif(motif)
                 .statut(StatutRendezVous.EN_ATTENTE)
+                .prixConsultation(medecin.getPrixConsultation())
                 .build();
 
         RendezVous saved = rendezVousRepository.save(rdv);
@@ -149,25 +151,31 @@ public class RendezVousPatientService {
         rendezVousRepository.delete(rdv);
     }
 
-        private void notifyCreation(RendezVous rdv) {
+    private void notifyCreation(RendezVous rdv) {
         String date = rdv.getDateRendezVous().toString();
         String time = rdv.getHeureDebut().toString();
         String patientName = rdv.getPatient().getUtilisateur().getPrenom() + " " + rdv.getPatient().getUtilisateur().getNom();
         String medecinName = rdv.getMedecin().getUtilisateur().getPrenom() + " " + rdv.getMedecin().getUtilisateur().getNom();
 
         notificationService.createForUser(
-            rdv.getPatient().getUtilisateur(),
-            NotificationType.NOUVEAU_RENDEZ_VOUS,
-            "Nouveau rendez-vous",
-            "Votre rendez-vous avec Dr. " + medecinName + " le " + date + " a " + time + "."
+                rdv.getPatient().getUtilisateur(),
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Nouveau rendez-vous",
+                "Votre rendez-vous avec Dr. " + medecinName + " le " + date + " à " + time + "."
         );
         notificationService.createForUser(
-            rdv.getMedecin().getUtilisateur(),
-            NotificationType.NOUVEAU_RENDEZ_VOUS,
-            "Nouveau rendez-vous",
-            "Nouveau rendez-vous avec " + patientName + " le " + date + " a " + time + "."
+                rdv.getMedecin().getUtilisateur(),
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Nouveau rendez-vous",
+                "Nouveau rendez-vous avec " + patientName + " le " + date + " à " + time + "."
         );
-        }
+        notificationService.createForRole(
+                Role.ADMIN,
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Nouveau rendez-vous",
+                patientName + " a pris rendez-vous avec Dr. " + medecinName + " le " + date + " à " + time + "."
+        );
+    }
 
     private void notifyReport(RendezVous rdv) {
         String date = rdv.getDateRendezVous().toString();
@@ -187,27 +195,39 @@ public class RendezVousPatientService {
                 "Rendez-vous reporté",
                 patientName + " a reporté son rendez-vous au " + date + " à " + time + "."
         );
+        notificationService.createForRole(
+                Role.ADMIN,
+                NotificationType.NOUVEAU_RENDEZ_VOUS,
+                "Rendez-vous reporté",
+                patientName + " a reporté son rendez-vous avec Dr. " + medecinName + " au " + date + " à " + time + "."
+        );
     }
 
-        private void notifyCancel(RendezVous rdv) {
+    private void notifyCancel(RendezVous rdv) {
         String date = rdv.getDateRendezVous().toString();
         String time = rdv.getHeureDebut().toString();
         String patientName = rdv.getPatient().getUtilisateur().getPrenom() + " " + rdv.getPatient().getUtilisateur().getNom();
         String medecinName = rdv.getMedecin().getUtilisateur().getPrenom() + " " + rdv.getMedecin().getUtilisateur().getNom();
 
         notificationService.createForUser(
-            rdv.getPatient().getUtilisateur(),
-            NotificationType.RENDEZ_VOUS_ANNULE,
-            "Rendez-vous annule",
-            "Votre rendez-vous avec Dr. " + medecinName + " le " + date + " a " + time + " a ete annule."
+                rdv.getPatient().getUtilisateur(),
+                NotificationType.RENDEZ_VOUS_ANNULE,
+                "Rendez-vous annulé",
+                "Votre rendez-vous avec Dr. " + medecinName + " le " + date + " à " + time + " a été annulé."
         );
         notificationService.createForUser(
-            rdv.getMedecin().getUtilisateur(),
-            NotificationType.RENDEZ_VOUS_ANNULE,
-            "Rendez-vous annule",
-            "Rendez-vous annule avec " + patientName + " le " + date + " a " + time + "."
+                rdv.getMedecin().getUtilisateur(),
+                NotificationType.RENDEZ_VOUS_ANNULE,
+                "Rendez-vous annulé",
+                patientName + " a annulé son rendez-vous du " + date + " à " + time + "."
         );
-        }
+        notificationService.createForRole(
+                Role.ADMIN,
+                NotificationType.RENDEZ_VOUS_ANNULE,
+                "Rendez-vous annulé",
+                patientName + " a annulé son rendez-vous avec Dr. " + medecinName + " du " + date + " à " + time + "."
+        );
+    }
 
     private RendezVousResponse toResponse(RendezVous r) {
         Medecin m = r.getMedecin();
@@ -224,6 +244,7 @@ public class RendezVousPatientService {
                 .modeConsultation(r.getModeConsultation())
                 .motif(r.getMotif())
                 .statut(r.getStatut())
+                .prixConsultation(r.getPrixConsultation())
                 .build();
     }
 

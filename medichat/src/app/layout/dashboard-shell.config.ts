@@ -41,11 +41,12 @@ export const ADMIN_SHELL: DashboardShellConfig = {
         { label: '📊 Tableau de bord', path: '/admin/dashboard', exact: true },
         { label: '👤 Mon profil', path: '/admin/mon-profil', exact: true },
         { label: '👨‍⚕️ Liste des médecins', path: '/admin/medecins' },
+        { label: '✅ Validation médecins', path: '/admin/medecins-validation' },
         { label: '➕ Ajouter un médecin', path: '/admin/add-medecin' },
         { label: '🗓️ Planning des médecins', path: '/admin/planning-medecins' },
         { label: '👥 Liste des patients', path: '/admin/patients' },
         { label: '➕ Ajouter un patient', path: '/admin/add-patient' },
-        { label: '📅 Rendez-vous', path: '/admin/rdv' },
+        { label: '📅 Gérer rendez-vous', path: '/admin/rdv' },
         { label: '🩺 Liste des spécialités', path: '/admin/specialites' }
       ]
     }

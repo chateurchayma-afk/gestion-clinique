@@ -150,6 +150,18 @@ public class NotificationService {
         notificationRepository.save(buildNotification(user, type, title, message));
     }
 
+    @Transactional
+    public void createForRole(Role role, NotificationType type, String title, String message) {
+        List<Utilisateur> users = utilisateurRepository.findAllByRole(role);
+        if (users.isEmpty()) {
+            return;
+        }
+        List<Notification> notifs = users.stream()
+                .map(u -> buildNotification(u, type, title, message))
+                .toList();
+        notificationRepository.saveAll(notifs);
+    }
+
     private Notification buildNotification(Utilisateur user, NotificationType type, String title, String message) {
         String t = title == null ? "" : title.trim();
         String m = message == null ? "" : message.trim();

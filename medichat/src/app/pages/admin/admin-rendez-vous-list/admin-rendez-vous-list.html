@@ -1,12 +1,76 @@
-<div class="admin-rdv-page">
-    <p class="admin-page-lead muted">Liste complète — modifiez le statut de chaque demande.</p>
+<div class="rdv-page">
 
-    <section class="card validation-card">
-      <div class="card-header">
-        <h3>Tous les rendez-vous</h3>
-        <label class="rdv-filter">
-          <span>Filtrer par statut</span>
+  <!-- Header -->
+  <div class="rdv-page-header">
+    <div class="rdv-header-text">
+      <h1 class="rdv-page-title">Gérer les rendez-vous</h1>
+      <p class="rdv-page-sub">Consultez, confirmez ou annulez les demandes des patients.</p>
+    </div>
+    <div class="rdv-header-actions">
+      <button class="btn-reload" (click)="reload()" [disabled]="loading()">
+        <span class="reload-icon">↻</span> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  @if (!loading()) {
+    <div class="rdv-stats-strip">
+      <div class="stat-chip stat-total">
+        <span class="stat-num">{{ rows().length }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-chip stat-attente">
+        <span class="stat-num">{{ countStatut('EN_ATTENTE') }}</span>
+        <span class="stat-label">En attente</span>
+      </div>
+      <div class="stat-chip stat-confirme">
+        <span class="stat-num">{{ countStatut('CONFIRME') }}</span>
+        <span class="stat-label">Confirmés</span>
+      </div>
+      <div class="stat-chip stat-termine">
+        <span class="stat-num">{{ countStatut('TERMINE') }}</span>
+        <span class="stat-label">Terminés</span>
+      </div>
+      <div class="stat-chip stat-annule">
+        <span class="stat-num">{{ countStatut('ANNULE') }}</span>
+        <span class="stat-label">Annulés</span>
+      </div>
+    </div>
+  }
+
+  <!-- Main card -->
+  <div class="rdv-card">
+    <div class="rdv-card-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-count">
+          @if (loading()) { Chargement… }
+          @else {
+            {{ filteredRows().length }}
+            @if (searchQuery()) { résultat(s) sur {{ rows().length }} }
+            @else { rendez-vous }
+          }
+        </span>
+      </div>
+      <div class="toolbar-right">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            class="search-input"
+            type="text"
+            placeholder="Rechercher patient ou médecin…"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          @if (searchQuery()) {
+            <button class="search-clear" (click)="searchQuery.set('')">✕</button>
+          }
+        </div>
+        <label class="filter-wrap">
+          <span class="filter-label">Statut</span>
           <select
+            class="filter-select"
             name="filtreStatut"
             [(ngModel)]="filtreStatut"
             (ngModelChange)="onFiltreChange()"
@@ -19,56 +83,94 @@
           </select>
         </label>
       </div>
+    </div>
 
-      @if (loading()) {
-        <p class="muted">Chargement…</p>
-      } @else if (rows().length === 0) {
-        <p class="muted">Aucun rendez-vous pour ce filtre.</p>
-      } @else {
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Id</th>
-                <th>Date</th>
-                <th>Heure</th>
-                <th>Patient</th>
-                <th>Médecin</th>
-                <th>Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (r of rows(); track r.id) {
-                <tr>
-                  <td class="muted">{{ r.id }}</td>
-                  <td>{{ dateAffichee(r) }}</td>
-                  <td>{{ heureRange(r) }}</td>
-                  <td><strong>{{ r.patientPrenom }} {{ r.patientNom }}</strong></td>
-                  <td>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</td>
-                  <td class="actions">
-                    <span [class]="pillClass(r.statut)">{{ labelStatut(r.statut) }}</span>
-                    @if (statutSelectDisabled(r)) {
-                      <p class="rdv-lock-hint muted">Annulé par le patient — le statut ne peut pas être modifié.</p>
-                    } @else {
-                      <select
-                        class="rdv-statut-select"
-                        [name]="'rdv-statut-' + r.id"
-                        [ngModel]="r.statut"
-                        (ngModelChange)="onStatutChange(r, $event)"
-                        [ngModelOptions]="{ standalone: true }"
+    @if (loading()) {
+      <div class="rdv-loading">
+        <div class="spinner"></div>
+        <p>Chargement des rendez-vous…</p>
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="rdv-empty">
+        <span class="empty-icon">📅</span>
+        <p>Aucun rendez-vous pour ce filtre.</p>
+      </div>
+    } @else if (filteredRows().length === 0) {
+      <div class="rdv-empty">
+        <span class="empty-icon">🔍</span>
+        <p>Aucun résultat pour "<strong>{{ searchQuery() }}</strong>".</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="rdv-table">
+          <thead>
+            <tr>
+              <th class="col-id">#</th>
+              <th class="col-date">Date</th>
+              <th class="col-heure">Heure</th>
+              <th class="col-patient">Patient</th>
+              <th class="col-medecin">Médecin</th>
+              <th class="col-statut">Statut</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of filteredRows(); track r.id) {
+              <tr class="rdv-row" [class.row-saving]="savingId() === r.id">
+                <td class="col-id cell-id">{{ r.id }}</td>
+                <td class="col-date">{{ dateAffichee(r) }}</td>
+                <td class="col-heure cell-heure">{{ heureRange(r) }}</td>
+                <td class="col-patient">
+                  <div class="person-cell">
+                    <span class="person-avatar">{{ initiales(r.patientPrenom, r.patientNom) }}</span>
+                    <span class="person-name">{{ r.patientPrenom }} {{ r.patientNom }}</span>
+                  </div>
+                </td>
+                <td class="col-medecin">
+                  <span class="medecin-name">Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</span>
+                </td>
+                <td class="col-statut">
+                  <span [class]="'statut-badge statut-' + r.statut.toLowerCase()">
+                    {{ labelStatut(r.statut) }}
+                  </span>
+                </td>
+                <td class="col-actions">
+                  @if (statutSelectDisabled(r)) {
+                    <span class="action-locked">🔒 Annulé par le patient</span>
+                  } @else if (r.statut === 'TERMINE') {
+                    <span class="action-locked">—</span>
+                  } @else {
+                    <div class="action-btns">
+                      @if (r.statut === 'EN_ATTENTE') {
+                        <button
+                          class="action-btn btn-confirmer"
+                          (click)="onStatutChange(r, 'CONFIRME')"
+                          [disabled]="savingId() === r.id"
+                          title="Confirmer ce rendez-vous"
+                        >✔ Confirmer</button>
+                      }
+                      @if (r.statut === 'CONFIRME') {
+                        <button
+                          class="action-btn btn-terminer"
+                          (click)="onStatutChange(r, 'TERMINE')"
+                          [disabled]="savingId() === r.id"
+                          title="Marquer comme terminé"
+                        >✔ Terminé</button>
+                      }
+                      <button
+                        class="action-btn btn-annuler"
+                        (click)="onStatutChange(r, 'ANNULE')"
                         [disabled]="savingId() === r.id"
-                      >
-                        @for (o of statutOptions; track o.value) {
-                          <option [ngValue]="o.value">{{ o.label }}</option>
-                        }
-                      </select>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </section>
+                        title="Annuler ce rendez-vous"
+                      >✖ Annuler</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
 </div>

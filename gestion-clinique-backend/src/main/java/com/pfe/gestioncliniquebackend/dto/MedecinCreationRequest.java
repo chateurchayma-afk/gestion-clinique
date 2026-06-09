@@ -49,4 +49,7 @@ public class MedecinCreationRequest {
     private String certifications;
     private String departement;
     private String position;
+
+    @DecimalMin(value = "0.0", message = "Le prix de consultation doit être positif ou nul")
+    private Double prixConsultation;
 }

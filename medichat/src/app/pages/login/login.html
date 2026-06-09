@@ -59,6 +59,10 @@
           autocomplete="current-password"
           required
         />
+        <div *ngIf="pendingMessage" class="pending-msg">
+          <span class="pending-icon">⏳</span>
+          <span>{{ pendingMessage }}</span>
+        </div>
         <div *ngIf="errorMessage" class="error-msg">
           {{ errorMessage }}
         </div>
