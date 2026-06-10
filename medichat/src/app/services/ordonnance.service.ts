@@ -23,6 +23,20 @@ export interface OrdonnanceResponse {
   createdAt: string;
 }
 
+export interface OrdonnancePatient {
+  id: number;
+  numeroOrdonnance: string;
+  dateOrdonnance: string;
+  createdAt: string;
+  medecinNom: string;
+  medecinPrenom: string;
+  medecinSpecialite: string | null;
+  medecinTelephone: string | null;
+  medecinEmail: string | null;
+  medicamentsText: string | null;
+  qrUrl: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -36,5 +50,13 @@ export class OrdonnanceService {
 
   create(body: OrdonnanceCreateRequest): Observable<OrdonnanceResponse> {
     return this.http.post<OrdonnanceResponse>(this.apiUrl, body);
+  }
+
+  getMesOrdonnances(): Observable<OrdonnancePatient[]> {
+    return this.http.get<OrdonnancePatient[]>(`${API_BASE_URL}/api/patient/ordonnances`);
+  }
+
+  getOrdonnance(id: number): Observable<OrdonnancePatient> {
+    return this.http.get<OrdonnancePatient>(`${API_BASE_URL}/api/patient/ordonnances/${id}`);
   }
 }

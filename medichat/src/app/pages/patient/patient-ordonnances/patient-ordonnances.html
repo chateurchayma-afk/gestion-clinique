@@ -1,0 +1,219 @@
+<div class="ord-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <header class="hero">
+    <p class="eyebrow">Espace patient · MediChat</p>
+    <h1 class="hero-title">Mes ordonnances</h1>
+    <p class="hero-sub">Retrouvez toutes vos ordonnances médicales et téléchargez-les en PDF.</p>
+  </header>
+
+  <!-- ── Chargement ────────────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="skeleton-grid">
+      @for (_ of [1,2,3]; track $index) {
+        <div class="skeleton-card">
+          <div class="sk sk-top"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line sk-short"></div>
+          <div class="sk sk-btns"></div>
+        </div>
+      }
+    </div>
+
+  <!-- ── Vide ──────────────────────────────────────────────────────────────── -->
+  } @else if (ordonnances().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect x="12" y="8" width="40" height="48" rx="6" stroke="currentColor" stroke-width="2.5" opacity=".25"/>
+          <path d="M22 22h20M22 30h20M22 38h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="46" cy="46" r="12" fill="#f1f5f9" stroke="currentColor" stroke-width="2" opacity=".4"/>
+          <path d="M42 46h8M46 42v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+        </svg>
+      </div>
+      <h2 class="empty-title">Aucune ordonnance</h2>
+      <p class="empty-sub">Vous n'avez actuellement aucune ordonnance disponible.</p>
+    </div>
+
+  <!-- ── Liste ─────────────────────────────────────────────────────────────── -->
+  } @else {
+    <p class="count">{{ ordonnances().length }} ordonnance{{ ordonnances().length > 1 ? 's' : '' }}</p>
+
+    <div class="cards-grid">
+      @for (o of ordonnances(); track o.id) {
+
+        <!-- Carte visible -->
+        <div class="ord-card" (click)="ouvrirDetail(o)" role="button" tabindex="0"
+             (keydown.enter)="ouvrirDetail(o)" (keydown.space)="ouvrirDetail(o)">
+
+          <div class="card-header">
+            <div class="card-num-wrap">
+              <span class="card-icon">📋</span>
+              <span class="card-num">{{ o.numeroOrdonnance }}</span>
+            </div>
+            <span class="card-date">{{ formatDate(o.dateOrdonnance) }}</span>
+          </div>
+
+          <div class="card-doc">
+            <div class="doc-avatar-sm">
+              {{ (o.medecinPrenom?.charAt(0) ?? '') + (o.medecinNom?.charAt(0) ?? '') }}
+            </div>
+            <div>
+              <p class="doc-name">{{ medecinLabel(o) }}</p>
+              @if (o.medecinSpecialite) {
+                <span class="doc-spec">{{ o.medecinSpecialite }}</span>
+              }
+            </div>
+          </div>
+
+          @if (o.medicamentsText) {
+            <p class="card-preview">{{ o.medicamentsText | slice:0:90 }}{{ o.medicamentsText.length > 90 ? '...' : '' }}</p>
+          } @else {
+            <p class="card-preview card-preview--muted">Aucun traitement renseigné.</p>
+          }
+
+          <div class="card-actions" (click)="$event.stopPropagation()">
+            <button type="button" class="btn-action btn-qr"
+                    (click)="ouvrirQr(o)"
+                    [disabled]="!o.qrUrl"
+                    title="Afficher le QR Code">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+                <rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+                <rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M11 11h2v2h-2zM15 11h2v2h-2zM11 15h2v2h-2zM15 15h2v2h-2z" fill="currentColor"/>
+              </svg>
+              QR Code
+            </button>
+            <button type="button" class="btn-action btn-pdf"
+                    (click)="telechargerPdf(o, $event)"
+                    [disabled]="pdfBusy()"
+                    title="Télécharger PDF">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M4 16h12M10 3v9M7 9l3 3 3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {{ pdfBusy() ? 'PDF...' : 'PDF' }}
+            </button>
+            <button type="button" class="btn-action btn-detail" (click)="ouvrirDetail(o)">
+              Détails →
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ══ Modal Détail ═════════════════════════════════════════════════════════ -->
+@if (detail(); as o) {
+  <div class="modal-backdrop" (click)="fermerDetail()" role="dialog" aria-modal="true" aria-label="Détail ordonnance">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div>
+          <span class="modal-tag">{{ o.numeroOrdonnance }}</span>
+          <h2 class="modal-title">Ordonnance médicale</h2>
+        </div>
+        <button type="button" class="modal-close" (click)="fermerDetail()" aria-label="Fermer">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="detail-section">
+          <p class="detail-label">Date de l'ordonnance</p>
+          <p class="detail-value">{{ formatDate(o.dateOrdonnance) }}</p>
+        </div>
+
+        <div class="detail-section">
+          <p class="detail-label">Médecin prescripteur</p>
+          <div class="detail-doc-row">
+            <div class="doc-avatar-md">
+              {{ (o.medecinPrenom?.charAt(0) ?? '') + (o.medecinNom?.charAt(0) ?? '') }}
+            </div>
+            <div>
+              <p class="detail-value">{{ medecinLabel(o) }}</p>
+              @if (o.medecinSpecialite) {
+                <span class="doc-spec">{{ o.medecinSpecialite }}</span>
+              }
+              @if (o.medecinTelephone) {
+                <p class="detail-contact">📞 {{ o.medecinTelephone }}</p>
+              }
+              @if (o.medecinEmail) {
+                <p class="detail-contact">✉️ {{ o.medecinEmail }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <p class="detail-label">Traitement prescrit</p>
+          @if (o.medicamentsText) {
+            <div class="meds-box">
+              @for (l of lignes(o.medicamentsText); track $index) {
+                <div class="med-line">
+                  <span class="med-bullet">•</span>
+                  <span>{{ l }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="detail-value muted">Aucun traitement renseigné.</p>
+          }
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-qr"
+                (click)="fermerDetail(); ouvrirQr(o)"
+                [disabled]="!o.qrUrl">
+          🔳 Afficher QR Code
+        </button>
+        <button type="button" class="btn-modal-pdf"
+                (click)="telechargerPdf(o, $event)"
+                [disabled]="pdfBusy()">
+          📄 {{ pdfBusy() ? 'Génération...' : 'Télécharger PDF' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ══ Modal QR Code ════════════════════════════════════════════════════════ -->
+@if (qrOrdonnance(); as o) {
+  <div class="modal-backdrop" (click)="fermerQr()" role="dialog" aria-modal="true" aria-label="QR Code ordonnance">
+    <div class="modal-box modal-box--qr" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div>
+          <span class="modal-tag">{{ o.numeroOrdonnance }}</span>
+          <h2 class="modal-title">QR Code</h2>
+        </div>
+        <button type="button" class="modal-close" (click)="fermerQr()" aria-label="Fermer">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="qr-body">
+        @if (qrLoading()) {
+          <div class="qr-loading">
+            <div class="qr-spinner"></div>
+            <p>Génération du QR…</p>
+          </div>
+        } @else if (qrDataUrl()) {
+          <img [src]="qrDataUrl()" alt="QR Code ordonnance" class="qr-img" />
+          <p class="qr-hint">Scannez ce code pour consulter l'ordonnance</p>
+          <p class="qr-sub">{{ medecinLabel(o) }} · {{ formatDate(o.dateOrdonnance) }}</p>
+        } @else {
+          <p class="qr-empty">QR Code non disponible pour cette ordonnance.</p>
+        }
+      </div>
+
+    </div>
+  </div>
+}

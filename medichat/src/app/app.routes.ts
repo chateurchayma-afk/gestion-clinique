@@ -37,6 +37,8 @@ import { PatientRdvList } from './pages/patient/patient-rdv-list/patient-rdv-lis
 import { PatientRdvNew } from './pages/patient/patient-rdv-new/patient-rdv-new';
 import { PatientMedecinProfil } from './pages/patient/patient-medecin-profil/patient-medecin-profil';
 import { PatientProfil } from './pages/patient/patient-profil/patient-profil';
+import { PatientOrdonnances } from './pages/patient/patient-ordonnances/patient-ordonnances';
+import { PatientDossierMedical } from './pages/patient/patient-dossier-medical/patient-dossier-medical';
 import { AccountProfil } from './pages/account-profil/account-profil';
 import { NotificationsPage } from './pages/notifications/notifications';
 import { NotificationsRedirect } from './pages/notifications/notifications-redirect';
@@ -114,6 +116,8 @@ export const routes: Routes = [
       { path: 'medecins', component: PatientMedecins },
       { path: 'rendez-vous/nouveau', component: PatientRdvNew },
       { path: 'rendez-vous', component: PatientRdvList },
+      { path: 'ordonnances', component: PatientOrdonnances },
+      { path: 'dossier-medical', component: PatientDossierMedical },
       { path: 'notifications', component: NotificationsPage }
     ]
   },

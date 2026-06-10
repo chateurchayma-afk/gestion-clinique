@@ -93,7 +93,7 @@ export class PatientMedecins implements OnInit {
     this.router.navigate(['/patient-dashboard/rendez-vous', medecin.id]);
   }
 
-  private applyFilters(): void {
+  applyFilters(): void {
     const needle = this.searchNom.trim().toLowerCase();
     const specId =
       this.specialiteFilter !== '' && this.specialiteFilter != null

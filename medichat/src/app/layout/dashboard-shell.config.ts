@@ -25,6 +25,8 @@ export const PATIENT_SHELL: DashboardShellConfig = {
         { label: '🏠 Tableau de bord', path: '/patient-dashboard/accueil', exact: true },
         { label: '👨‍⚕️ Liste des médecins', path: '/patient-dashboard/medecins' },
         { label: '📅 Mes rendez-vous', path: '/patient-dashboard/rendez-vous' },
+        { label: '📋 Mes ordonnances', path: '/patient-dashboard/ordonnances' },
+        { label: '📁 Mon dossier médical', path: '/patient-dashboard/dossier-medical' },
         { label: '👤 Mon profil', path: '/patient-dashboard/profil', exact: true }
       ]
     }

@@ -2,6 +2,7 @@ package com.pfe.gestioncliniquebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "dossier_medical")
@@ -48,4 +49,11 @@ public class DossierMedical {
     /** Code (ex. CHAQUE_JOUR) ou libellé libre pour la fréquence du rappel. */
     @Column(name = "rappel_traitement_frequence", length = 120)
     private String rappelTraitementFrequence;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by_medecin_id")
+    private Medecin updatedByMedecin;
 }

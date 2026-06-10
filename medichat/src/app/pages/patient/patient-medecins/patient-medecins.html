@@ -1,137 +1,185 @@
 <div class="medecins-page">
-  <div class="medecins-page-bg" aria-hidden="true"></div>
 
-  <header class="medecins-hero">
-    <p class="medecins-eyebrow">Clinique · Espace patient</p>
-    <h1 class="medecins-title">Liste des médecins</h1>
+  <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Espace patient · MediChat</p>
+      <h1 class="hero-title">Nos médecins</h1>
+      <p class="hero-sub">Trouvez le praticien qu'il vous faut et prenez rendez-vous en quelques clics.</p>
+    </div>
   </header>
 
-  <section class="medecins-toolbar medecins-surface" aria-label="Recherche et filtres">
-    <div class="toolbar-filters-row">
-      <label class="medecins-field medecins-field--search">
-        <span class="medecins-field-label">Rechercher un médecin</span>
-        <div class="combo-input-wrap">
-          <span class="combo-prefix" aria-hidden="true">Dr.</span>
-          <input
-            type="search"
-            class="medecins-input medecins-input--combo"
-            [(ngModel)]="searchNom"
-            (ngModelChange)="reloadMedecins()"
-            name="searchNom"
-            list="medecins-noms-catalogue"
-            placeholder="Nom ou prénom…"
-            autocomplete="off"
-          />
-        </div>
-        <datalist id="medecins-noms-catalogue">
-          @for (m of medecinsPourNoms(); track m.id) {
-            <option [value]="libelleMedecinDatalist(m)"></option>
-          }
-        </datalist>
-      </label>
-
-      <label class="medecins-field medecins-field--spec">
-        <span class="medecins-field-label">Spécialité</span>
-        <select class="medecins-input" name="spec" [(ngModel)]="specialiteFilter" (ngModelChange)="reloadMedecins()">
-          <option value="">Toutes les spécialités</option>
-          @for (s of specialites(); track s.id) {
-            <option [ngValue]="s.id">{{ s.nom }}</option>
-          }
-        </select>
-      </label>
+  <!-- ── Barre de recherche & filtres ──────────────────────────────────────── -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Rechercher un médecin…"
+        [(ngModel)]="searchNom"
+        (ngModelChange)="applyFilters()"
+        name="searchNom"
+        autocomplete="off"
+        list="medecins-noms-list"
+      />
+      <datalist id="medecins-noms-list">
+        @for (m of medecinsPourNoms(); track m.id) {
+          <option [value]="libelleMedecinDatalist(m)"></option>
+        }
+      </datalist>
     </div>
-  </section>
 
-  <section id="medecins-resultats" class="medecins-results">
-    @if (loading()) {
-      <div class="medecins-surface medecins-loading">
-        <div class="loading-bar"></div>
-        <p class="medecins-muted">Chargement…</p>
-      </div>
-    } @else if (medecins().length === 0) {
-      <div class="medecins-empty medecins-surface">
-        <div class="medecins-empty-icon" aria-hidden="true"></div>
-        <h2 class="medecins-empty-title">Aucun médecin trouvé</h2>
-        <p class="medecins-empty-text">
-          @if (allMedecinsCount() === 0) {
-            Aucun médecin n'est disponible pour le moment.
-          } @else {
-            Modifiez la recherche ou la spécialité pour afficher d'autres résultats.
-          }
-        </p>
-      </div>
-    } @else {
-      <div class="catalog-header">
-        <h2 class="catalog-heading">Tous les médecins</h2>
-        <span class="catalog-count">{{ medecins().length }} médecin(s)</span>
-      </div>
+    <div class="spec-wrap">
+      <svg class="spec-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <select
+        class="spec-select"
+        name="spec"
+        [(ngModel)]="specialiteFilter"
+        (ngModelChange)="applyFilters()"
+      >
+        <option value="">Toutes les spécialités</option>
+        @for (s of specialites(); track s.id) {
+          <option [ngValue]="s.id">{{ s.nom }}</option>
+        }
+      </select>
+    </div>
+  </div>
 
-      <div class="catalog-table-card medecins-surface">
-        <div class="catalog-table-scroll">
-          <table class="catalog-table">
-            <thead>
-              <tr>
-                <th scope="col">Médecin</th>
-                <th scope="col">Expérience</th>
-                <th scope="col">Disponibilité</th>
-                <th scope="col">Prix (Dinars)</th>
-                <th scope="col" class="catalog-th-action">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (m of medecins(); track m.id) {
-                <tr class="catalog-tr">
-                  <td class="catalog-td-medecin">
-                    <div class="catalog-row-primary">
-                      <div class="catalog-avatar avatar" [class.has-photo]="photoUrl(m)">
-                        @if (photoUrl(m); as url) {
-                          <img [src]="url" alt="" />
-                        } @else {
-                          <span class="avatar-initials">{{ initiales(m) }}</span>
-                        }
-                      </div>
-                      <div class="catalog-id">
-                        <div class="catalog-line1">
-                          <span class="catalog-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</span>
-                        </div>
-                        <p class="catalog-spec">{{ m.specialite?.nom ?? 'Spécialité à préciser' }}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{{ m.experienceAnnees != null ? m.experienceAnnees + ' ans' : '—' }}</td>
-                  <td>
-                    <span class="status" [class.disponible]="m.disponible">
-                      {{ m.disponible ? 'Disponible' : 'Indisponible' }}
-                    </span>
-                  </td>
-                  <td>{{ m.prixConsultation != null ? (m.prixConsultation | number:'1.0-2') + ' DT' : '-' }}</td>
-                  <td class="catalog-td-action">
-                    <div
-                      class="catalog-action-btns"
-                      role="group"
-                      [attr.aria-label]="'Actions pour Dr. ' + m.utilisateur.prenom + ' ' + m.utilisateur.nom"
-                    >
-                      <button type="button" class="btn btn-outline btn-compact" (click)="voirProfil(m)">Voir</button>
-                      @if (estDisponible(m)) {
-                        <button type="button" class="btn btn-primary-solid btn-compact" (click)="prendreRdvSurPlace(m)">
-                          Réserver
-                        </button>
-                      } @else {
-                        <span
-                          class="btn btn-primary-solid btn-compact disabled"
-                          title="Indisponible"
-                          role="button"
-                          aria-disabled="true"
-                        >Réserver</span>
-                      }
-                    </div>
-                  </td>
-                </tr>
+  <!-- ── États : chargement / vide ─────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="state-box">
+      <div class="skeleton-grid">
+        @for (_ of [1,2,3,4,5,6]; track $index) {
+          <div class="skeleton-card">
+            <div class="sk sk-avatar"></div>
+            <div class="sk sk-name"></div>
+            <div class="sk sk-spec"></div>
+            <div class="sk sk-badges"></div>
+            <div class="sk sk-btn"></div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (medecins().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2" opacity=".2"/>
+          <path d="M24 16v8M24 28h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2 class="empty-title">Aucun médecin trouvé</h2>
+      <p class="empty-sub">
+        @if (allMedecinsCount() === 0) {
+          Aucun médecin n'est disponible pour le moment.
+        } @else {
+          Essayez un autre nom ou changez de spécialité.
+        }
+      </p>
+    </div>
+  } @else {
+    <!-- ── En-tête résultats ───────────────────────────────────────────────── -->
+    <div class="results-header">
+      <span class="results-count">{{ medecins().length }} médecin{{ medecins().length > 1 ? 's' : '' }}</span>
+      @if (specialiteFilter !== '') {
+        <button type="button" class="clear-filter" (click)="specialiteFilter = ''; applyFilters()">
+          Effacer le filtre ×
+        </button>
+      }
+    </div>
+
+    <!-- ── Grille de cartes ───────────────────────────────────────────────── -->
+    <div class="cards-grid">
+      @for (m of medecins(); track m.id) {
+        <div class="doc-card" [class.doc-card--unavailable]="!estDisponible(m)">
+
+          <!-- Disponibilité -->
+          <div class="dispo-badge" [class.dispo-badge--on]="estDisponible(m)">
+            <span class="dispo-dot"></span>
+            {{ estDisponible(m) ? 'Disponible' : 'Indisponible' }}
+          </div>
+
+          <!-- Avatar + identité -->
+          <div class="doc-card-top">
+            <div class="doc-avatar" [class.doc-avatar--photo]="photoUrl(m)">
+              @if (photoUrl(m); as url) {
+                <img [src]="url" [alt]="'Photo de Dr. ' + m.utilisateur.prenom" />
+              } @else {
+                <span class="doc-initials">{{ initiales(m) }}</span>
               }
-            </tbody>
-          </table>
+            </div>
+            <h3 class="doc-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</h3>
+            @if (m.specialite?.nom) {
+              <span class="doc-spec-badge">{{ m.specialite!.nom }}</span>
+            } @else {
+              <span class="doc-spec-badge doc-spec-badge--none">Généraliste</span>
+            }
+          </div>
+
+          <!-- Infos -->
+          <ul class="doc-info-list">
+            @if (m.prixConsultation != null) {
+              <li class="doc-info-item">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/>
+                  <path d="M8 5v6M6 6.5h2.5a1 1 0 0 1 0 2H7a1 1 0 0 0 0 2H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+                <span>{{ m.prixConsultation | number:'1.0-2' }} DT / consultation</span>
+              </li>
+            } @else {
+              <li class="doc-info-item doc-info-item--muted">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/>
+                  <path d="M8 5v6M6 6.5h2.5a1 1 0 0 1 0 2H7a1 1 0 0 0 0 2H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+                <span>Prix non renseigné</span>
+              </li>
+            }
+            @if (m.experienceAnnees != null) {
+              <li class="doc-info-item">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                  <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+                  <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.4"/>
+                </svg>
+                <span>{{ m.experienceAnnees }} ans d'expérience</span>
+              </li>
+            }
+            @if (m.utilisateur.ville) {
+              <li class="doc-info-item">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                  <path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5S12.5 9.75 12.5 6C12.5 3.515 10.485 1.5 8 1.5Z" stroke="currentColor" stroke-width="1.4"/>
+                  <circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.2"/>
+                </svg>
+                <span>{{ m.utilisateur.ville }}</span>
+              </li>
+            }
+          </ul>
+
+          <!-- Actions -->
+          <div class="doc-card-actions">
+            <button type="button" class="btn-profil" (click)="voirProfil(m)">
+              Voir profil
+            </button>
+            @if (estDisponible(m)) {
+              <button type="button" class="btn-rdv" (click)="prendreRdvSurPlace(m)">
+                Prendre RDV
+              </button>
+            } @else {
+              <button type="button" class="btn-rdv btn-rdv--off" disabled>
+                Indisponible
+              </button>
+            }
+          </div>
+
         </div>
-      </div>
-    }
-  </section>
+      }
+    </div>
+  }
+
 </div>

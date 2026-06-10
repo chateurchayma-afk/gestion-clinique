@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +52,10 @@ public class DossierMedicalService {
     @Transactional
     public DossierMedicalResponse saveForPatient(Long patientId, DossierMedicalRequest request) {
         Patient patient = requirePatient(patientId);
-        requireMedecinAccess(patientId);
+        Medecin medecin = medecinAccessService.requireMedecinConnecte();
+        if (!medecinAccessService.medecinConcernePatient(medecin.getId(), patientId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acces interdit");
+        }
 
         DossierMedical dossier = dossierRepository.findByPatient_Id(patientId)
                 .orElseGet(() -> DossierMedical.builder().patient(patient).build());
@@ -60,6 +64,8 @@ public class DossierMedicalService {
         String ancienneFreq = dossier.getRappelTraitementFrequence();
 
         applyRequest(dossier, request);
+        dossier.setUpdatedAt(LocalDateTime.now());
+        dossier.setUpdatedByMedecin(medecin);
         DossierMedical saved = dossierRepository.save(dossier);
         notifierRappelTraitementSiBesoin(patient, ancienNom, ancienneFreq, saved);
         return toResponse(saved, patient.getId());
