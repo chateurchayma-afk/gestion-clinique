@@ -36,9 +36,9 @@ function minutesFromMidnight(t: string): number {
 }
 
 // Nom de la table Power BI et colonne email — à adapter selon votre modèle Power BI
-const PBI_TABLE_PATIENT = 'DIM_PATIENT';
+const PBI_TABLE_PATIENT = 'dim_patient';
 const PBI_COLUMN_PATIENT = 'patient_id';
-const PBI_REPORT_URL_PATIENT = 'https://app.powerbi.com/reportEmbed?reportId=1e35b4c1-39b6-4f8a-9036-74fc2c358855&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
+const PBI_REPORT_URL_PATIENT = 'https://app.powerbi.com/reportEmbed?reportId=2270f464-afdc-4ebb-989f-c6d17f087d88&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
 
 @Component({
   selector: 'app-patient-home',

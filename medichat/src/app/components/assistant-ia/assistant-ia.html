@@ -1,0 +1,154 @@
+<!-- ════════════════════════════════════
+     BOUTON FLOTTANT
+════════════════════════════════════ -->
+<button
+  class="fab"
+  [class.fab--open]="isOpen()"
+  (click)="toggleChat()"
+  aria-label="Ouvrir l'assistant médical IA"
+  title="Assistant IA Médical"
+>
+  @if (isOpen()) {
+    <!-- Icône X (fermer) -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </svg>
+  } @else {
+    <!-- Icône robot / médecin IA -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a2 2 0 012 2v1h2a3 3 0 013 3v7a3 3 0 01-3 3H8a3 3 0 01-3-3V8a3 3 0 013-3h2V4a2 2 0 012-2z"/>
+      <circle cx="9" cy="11" r="1" fill="currentColor"/>
+      <circle cx="15" cy="11" r="1" fill="currentColor"/>
+      <path d="M9 15s1 1.5 3 1.5 3-1.5 3-1.5"/>
+      <path d="M12 5V3"/>
+      <path d="M8 21v-2M16 21v-2"/>
+    </svg>
+    <span class="fab-label">Assistant IA</span>
+  }
+</button>
+
+<!-- ════════════════════════════════════
+     FENÊTRE DE CHAT
+════════════════════════════════════ -->
+@if (isOpen()) {
+  <div class="chat-window" role="dialog" aria-label="Assistant médical IA">
+
+    <!-- ── En-tête ── -->
+    <div class="chat-header">
+      <div class="chat-header__left">
+        <div class="chat-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a2 2 0 012 2v1h2a3 3 0 013 3v7a3 3 0 01-3 3H8a3 3 0 01-3-3V8a3 3 0 013-3h2V4a2 2 0 012-2z"/>
+            <circle cx="9" cy="11" r="1" fill="currentColor"/>
+            <circle cx="15" cy="11" r="1" fill="currentColor"/>
+            <path d="M9 15s1 1.5 3 1.5 3-1.5 3-1.5"/>
+          </svg>
+        </div>
+        <div>
+          <p class="chat-header__name">MediBot</p>
+          <span class="chat-header__status">
+            <span class="status-dot"></span>
+            Assistant IA Médical
+          </span>
+        </div>
+      </div>
+      <div class="chat-header__actions">
+        <button class="chat-icon-btn" (click)="clearChat()" title="Effacer la conversation" aria-label="Effacer">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4 6h12M8 6V4h4v2M7 6l1 10h4l1-10"/>
+          </svg>
+        </button>
+        <button class="chat-icon-btn chat-icon-btn--close" (click)="closeChat()" aria-label="Fermer">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M15 5L5 15M5 5l10 10"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Messages ── -->
+    <div class="chat-messages" #messagesContainer>
+
+      @for (msg of messages(); track msg.id) {
+        <div class="msg-row" [class.msg-row--user]="msg.role === 'user'">
+
+          @if (msg.role === 'assistant') {
+            <div class="msg-bot-avatar">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 2a1.5 1.5 0 011.5 1.5v.5H13a2 2 0 012 2v5a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h1.5v-.5A1.5 1.5 0 0110 2z"/>
+                <circle cx="8" cy="9" r=".7" fill="currentColor"/>
+                <circle cx="12" cy="9" r=".7" fill="currentColor"/>
+                <path d="M8 12s.7 1 2 1 2-1 2-1"/>
+              </svg>
+            </div>
+          }
+
+          <div class="msg-bubble" [class.msg-bubble--user]="msg.role === 'user'">
+            <p class="msg-text" [innerHTML]="formatContent(msg.content)"></p>
+            <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+          </div>
+
+        </div>
+      }
+
+      <!-- Indicateur de chargement -->
+      @if (isLoading()) {
+        <div class="msg-row">
+          <div class="msg-bot-avatar">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2a1.5 1.5 0 011.5 1.5v.5H13a2 2 0 012 2v5a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h1.5v-.5A1.5 1.5 0 0110 2z"/>
+              <circle cx="8" cy="9" r=".7" fill="currentColor"/>
+              <circle cx="12" cy="9" r=".7" fill="currentColor"/>
+              <path d="M8 12s.7 1 2 1 2-1 2-1"/>
+            </svg>
+          </div>
+          <div class="msg-bubble msg-bubble--typing">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- ── Questions rapides (affichées seulement au début) ── -->
+    @if (messages().length <= 1 && !isLoading()) {
+      <div class="quick-questions">
+        @for (q of quickQuestions; track q) {
+          <button class="quick-btn" (click)="sendMessage(q)">{{ q }}</button>
+        }
+      </div>
+    }
+
+    <!-- ── Zone de saisie ── -->
+    <div class="chat-input-area">
+      <textarea
+        class="chat-input"
+        [(ngModel)]="inputText"
+        (keydown)="onKeyDown($event)"
+        placeholder="Décrivez vos symptômes ou posez une question…"
+        rows="1"
+        [disabled]="isLoading()"
+        aria-label="Votre message"
+      ></textarea>
+      <button
+        class="chat-send-btn"
+        (click)="sendMessage()"
+        [disabled]="!inputText.trim() || isLoading()"
+        aria-label="Envoyer"
+        title="Envoyer (Entrée)"
+      >
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 10L3 10M17 10l-5-5M17 10l-5 5"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Avertissement légal -->
+    <p class="chat-disclaimer">
+      MediBot fournit des informations générales. Consultez toujours un médecin pour un diagnostic.
+    </p>
+
+  </div>
+}

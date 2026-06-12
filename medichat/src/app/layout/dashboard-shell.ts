@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { AssistantIa } from '../components/assistant-ia/assistant-ia';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ActivatedRouteSnapshot,
@@ -36,7 +37,7 @@ const FALLBACK_SHELL: DashboardShellConfig = {
 @Component({
   selector: 'app-dashboard-shell',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, AssistantIa],
   templateUrl: './dashboard-shell.html',
   styleUrl: './dashboard-shell.css'
 })

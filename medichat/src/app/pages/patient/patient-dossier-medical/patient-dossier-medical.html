@@ -1,252 +1,267 @@
 <div class="dossier-page">
 
-  <!-- ── Hero ──────────────────────────────────────────────────────────── -->
-  <header class="hero">
-    <div class="hero-left">
-      <div class="hero-icon">📁</div>
-      <div>
-        <p class="eyebrow">Espace patient · MediChat</p>
-        <h1 class="hero-title">Mon dossier médical</h1>
-        <p class="hero-sub">Consultation en lecture seule — mis à jour par vos médecins.</p>
-      </div>
-    </div>
-    @if (dossier()?.updatedAt) {
-      <div class="last-update-box">
-        <p class="lup-label">Dernière mise à jour</p>
-        <p class="lup-date">{{ formatDateTime(dossier()!.updatedAt) }}</p>
-        @if (dossier()?.updatedByMedecinNom) {
-          <p class="lup-medecin">Dr. {{ dossier()!.updatedByMedecinPrenom }} {{ dossier()!.updatedByMedecinNom }}</p>
-        }
-      </div>
-    }
-  </header>
-
-  <!-- ── Skeleton ──────────────────────────────────────────────────────── -->
+  <!-- ══ SKELETON ══════════════════════════════════════════════════════ -->
   @if (loading()) {
-    <div class="skeleton-wrap">
-      @for (_ of [1,2,3,4]; track $index) {
-        <div class="sk-card">
-          <div class="sk sk-title"></div>
-          <div class="sk sk-line"></div>
-          <div class="sk sk-line sk-short"></div>
-          <div class="sk sk-line"></div>
+    <div class="sk-page">
+      <div class="sk sk-hero"></div>
+      <div class="sk-row">
+        <div class="sk sk-card-tall"></div>
+        <div class="sk-col">
+          <div class="sk sk-card-sm"></div>
+          <div class="sk sk-card-sm"></div>
         </div>
-      }
+      </div>
+      <div class="sk sk-card-wide"></div>
     </div>
 
-  <!-- ── Vide ───────────────────────────────────────────────────────────── -->
+  <!-- ══ VIDE ═══════════════════════════════════════════════════════════ -->
   } @else if (!dossier()) {
     <div class="empty-state">
-      <div class="empty-icon">📂</div>
-      <h2>Aucun dossier disponible</h2>
-      <p>Votre dossier médical n'est pas encore disponible.<br>Il sera créé par votre médecin lors d'une consultation.</p>
+      <div class="empty-icon-wrap">
+        <svg viewBox="0 0 64 64" fill="none"><rect x="10" y="6" width="44" height="52" rx="6" stroke="currentColor" stroke-width="2.5" opacity=".3"/><path d="M20 22h24M20 30h24M20 38h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <h2>Dossier non disponible</h2>
+      <p>Votre dossier médical n'a pas encore été créé.<br>Il sera renseigné par votre médecin lors d'une consultation.</p>
     </div>
 
-  <!-- ── Contenu ────────────────────────────────────────────────────────── -->
+  <!-- ══ CONTENU ════════════════════════════════════════════════════════ -->
   } @else {
     @let d = dossier()!;
 
-    <!-- Numéro dossier -->
-    @if (d.numeroDossier) {
-      <div class="dossier-num-bar">
-        <span class="num-icon">🗂️</span>
-        <span>Dossier n° <strong>{{ d.numeroDossier }}</strong></span>
-      </div>
-    }
-
-    <div class="grid-2">
-
-      <!-- ── Informations personnelles ─────────────────────────────────── -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-icon card-icon--blue">👤</span>
-          <h2 class="card-title">Informations personnelles</h2>
+    <!-- ── CARTE PATIENT ──────────────────────────────────────────────── -->
+    <div class="patient-card">
+      <div class="patient-card__left">
+        <div class="patient-avatar">
+          {{ (d.prenom?.charAt(0) ?? '') + (d.nom?.charAt(0) ?? '') }}
         </div>
-        <div class="info-rows">
-          <div class="info-row">
-            <span class="info-label">Nom complet</span>
-            <span class="info-value">{{ d.prenom }} {{ d.nom }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Date de naissance</span>
-            <span class="info-value">{{ formatDate(d.dateNaissance) }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Sexe</span>
-            <span class="info-value">{{ sexeLabel(d.sexe) }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Groupe sanguin</span>
-            <span class="info-value">
-              @if (d.groupeSanguin) {
-                <span class="badge badge-blood">{{ d.groupeSanguin }}</span>
-              } @else { — }
-            </span>
-          </div>
-          @if (d.tailleCm || d.poidsKg) {
-            <div class="info-row">
-              <span class="info-label">Taille / Poids</span>
-              <span class="info-value">
-                {{ d.tailleCm ? d.tailleCm + ' cm' : '—' }}
-                &nbsp;/&nbsp;
-                {{ d.poidsKg ? d.poidsKg + ' kg' : '—' }}
+        <div class="patient-info">
+          <p class="patient-info__label">Dossier médical</p>
+          <h1 class="patient-info__name">{{ d.prenom }} {{ d.nom }}</h1>
+          <div class="patient-info__meta">
+            @if (d.dateNaissance) {
+              <span class="meta-chip">
+                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 2v2M11 2v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                {{ formatDate(d.dateNaissance) }}
               </span>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- ── Traitement actuel ──────────────────────────────────────────── -->
-      @if (d.rappelTraitementNom) {
-        <div class="card card--accent">
-          <div class="card-header">
-            <span class="card-icon card-icon--green">💊</span>
-            <h2 class="card-title">Traitement en cours</h2>
-          </div>
-          <div class="treatment-box">
-            <p class="treatment-name">{{ d.rappelTraitementNom }}</p>
-            @if (d.rappelTraitementFrequence) {
-              <span class="badge badge-treatment">{{ d.rappelTraitementFrequence }}</span>
+            }
+            @if (d.sexe) {
+              <span class="meta-chip">{{ sexeLabel(d.sexe) }}</span>
+            }
+            @if (d.numeroDossier) {
+              <span class="meta-chip meta-chip--navy">N° {{ d.numeroDossier }}</span>
             }
           </div>
         </div>
-      }
+      </div>
 
-    </div><!-- /grid-2 -->
-
-    <!-- ── Informations médicales ───────────────────────────────────────── -->
-    @if (hasDossier()) {
-      <div class="card card--full">
-        <div class="card-header">
-          <span class="card-icon card-icon--red">🏥</span>
-          <h2 class="card-title">Informations médicales</h2>
-        </div>
-        <div class="med-grid">
-          @for (item of infosMedicales(); track item.label) {
-            <div class="med-item med-item--{{ item.color }}">
-              <div class="med-item-header">
-                <span class="med-icon">{{ item.icon }}</span>
-                <span class="med-label">{{ item.label }}</span>
-              </div>
-              <p class="med-value">{{ item.valeur || '—' }}</p>
+      <div class="patient-card__right">
+        <!-- Métriques rapides -->
+        <div class="quick-metrics">
+          @if (d.groupeSanguin) {
+            <div class="metric metric--blood">
+              <span class="metric__val">{{ d.groupeSanguin }}</span>
+              <span class="metric__lbl">Groupe sanguin</span>
+            </div>
+          }
+          @if (d.tailleCm) {
+            <div class="metric">
+              <span class="metric__val">{{ d.tailleCm }}<small>cm</small></span>
+              <span class="metric__lbl">Taille</span>
+            </div>
+          }
+          @if (d.poidsKg) {
+            <div class="metric">
+              <span class="metric__val">{{ d.poidsKg }}<small>kg</small></span>
+              <span class="metric__lbl">Poids</span>
             </div>
           }
         </div>
-      </div>
 
-      <!-- ── Antécédents familiaux ────────────────────────────────────── -->
-      <div class="card card--full">
-        <div class="card-header">
-          <span class="card-icon card-icon--purple">🧬</span>
-          <h2 class="card-title">Antécédents familiaux</h2>
-        </div>
-        <div class="fam-grid">
-          @for (item of antecedentsFamiliaux(); track item.label) {
-            <div class="fam-item" [class.fam-item--actif]="item.actif">
-              <span class="fam-icon">{{ item.icon }}</span>
-              <span class="fam-label">{{ item.label }}</span>
-              <span class="fam-badge" [class.fam-badge--oui]="item.actif">
-                {{ item.actif ? 'Oui' : 'Non' }}
-              </span>
+        @if (d.updatedAt) {
+          <div class="last-update">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <div>
+              <span class="lu-label">Dernière mise à jour</span>
+              <span class="lu-val">{{ formatDateTime(d.updatedAt) }}</span>
+              @if (d.updatedByMedecinNom) {
+                <span class="lu-doc">Dr. {{ d.updatedByMedecinPrenom }} {{ d.updatedByMedecinNom }}</span>
+              }
             </div>
-          }
-        </div>
-      </div>
-
-      <!-- ── Mode de vie ──────────────────────────────────────────────── -->
-      @if (infosVie().length > 0) {
-        <div class="card card--full">
-          <div class="card-header">
-            <span class="card-icon card-icon--teal">🌿</span>
-            <h2 class="card-title">Mode de vie</h2>
           </div>
-          <div class="vie-grid">
-            @for (item of infosVie(); track item.label) {
-              <div class="vie-item">
-                <span class="vie-icon">{{ item.icon }}</span>
-                <div>
-                  <p class="vie-label">{{ item.label }}</p>
-                  <p class="vie-value">{{ item.valeur }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- ── ALERTE TRAITEMENT ─────────────────────────────────────────── -->
+    @if (d.rappelTraitementNom) {
+      <div class="treatment-alert">
+        <div class="treatment-alert__icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 3h6l1 4H8L9 3zM8 7v10a2 2 0 002 2h4a2 2 0 002-2V7H8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 11h4M10 14h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <p class="treatment-alert__title">Traitement en cours</p>
+          <p class="treatment-alert__name">{{ d.rappelTraitementNom }}</p>
+        </div>
+        @if (d.rappelTraitementFrequence) {
+          <span class="treatment-alert__freq">{{ d.rappelTraitementFrequence }}</span>
+        }
+      </div>
+    }
+
+    <!-- ── GRILLE PRINCIPALE ─────────────────────────────────────────── -->
+    <div class="main-grid">
+
+      <!-- Colonne gauche -->
+      <div class="col-main">
+
+        <!-- Informations médicales -->
+        <section class="section-card">
+          <div class="section-header section-header--red">
+            <svg class="section-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 5v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <h2>Informations médicales</h2>
+          </div>
+          <div class="med-sections">
+            @for (item of infosMedicales(); track item.label) {
+              <div class="med-row" [class.med-row--empty]="!item.valeur">
+                <div class="med-row__label">
+                  <span class="med-row__dot med-row__dot--{{ item.color }}"></span>
+                  {{ item.label }}
                 </div>
+                <div class="med-row__val">{{ item.valeur || 'Non renseigné' }}</div>
               </div>
             }
           </div>
-        </div>
-      }
-    } @else {
-      <div class="card card--full no-dossier-info">
-        <span class="nd-icon">📋</span>
-        <p>Votre dossier médical n'a pas encore été renseigné par un médecin.</p>
-      </div>
-    }
+        </section>
 
-    <!-- ── Historique des consultations ───────────────────────────────── -->
-    <div class="card card--full">
-      <div class="card-header">
-        <span class="card-icon card-icon--navy">📅</span>
-        <h2 class="card-title">Historique des consultations</h2>
-        <span class="count-badge">{{ d.historique.length }}</span>
+        <!-- Antécédents familiaux -->
+        <section class="section-card">
+          <div class="section-header section-header--purple">
+            <svg class="section-icon" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <h2>Antécédents familiaux</h2>
+          </div>
+          <div class="fam-grid">
+            @for (item of antecedentsFamiliaux(); track item.label) {
+              <div class="fam-chip" [class.fam-chip--on]="item.actif">
+                <span class="fam-chip__dot" [class.fam-chip__dot--on]="item.actif"></span>
+                <span class="fam-chip__label">{{ item.label }}</span>
+                <span class="fam-chip__status">{{ item.actif ? 'Oui' : 'Non' }}</span>
+              </div>
+            }
+          </div>
+        </section>
+
+      </div><!-- /col-main -->
+
+      <!-- Colonne droite -->
+      <div class="col-side">
+
+        <!-- Mode de vie -->
+        @if (infosVie().length > 0) {
+          <section class="section-card">
+            <div class="section-header section-header--teal">
+              <svg class="section-icon" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+              <h2>Mode de vie</h2>
+            </div>
+            <div class="vie-list">
+              @for (item of infosVie(); track item.label) {
+                <div class="vie-row">
+                  <span class="vie-row__icon">{{ item.icon }}</span>
+                  <div class="vie-row__body">
+                    <span class="vie-row__label">{{ item.label }}</span>
+                    <span class="vie-row__val">{{ item.valeur }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Pas de dossier -->
+        @if (!hasDossier()) {
+          <section class="section-card section-card--muted">
+            <p class="no-dossier-msg">Informations médicales non encore renseignées par un médecin.</p>
+          </section>
+        }
+
+      </div><!-- /col-side -->
+
+    </div><!-- /main-grid -->
+
+    <!-- ── HISTORIQUE DES CONSULTATIONS ────────────────────────────── -->
+    <section class="section-card section-card--full">
+      <div class="section-header section-header--navy">
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <h2>Historique des consultations</h2>
+        <span class="section-count">{{ d.historique.length }}</span>
       </div>
 
       @if (d.historique.length === 0) {
-        <div class="timeline-empty">
-          <p>Aucune consultation enregistrée.</p>
-        </div>
+        <div class="tl-empty">Aucune consultation enregistrée.</div>
       } @else {
-        <div class="timeline">
+        <div class="tl-table">
+          <!-- En-tête -->
+          <div class="tl-head">
+            <span>Date</span>
+            <span>Médecin</span>
+            <span>Motif</span>
+            <span>Mode</span>
+            <span>Statut</span>
+            <span></span>
+          </div>
+          <!-- Lignes -->
           @for (rdv of d.historique; track rdv.id) {
-            <div class="tl-item" [class.tl-item--expanded]="expandedRdv() === rdv.id">
-
-              <div class="tl-dot" [ngClass]="statutClass(rdv.statut)"></div>
-              <div class="tl-line"></div>
-
-              <div class="tl-card" (click)="toggleRdv(rdv.id)">
-                <div class="tl-card-top">
-                  <div class="tl-left">
-                    <span class="tl-date">{{ formatDate(rdv.dateRendezVous) }}</span>
-                    @if (rdv.heureDebut) {
-                      <span class="tl-time">{{ rdv.heureDebut.slice(0,5) }}</span>
-                    }
-                  </div>
-                  <div class="tl-center">
-                    <p class="tl-medecin">{{ medecinLabel(rdv) }}</p>
-                    @if (rdv.medecinSpecialite) {
-                      <span class="tl-spec">{{ rdv.medecinSpecialite }}</span>
-                    }
-                  </div>
-                  <div class="tl-right">
-                    <span class="badge {{ statutClass(rdv.statut) }}">{{ statutLabel(rdv.statut) }}</span>
-                    <span class="tl-chevron">{{ expandedRdv() === rdv.id ? '▲' : '▼' }}</span>
-                  </div>
-                </div>
-
-                @if (expandedRdv() === rdv.id) {
-                  <div class="tl-detail" (click)="$event.stopPropagation()">
-                    @if (rdv.motif) {
-                      <div class="tl-detail-row">
-                        <span class="tl-detail-label">Motif</span>
-                        <span class="tl-detail-val">{{ rdv.motif }}</span>
-                      </div>
-                    }
-                    <div class="tl-detail-row">
-                      <span class="tl-detail-label">Mode</span>
-                      <span class="tl-detail-val">{{ modeLabel(rdv.modeConsultation) }}</span>
-                    </div>
-                    @if (rdv.prixConsultation) {
-                      <div class="tl-detail-row">
-                        <span class="tl-detail-label">Prix</span>
-                        <span class="tl-detail-val">{{ rdv.prixConsultation | number:'1.0-0' }} DT</span>
-                      </div>
-                    }
-                  </div>
+            <div class="tl-row" [class.tl-row--open]="expandedRdv() === rdv.id" (click)="toggleRdv(rdv.id)">
+              <div class="tl-cell tl-cell--date">
+                <span class="tl-date">{{ formatDate(rdv.dateRendezVous) }}</span>
+                @if (rdv.heureDebut) {
+                  <span class="tl-time">{{ rdv.heureDebut.slice(0,5) }}</span>
                 }
               </div>
-
+              <div class="tl-cell">
+                <span class="tl-doc-name">{{ medecinLabel(rdv) }}</span>
+                @if (rdv.medecinSpecialite) {
+                  <span class="tl-spec">{{ rdv.medecinSpecialite }}</span>
+                }
+              </div>
+              <div class="tl-cell tl-cell--motif">
+                {{ rdv.motif || '—' }}
+              </div>
+              <div class="tl-cell">
+                {{ modeLabel(rdv.modeConsultation) }}
+              </div>
+              <div class="tl-cell">
+                <span class="status-pill status-pill--{{ statutClass(rdv.statut, rdv.dateRendezVous) }}">
+                  {{ statutLabel(rdv.statut, rdv.dateRendezVous) }}
+                </span>
+              </div>
+              <div class="tl-cell tl-cell--toggle">
+                <svg class="tl-chevron" [class.tl-chevron--open]="expandedRdv() === rdv.id" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
             </div>
+            @if (expandedRdv() === rdv.id) {
+              <div class="tl-expand" (click)="$event.stopPropagation()">
+                @if (rdv.prixConsultation) {
+                  <div class="expand-chip">
+                    <span class="expand-chip__label">Prix</span>
+                    <span class="expand-chip__val">{{ rdv.prixConsultation | number:'1.0-0' }} DT</span>
+                  </div>
+                }
+                <div class="expand-chip">
+                  <span class="expand-chip__label">Mode</span>
+                  <span class="expand-chip__val">{{ modeLabel(rdv.modeConsultation) }}</span>
+                </div>
+                <div class="expand-chip">
+                  <span class="expand-chip__label">Référence</span>
+                  <span class="expand-chip__val">#{{ rdv.id }}</span>
+                </div>
+              </div>
+            }
           }
         </div>
       }
-    </div>
+    </section>
 
   }<!-- /else -->
 

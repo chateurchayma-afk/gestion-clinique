@@ -83,7 +83,12 @@ export class PatientDossierMedical implements OnInit {
   formatDate(iso: string | null | undefined)     { return formatDateFr(iso); }
   formatDateTime(iso: string | null | undefined) { return formatDateTimeFr(iso); }
 
-  statutLabel(s: string | null): string {
+  statutLabel(s: string | null, date?: string | null): string {
+    // Si date passée et statut encore EN_ATTENTE ou CONFIRME → afficher "Passé"
+    if (date && (s === 'EN_ATTENTE' || s === 'CONFIRME')) {
+      const rdvDate = new Date(date + 'T23:59:59');
+      if (rdvDate < new Date()) return 'Passé';
+    }
     const map: Record<string, string> = {
       EN_ATTENTE: 'En attente', CONFIRME: 'Confirmé',
       ANNULE: 'Annulé', TERMINE: 'Terminé'
@@ -91,7 +96,11 @@ export class PatientDossierMedical implements OnInit {
     return s ? (map[s] ?? s) : '—';
   }
 
-  statutClass(s: string | null): string {
+  statutClass(s: string | null, date?: string | null): string {
+    if (date && (s === 'EN_ATTENTE' || s === 'CONFIRME')) {
+      const rdvDate = new Date(date + 'T23:59:59');
+      if (rdvDate < new Date()) return 'badge-muted';
+    }
     const map: Record<string, string> = {
       EN_ATTENTE: 'badge-warning', CONFIRME: 'badge-info',
       ANNULE: 'badge-danger', TERMINE: 'badge-success'

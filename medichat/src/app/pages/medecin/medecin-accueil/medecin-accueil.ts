@@ -2,10 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ToastService } from '../../../core/toast.service';
-import {
-  AdminRendezVousPlanningItem,
-  AdminRendezVousService
-} from '../../../services/admin-rendez-vous.service';
+import { AdminRendezVousPlanningItem } from '../../../services/admin-rendez-vous.service';
 import { Medecin, MedecinService } from '../../../services/medecin.service';
 
 const MONTHS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -63,9 +60,9 @@ type RdvStatut = string;
 
 type TopScope = 'annee' | 'mois' | 'semaine';
 
-const PBI_TABLE = 'DIM_MEDECIN';
+const PBI_TABLE = 'dim_medecin';
 const PBI_COLUMN = 'medecin_id';
-const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=274b2dc7-9e27-492a-98ce-20980633bb92&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
+const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=11c930bb-adc6-42e2-b070-0a26e3dcd66b&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
 
 @Component({
   selector: 'app-medecin-accueil',
@@ -76,7 +73,6 @@ const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=274b2dc7-9e
 })
 export class MedecinAccueil implements OnInit {
   private readonly medecinService = inject(MedecinService);
-  private readonly rdvService = inject(AdminRendezVousService);
   private readonly toast = inject(ToastService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -215,9 +211,8 @@ export class MedecinAccueil implements OnInit {
       return;
     }
     this.selectedYear.set(n);
-    const id = this.medecinId();
-    if (id) {
-      this.loadPlanning(id);
+    if (this.medecinId()) {
+      this.loadPlanning();
     }
   }
 
@@ -235,27 +230,9 @@ export class MedecinAccueil implements OnInit {
   private resolveMedecinAndLoad(): void {
     this.loadError.set(null);
     this.loading.set(true);
-    const raw = localStorage.getItem('user');
-    let userId: number | null = null;
-    if (raw) {
-      try {
-        const u = JSON.parse(raw) as { id?: number };
-        if (typeof u?.id === 'number' && u.id > 0) {
-          userId = u.id;
-        }
-      } catch {
-        userId = null;
-      }
-    }
-    if (userId == null) {
-      this.loadError.set('Session introuvable. Reconnectez-vous.');
-      this.loading.set(false);
-      return;
-    }
-
-    this.medecinService.getAllMedecins().subscribe({
-      next: (list: Medecin[]) => {
-        const m = list.find((x) => (x.utilisateur?.id ?? 0) === userId);
+    // Utilise /api/medecin/moi — filtré par JWT côté serveur, pas de getAllMedecins()
+    this.medecinService.getMonProfil().subscribe({
+      next: (m: Medecin) => {
         if (!m?.id) {
           this.loadError.set('Profil médecin introuvable pour ce compte.');
           this.loading.set(false);
@@ -263,7 +240,7 @@ export class MedecinAccueil implements OnInit {
         }
         this.medecinId.set(m.id);
         this.buildPbiUrl(m.id);
-        this.loadPlanning(m.id);
+        this.loadPlanning();
       },
       error: () => {
         this.toast.show('Impossible de résoudre le profil médecin.', 'error');
@@ -273,12 +250,13 @@ export class MedecinAccueil implements OnInit {
     });
   }
 
-  private loadPlanning(medecinId: number): void {
+  private loadPlanning(): void {
     this.loading.set(true);
     const y = this.selectedYear();
     const start = `${y}-01-01`;
-    const end = `${y}-12-31`;
-    this.rdvService.listPlanning(start, end, medecinId, {}).subscribe({
+    const end   = `${y}-12-31`;
+    // Utilise /api/medecin/mon-planning — filtré par JWT, uniquement ses propres RDV
+    this.medecinService.getMonPlanning(start, end).subscribe({
       next: (rows) => {
         this.rdvs.set(rows ?? []);
         this.loading.set(false);

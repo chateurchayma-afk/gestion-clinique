@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../core/api-base';
+import type { AdminRendezVousPlanningItem } from './admin-rendez-vous.service';
 
 export interface UtilisateurMedecin {
   id: number;
@@ -115,6 +116,22 @@ export class MedecinService {
 
   getAllMedecins(): Observable<Medecin[]> {
     return this.http.get<Medecin[]>(this.apiUrl);
+  }
+
+  /** Profil du médecin connecté — filtré par JWT côté serveur. */
+  getMonProfil(): Observable<Medecin> {
+    return this.http.get<Medecin>(`${API_BASE_URL}/api/medecin/moi`);
+  }
+
+  /**
+   * Planning du médecin connecté pour la période donnée.
+   * Filtré par JWT côté serveur : impossible de voir les données d'un autre médecin.
+   */
+  getMonPlanning(startIso: string, endIso: string): Observable<AdminRendezVousPlanningItem[]> {
+    const params = new HttpParams().set('start', startIso).set('end', endIso);
+    return this.http.get<AdminRendezVousPlanningItem[]>(
+      `${API_BASE_URL}/api/medecin/mon-planning`, { params }
+    );
   }
 
   /** Catalogue patient (filtres / tri côté API). */

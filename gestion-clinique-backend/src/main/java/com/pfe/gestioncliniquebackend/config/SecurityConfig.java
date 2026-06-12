@@ -21,13 +21,23 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Public : auth + catalogue médecins
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/medecins/catalogue/**").permitAll()
+                        // Espace patient (JWT requis)
                         .requestMatchers("/api/patient/**").authenticated()
+                        // Espace médecin connecté (JWT requis) — mon-planning filtré par JWT
+                        .requestMatchers("/api/medecin/**").authenticated()
+                        // RDV : toujours authentifié (évite l'accès public à /planning sans filtre)
+                        .requestMatchers("/api/rendez-vous/**").authenticated()
+                        // Admin & gestion
+                        .requestMatchers("/api/medecins/**").authenticated()
+                        .requestMatchers("/api/specialites/**").authenticated()
                         .requestMatchers("/api/utilisateurs/**").authenticated()
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/ordonnances/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/chatbot/**").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
