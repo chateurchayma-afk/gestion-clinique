@@ -9,7 +9,7 @@ import { Medecin, MedecinService } from '../../../services/medecin.service';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './patient-medecin-profil.html',
-  styleUrl: './patient-medecin-profil.css'
+  styleUrls: ['./patient-medecin-profil.css', '../patient-pro.css']
 })
 export class PatientMedecinProfil implements OnInit {
   private readonly route = inject(ActivatedRoute);

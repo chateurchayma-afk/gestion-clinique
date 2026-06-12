@@ -48,7 +48,7 @@ export const ADMIN_SHELL: DashboardShellConfig = {
         { label: '🗓️ Planning des médecins', path: '/admin/planning-medecins' },
         { label: '👥 Liste des patients', path: '/admin/patients' },
         { label: '➕ Ajouter un patient', path: '/admin/add-patient' },
-        { label: '📅 Gérer rendez-vous', path: '/admin/rdv' },
+        { label: '📅 Liste des rendez-vous', path: '/admin/rdv' },
         { label: '🩺 Liste des spécialités', path: '/admin/specialites' }
       ]
     }

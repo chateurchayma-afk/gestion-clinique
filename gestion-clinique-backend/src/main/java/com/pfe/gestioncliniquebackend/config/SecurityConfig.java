@@ -21,9 +21,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Public : auth + catalogue médecins
+                        // Public : auth + catalogue médecins + spécialités (inscription)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/medecins/catalogue/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/specialites/**").permitAll()
                         // Espace patient (JWT requis)
                         .requestMatchers("/api/patient/**").authenticated()
                         // Espace médecin connecté (JWT requis) — mon-planning filtré par JWT

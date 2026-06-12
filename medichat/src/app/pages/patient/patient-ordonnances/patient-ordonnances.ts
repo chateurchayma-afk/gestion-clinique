@@ -16,7 +16,7 @@ function formatFr(iso: string | null | undefined): string {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './patient-ordonnances.html',
-  styleUrl: './patient-ordonnances.css'
+  styleUrls: ['./patient-ordonnances.css', '../patient-pro.css']
 })
 export class PatientOrdonnances implements OnInit {
   private readonly svc = inject(OrdonnanceService);

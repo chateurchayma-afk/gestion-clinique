@@ -38,6 +38,13 @@ public interface MedecinRepository extends JpaRepository<Medecin, Long> {
     )
     List<Medecin> findAllValidatedForCatalogue(@Param("statut") StatutValidationMedecin statut);
 
+    /** Tous les médecins avec utilisateur et spécialité en une seule requête (évite N+1). */
+    @Query(
+            "SELECT DISTINCT m FROM Medecin m JOIN FETCH m.utilisateur u "
+                    + "LEFT JOIN FETCH m.specialite s ORDER BY m.id DESC"
+    )
+    List<Medecin> findAllWithDetails();
+
     /** Trouver les médecins par prix de consultation */
     List<Medecin> findByPrixConsultation(Double prixConsultation);
 }

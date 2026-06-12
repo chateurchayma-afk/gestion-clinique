@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
@@ -130,6 +130,18 @@ export class MedecinRendezVous implements OnInit {
   readonly calendarLoading = signal(false);
   readonly weekStart = signal<Date>(startOfWeekSunday(new Date()));
   readonly selectedId = signal<number | null>(null);
+  readonly updatingId = signal<number | null>(null);
+  readonly openMenuId = signal<number | null>(null);
+
+  @HostListener('document:click')
+  closeMenus(): void {
+    this.openMenuId.set(null);
+  }
+
+  toggleActionMenu(id: number, event: Event): void {
+    event.stopPropagation();
+    this.openMenuId.set(this.openMenuId() === id ? null : id);
+  }
 
   readonly filterStatut = signal<StatutRendezVousAdmin | 'TOUS'>('TOUS');
   readonly filterPatientId = signal<number | null>(null);
@@ -473,8 +485,42 @@ export class MedecinRendezVous implements OnInit {
     this.reloadCalendar();
   }
 
-  exportCalendarPrint(): void {
-    globalThis.print();
+  exportCsv(): void {
+    const rows = this.viewMode() === 'liste'
+      ? this.filteredRows()
+      : this.calendarRows().filter((r) => {
+          const pid = this.filterPatientId();
+          return pid == null || Number(r.patientId) === Number(pid);
+        });
+
+    if (rows.length === 0) {
+      this.toast.show('Aucun rendez-vous à exporter.', 'error');
+      return;
+    }
+
+    const escape = (v: unknown): string => {
+      const s = String(v ?? '').replace(/"/g, '""');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+    };
+
+    const header = ['Date', 'Heure début', 'Heure fin', 'Patient', 'Médecin', 'Statut'];
+    const lines = rows.map((r) => [
+      escape(this.formatDate(r.dateRendezVous)),
+      escape(this.formatTime(r.heureDebut)),
+      escape(this.formatTime(r.heureFin)),
+      escape(`${r.patientPrenom ?? ''} ${r.patientNom ?? ''}`.trim()),
+      escape(`Dr. ${r.medecinPrenom ?? ''} ${r.medecinNom ?? ''}`.trim()),
+      escape(this.statutLabel(r.statut))
+    ].join(','));
+
+    const csv = [header.join(','), ...lines].join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rendez-vous-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   onFilterStatutChange(value: string): void {
@@ -595,5 +641,29 @@ export class MedecinRendezVous implements OnInit {
     this.filterStatut.set('TOUS');
     this.reloadRendezVous();
     this.reloadCalendar();
+  }
+
+  onStatutSelectChange(rdv: AdminRendezVousPlanningItem, event: Event): void {
+    const val = (event.target as HTMLSelectElement).value as StatutRendezVousAdmin;
+    if (val !== rdv.statut) {
+      this.changeStatut(rdv, val);
+    }
+  }
+
+  changeStatut(rdv: AdminRendezVousPlanningItem, statut: StatutRendezVousAdmin): void {
+    if (this.updatingId() === rdv.id) return;
+    this.updatingId.set(rdv.id);
+    this.adminRdv.updateStatut(rdv.id, statut).subscribe({
+      next: (updated) => {
+        this.rdvRows.set(this.rdvRows().map((r) => r.id === rdv.id ? { ...r, statut: updated.statut } : r));
+        this.calendarRows.set(this.calendarRows().map((r) => r.id === rdv.id ? { ...r, statut: updated.statut } : r));
+        this.updatingId.set(null);
+        this.toast.show(`Statut mis à jour : ${this.statutLabel(updated.statut)}`, 'success');
+      },
+      error: () => {
+        this.updatingId.set(null);
+        this.toast.show('Impossible de mettre à jour le statut.', 'error');
+      }
+    });
   }
 }

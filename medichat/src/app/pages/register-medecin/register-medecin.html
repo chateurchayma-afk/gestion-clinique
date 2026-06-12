@@ -1,5 +1,51 @@
 <div class="register-page">
-  <div class="register-card">
+  <div class="register-card" [class.register-card--pending]="registered()">
+
+    <!-- ══ ÉCRAN D'ATTENTE après inscription ══════════════════════════════════ -->
+    @if (registered()) {
+      <div class="pending-screen">
+        <div class="pending-icon-wrap">
+          <div class="pending-ring"></div>
+          <svg class="pending-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <circle cx="24" cy="24" r="20" stroke="#4f6fa8" stroke-width="2.5" stroke-dasharray="6 4" opacity=".3"/>
+            <path d="M24 14v10l6 4" stroke="#4f6fa8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="pending-title">Compte créé avec succès !</h2>
+        <p class="pending-sub">
+          Votre demande d'inscription a bien été envoyée.<br>
+          <strong>En attente de validation par l'administrateur.</strong>
+        </p>
+        <div class="pending-steps">
+          <div class="pending-step pending-step--done">
+            <span class="step-dot step-dot--done">
+              <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+                <path d="M3 8l3.5 3.5L13 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span>Compte créé</span>
+          </div>
+          <div class="pending-step-line"></div>
+          <div class="pending-step pending-step--active">
+            <span class="step-dot step-dot--active">
+              <span class="step-dot-pulse"></span>
+            </span>
+            <span>Validation admin</span>
+          </div>
+          <div class="pending-step-line pending-step-line--muted"></div>
+          <div class="pending-step pending-step--waiting">
+            <span class="step-dot step-dot--muted"></span>
+            <span>Accès accordé</span>
+          </div>
+        </div>
+        <a [routerLink]="['/login']" [queryParams]="{ form: '1' }" class="pending-btn">
+          Aller à la connexion
+        </a>
+      </div>
+    }
+
+    <!-- ══ FORMULAIRE ═════════════════════════════════════════════════════════ -->
+    @if (!registered()) {
 
     <div class="header-box">
       <h1>Créer un compte</h1>
@@ -132,7 +178,14 @@
 
       <div id="google-gsi-button-host" class="google-gsi-host" aria-label="S'inscrire avec Google"></div>
 
-      <button type="submit" class="submit-btn">Créer mon compte</button>
+      <button type="submit" class="submit-btn" [disabled]="submitting()">
+        @if (submitting()) {
+          <span class="submit-spinner"></span>
+          Création en cours…
+        } @else {
+          Créer mon compte
+        }
+      </button>
 
       <p class="bottom-text" *ngIf="message" style="color: green;">
         {{ message }}
@@ -151,5 +204,6 @@
         <a class="back-link" [routerLink]="['/login']" [queryParams]="{ welcome: '1' }">← Retour</a>
       </p>
     </form>
+    } <!-- fin @if (!registered()) -->
   </div>
 </div>

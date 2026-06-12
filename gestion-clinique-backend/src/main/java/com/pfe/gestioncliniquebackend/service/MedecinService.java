@@ -31,7 +31,7 @@ public class MedecinService {
     
 
     public List<Medecin> getAllMedecins() {
-        return medecinRepository.findAll();
+        return medecinRepository.findAllWithDetails();
     }
 
     public Medecin getMedecinById(Long id) {

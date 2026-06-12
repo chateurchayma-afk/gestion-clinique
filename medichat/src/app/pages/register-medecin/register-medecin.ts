@@ -23,6 +23,8 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
 
   readonly specialitesSelect = signal<Specialite[]>([]);
   readonly googleLoading = signal(false);
+  readonly submitting = signal(false);
+  readonly registered = signal(false);
 
   nom = '';
   prenom = '';
@@ -33,7 +35,7 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
   telephone = '';
   motDePasse = '';
   adresse = '';
-  prixConsultation = '';
+  prixConsultation: number | string | null = null;
   message = '';
   errorMessage = '';
 
@@ -47,7 +49,7 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
         const sorted = [...list].sort((a, b) =>
           a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' })
         );
-        this.specialitesSelect.set(sorted.slice(0, 10));
+        this.specialitesSelect.set(sorted);
       },
       error: () => {
         this.toast.show('Impossible de charger les spécialités.', 'error');
@@ -94,7 +96,8 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
       return;
     }
 
-    const prix = this.prixConsultation.trim();
+    this.submitting.set(true);
+    const prix = `${this.prixConsultation ?? ''}`.trim();
     const data = {
       nom: this.nom.trim(),
       prenom: this.prenom.trim(),
@@ -107,15 +110,11 @@ export class RegisterMedecin implements OnInit, AfterViewInit {
 
     this.authService.registerMedecin(data).subscribe({
       next: () => {
-        this.message = 'Compte médecin créé avec succès';
-
-        setTimeout(() => {
-          void this.router.navigate(['/login']);
-        }, 1000);
+        this.submitting.set(false);
+        this.registered.set(true);
       },
       error: (error: unknown) => {
-        console.error(error);
-
+        this.submitting.set(false);
         if (error && typeof error === 'object' && 'error' in error) {
           const err = error as { error?: string };
           this.errorMessage =

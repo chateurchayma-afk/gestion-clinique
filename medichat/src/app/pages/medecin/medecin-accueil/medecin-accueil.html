@@ -1,11 +1,23 @@
-<div class="bi-container">
-  @if (pbiUrl) {
-    <iframe
-      [src]="pbiUrl"
-      width="100%"
-      height="900"
-      frameborder="0"
-      allowfullscreen>
-    </iframe>
-  }
+<div class="mec-page">
+
+  <div class="mec-hero">
+    <div class="mec-hero-text">
+      <p class="mec-kicker">Tableau de bord</p>
+      <h1 class="mec-title">Mon espace médecin</h1>
+      <p class="mec-sub muted">Analyse de votre activité filtrée sur votre compte.</p>
+    </div>
+  </div>
+
+  <div class="acc-pbi-wrap">
+    @if (pbiUrl) {
+      <iframe
+        [src]="pbiUrl"
+        width="100%"
+        height="900"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+    }
+  </div>
+
 </div>

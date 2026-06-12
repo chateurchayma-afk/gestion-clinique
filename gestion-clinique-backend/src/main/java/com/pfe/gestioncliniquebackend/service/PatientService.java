@@ -35,7 +35,7 @@ public class PatientService {
     }
 
     public List<Patient> getAllPatients() {
-        return patientRepository.findAll();
+        return patientRepository.findAllWithDetails();
     }
 
     public Patient getPatientById(Long id) {

@@ -45,7 +45,7 @@ const PBI_REPORT_URL_PATIENT = 'https://app.powerbi.com/reportEmbed?reportId=227
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './patient-home.html',
-  styleUrl: './patient-home.css'
+  styleUrls: ['./patient-home.css', '../patient-pro.css']
 })
 export class PatientHome implements OnInit {
   private readonly destroyRef = inject(DestroyRef);

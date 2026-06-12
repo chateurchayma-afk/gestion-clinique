@@ -11,7 +11,7 @@ import { RendezVousCreatePayload, RendezVousPatientService } from '../../../serv
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './patient-rdv-new.html',
-  styleUrl: './patient-rdv-new.css'
+  styleUrls: ['./patient-rdv-new.css', '../patient-pro.css']
 })
 export class PatientRdvNew implements OnInit {
   private readonly route = inject(ActivatedRoute);

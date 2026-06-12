@@ -62,7 +62,7 @@ function compareHeurePatient(a: RendezVousPatient, b: RendezVousPatient): number
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './patient-rdv-list.html',
-  styleUrl: './patient-rdv-list.css'
+  styleUrls: ['./patient-rdv-list.css', '../patient-pro.css']
 })
 export class PatientRdvList implements OnInit {
   private readonly rdvService = inject(RendezVousPatientService);

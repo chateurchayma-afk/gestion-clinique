@@ -1,71 +1,77 @@
 <div class="medecins-page">
 
-  <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
-  <header class="hero">
-    <div class="hero-text">
-      <p class="eyebrow">Espace patient · MediChat</p>
-      <h1 class="hero-title">Nos médecins</h1>
-      <p class="hero-sub">Trouvez le praticien qu'il vous faut et prenez rendez-vous en quelques clics.</p>
-    </div>
-  </header>
-
-  <!-- ── Barre de recherche & filtres ──────────────────────────────────────── -->
-  <div class="toolbar">
-    <div class="search-wrap">
-      <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/>
-        <path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <input
-        type="search"
-        class="search-input"
-        placeholder="Rechercher un médecin…"
-        [(ngModel)]="searchNom"
-        (ngModelChange)="applyFilters()"
-        name="searchNom"
-        autocomplete="off"
-        list="medecins-noms-list"
-      />
-      <datalist id="medecins-noms-list">
-        @for (m of medecinsPourNoms(); track m.id) {
-          <option [value]="libelleMedecinDatalist(m)"></option>
-        }
-      </datalist>
+  <!-- ── Hero + Recherche intégrée ─────────────────────────────────────────── -->
+  <div class="med-hero">
+    <div class="med-hero-top">
+      <div class="med-hero-text">
+        <p class="eyebrow">Espace patient · MediChat</p>
+        <h1 class="hero-title">Nos médecins</h1>
+        <p class="hero-sub">Trouvez le praticien qu'il vous faut et prenez rendez-vous en quelques clics.</p>
+      </div>
+      @if (!loading() && allMedecinsCount() > 0) {
+        <div class="med-hero-stat">
+          <span class="med-hero-stat-val">{{ allMedecinsCount() }}</span>
+          <span class="med-hero-stat-lbl">médecins disponibles</span>
+        </div>
+      }
     </div>
 
-    <div class="spec-wrap">
-      <svg class="spec-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <select
-        class="spec-select"
-        name="spec"
-        [(ngModel)]="specialiteFilter"
-        (ngModelChange)="applyFilters()"
-      >
-        <option value="">Toutes les spécialités</option>
-        @for (s of specialites(); track s.id) {
-          <option [ngValue]="s.id">{{ s.nom }}</option>
-        }
-      </select>
+    <div class="med-search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Rechercher un médecin…"
+          [(ngModel)]="searchNom"
+          (ngModelChange)="applyFilters()"
+          name="searchNom"
+          autocomplete="off"
+          list="medecins-noms-list"
+        />
+        <datalist id="medecins-noms-list">
+          @for (m of medecinsPourNoms(); track m.id) {
+            <option [value]="libelleMedecinDatalist(m)"></option>
+          }
+        </datalist>
+      </div>
+
+      <div class="spec-wrap">
+        <svg class="spec-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <select
+          class="spec-select"
+          name="spec"
+          [(ngModel)]="specialiteFilter"
+          (ngModelChange)="applyFilters()"
+        >
+          <option value="">Toutes les spécialités</option>
+          @for (s of specialites(); track s.id) {
+            <option [ngValue]="s.id">{{ s.nom }}</option>
+          }
+        </select>
+      </div>
     </div>
   </div>
 
   <!-- ── États : chargement / vide ─────────────────────────────────────────── -->
   @if (loading()) {
-    <div class="state-box">
-      <div class="skeleton-grid">
-        @for (_ of [1,2,3,4,5,6]; track $index) {
-          <div class="skeleton-card">
-            <div class="sk sk-avatar"></div>
-            <div class="sk sk-name"></div>
-            <div class="sk sk-spec"></div>
-            <div class="sk sk-badges"></div>
-            <div class="sk sk-btn"></div>
-          </div>
-        }
-      </div>
+    <div class="skeleton-grid">
+      @for (_ of [1,2,3,4,5,6]; track $index) {
+        <div class="skeleton-card">
+          <div class="sk sk-avatar"></div>
+          <div class="sk sk-name"></div>
+          <div class="sk sk-spec"></div>
+          <div class="sk sk-badges"></div>
+          <div class="sk sk-btn"></div>
+        </div>
+      }
     </div>
+
   } @else if (medecins().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">
@@ -82,24 +88,29 @@
           Essayez un autre nom ou changez de spécialité.
         }
       </p>
-    </div>
-  } @else {
-    <!-- ── En-tête résultats ───────────────────────────────────────────────── -->
-    <div class="results-header">
-      <span class="results-count">{{ medecins().length }} médecin{{ medecins().length > 1 ? 's' : '' }}</span>
       @if (specialiteFilter !== '') {
-        <button type="button" class="clear-filter" (click)="specialiteFilter = ''; applyFilters()">
-          Effacer le filtre ×
+        <button type="button" class="btn-clear-filter" (click)="specialiteFilter = ''; applyFilters()">
+          Réinitialiser les filtres
         </button>
       }
     </div>
 
-    <!-- ── Grille de cartes ───────────────────────────────────────────────── -->
+  } @else {
+
+    @if (specialiteFilter !== '') {
+      <div class="results-bar">
+        <button type="button" class="clear-filter" (click)="specialiteFilter = ''; applyFilters()">
+          Effacer filtre ×
+        </button>
+      </div>
+    }
+
+    <!-- ── Grille de cartes ────────────────────────────────────────────────── -->
     <div class="cards-grid">
       @for (m of medecins(); track m.id) {
         <div class="doc-card" [class.doc-card--unavailable]="!estDisponible(m)">
 
-          <!-- Disponibilité -->
+          <!-- Badge disponibilité -->
           <div class="dispo-badge" [class.dispo-badge--on]="estDisponible(m)">
             <span class="dispo-dot"></span>
             {{ estDisponible(m) ? 'Disponible' : 'Indisponible' }}
@@ -107,12 +118,21 @@
 
           <!-- Avatar + identité -->
           <div class="doc-card-top">
-            <div class="doc-avatar" [class.doc-avatar--photo]="photoUrl(m)">
-              @if (photoUrl(m); as url) {
-                <img [src]="url" [alt]="'Photo de Dr. ' + m.utilisateur.prenom" />
-              } @else {
-                <span class="doc-initials">{{ initiales(m) }}</span>
-              }
+            <div class="doc-avatar-wrap">
+              <div class="doc-avatar" [class.doc-avatar--photo]="photoUrl(m)">
+                @if (photoUrl(m); as url) {
+                  <img [src]="url" [alt]="" (error)="$any($event.target).style.display='none'" />
+                  <svg class="doc-avatar-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                    <circle cx="20" cy="15" r="7" fill="rgba(255,255,255,0.5)"/>
+                    <path d="M6 36c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                } @else {
+                  <svg class="doc-avatar-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                    <circle cx="20" cy="15" r="7" fill="rgba(255,255,255,0.6)"/>
+                    <path d="M6 36c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                }
+              </div>
             </div>
             <h3 class="doc-name">Dr. {{ m.utilisateur.prenom }} {{ m.utilisateur.nom }}</h3>
             @if (m.specialite?.nom) {
@@ -122,19 +142,22 @@
             }
           </div>
 
+          <!-- Séparateur -->
+          <div class="doc-divider"></div>
+
           <!-- Infos -->
           <ul class="doc-info-list">
             @if (m.prixConsultation != null) {
-              <li class="doc-info-item">
-                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+              <li class="doc-info-item doc-info-item--prix">
+                <svg viewBox="0 0 16 16" fill="none" class="info-icon">
                   <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/>
                   <path d="M8 5v6M6 6.5h2.5a1 1 0 0 1 0 2H7a1 1 0 0 0 0 2H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
                 </svg>
-                <span>{{ m.prixConsultation | number:'1.0-2' }} DT / consultation</span>
+                <span><strong>{{ m.prixConsultation | number:'1.0-2' }} DT</strong> / consultation</span>
               </li>
             } @else {
               <li class="doc-info-item doc-info-item--muted">
-                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                <svg viewBox="0 0 16 16" fill="none" class="info-icon">
                   <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/>
                   <path d="M8 5v6M6 6.5h2.5a1 1 0 0 1 0 2H7a1 1 0 0 0 0 2H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
                 </svg>
@@ -143,7 +166,7 @@
             }
             @if (m.experienceAnnees != null) {
               <li class="doc-info-item">
-                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                <svg viewBox="0 0 16 16" fill="none" class="info-icon">
                   <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
                   <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.4"/>
                 </svg>
@@ -152,7 +175,7 @@
             }
             @if (m.utilisateur.ville) {
               <li class="doc-info-item">
-                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="info-icon">
+                <svg viewBox="0 0 16 16" fill="none" class="info-icon">
                   <path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5S12.5 9.75 12.5 6C12.5 3.515 10.485 1.5 8 1.5Z" stroke="currentColor" stroke-width="1.4"/>
                   <circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.2"/>
                 </svg>
@@ -164,10 +187,18 @@
           <!-- Actions -->
           <div class="doc-card-actions">
             <button type="button" class="btn-profil" (click)="voirProfil(m)">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                <circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M2.5 13.5c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
               Voir profil
             </button>
             @if (estDisponible(m)) {
               <button type="button" class="btn-rdv" (click)="prendreRdvSurPlace(m)">
+                <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                  <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/>
+                  <path d="M5 2v2M11 2v2M2 7h12M8 10v2M7 11h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
                 Prendre RDV
               </button>
             } @else {

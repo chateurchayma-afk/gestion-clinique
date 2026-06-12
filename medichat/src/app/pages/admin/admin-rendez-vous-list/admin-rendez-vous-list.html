@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="rdv-page-header">
     <div class="rdv-header-text">
-      <h1 class="rdv-page-title">Gérer les rendez-vous</h1>
+      <h1 class="rdv-page-title">Liste des rendez-vous</h1>
       <p class="rdv-page-sub">Consultez, confirmez ou annulez les demandes des patients.</p>
     </div>
     <div class="rdv-header-actions">
@@ -105,19 +105,16 @@
         <table class="rdv-table">
           <thead>
             <tr>
-              <th class="col-id">#</th>
               <th class="col-date">Date</th>
               <th class="col-heure">Heure</th>
               <th class="col-patient">Patient</th>
               <th class="col-medecin">Médecin</th>
               <th class="col-statut">Statut</th>
-              <th class="col-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (r of filteredRows(); track r.id) {
-              <tr class="rdv-row" [class.row-saving]="savingId() === r.id">
-                <td class="col-id cell-id">{{ r.id }}</td>
+              <tr class="rdv-row">
                 <td class="col-date">{{ dateAffichee(r) }}</td>
                 <td class="col-heure cell-heure">{{ heureRange(r) }}</td>
                 <td class="col-patient">
@@ -133,38 +130,6 @@
                   <span [class]="'statut-badge statut-' + r.statut.toLowerCase()">
                     {{ labelStatut(r.statut) }}
                   </span>
-                </td>
-                <td class="col-actions">
-                  @if (statutSelectDisabled(r)) {
-                    <span class="action-locked">🔒 Annulé par le patient</span>
-                  } @else if (r.statut === 'TERMINE') {
-                    <span class="action-locked">—</span>
-                  } @else {
-                    <div class="action-btns">
-                      @if (r.statut === 'EN_ATTENTE') {
-                        <button
-                          class="action-btn btn-confirmer"
-                          (click)="onStatutChange(r, 'CONFIRME')"
-                          [disabled]="savingId() === r.id"
-                          title="Confirmer ce rendez-vous"
-                        >✔ Confirmer</button>
-                      }
-                      @if (r.statut === 'CONFIRME') {
-                        <button
-                          class="action-btn btn-terminer"
-                          (click)="onStatutChange(r, 'TERMINE')"
-                          [disabled]="savingId() === r.id"
-                          title="Marquer comme terminé"
-                        >✔ Terminé</button>
-                      }
-                      <button
-                        class="action-btn btn-annuler"
-                        (click)="onStatutChange(r, 'ANNULE')"
-                        [disabled]="savingId() === r.id"
-                        title="Annuler ce rendez-vous"
-                      >✖ Annuler</button>
-                    </div>
-                  }
                 </td>
               </tr>
             }

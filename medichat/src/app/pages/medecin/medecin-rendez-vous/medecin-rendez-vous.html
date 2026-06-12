@@ -23,8 +23,8 @@
             <option *ngFor="let y of anneeOptions" [ngValue]="y">{{ y }}</option>
           </select>
         </div>
-        <button type="button" class="mec-btn mec-btn-export" (click)="exportCalendarPrint()">
-          ⬇ Export
+        <button type="button" class="mec-btn mec-btn-export" (click)="exportCsv()">
+          ⬇ Export CSV
         </button>
       </div>
       <div class="mec-view-toggle" role="group" aria-label="Mode d'affichage">
@@ -281,7 +281,36 @@
                   </span>
                 </td>
                 <td class="rdv-td rdv-td--actions">
-                  <button type="button" class="action-btn" (click)="toggleDetails(r.id)">Voir</button>
+                  <div class="rdv-actions-group">
+                    <button type="button" class="rdv-act-voir" (click)="toggleDetails(r.id)" title="Voir">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    @if (r.statut === 'EN_ATTENTE') {
+                      <div class="rdv-menu-wrap">
+                        <button
+                          type="button"
+                          class="rdv-kebab"
+                          [disabled]="updatingId() === r.id"
+                          (click)="toggleActionMenu(r.id, $event)"
+                          title="Actions">
+                          ⋮
+                        </button>
+                        @if (openMenuId() === r.id) {
+                          <div class="rdv-dropdown" (click)="$event.stopPropagation()">
+                            <button class="rdv-drop-item rdv-drop-item--confirme" (click)="changeStatut(r, 'CONFIRME'); openMenuId.set(null)">
+                              <span class="rdv-drop-dot rdv-drop-dot--confirme"></span> Confirmer
+                            </button>
+                            <button class="rdv-drop-item rdv-drop-item--termine" (click)="changeStatut(r, 'TERMINE'); openMenuId.set(null)">
+                              <span class="rdv-drop-dot rdv-drop-dot--termine"></span> Terminer
+                            </button>
+                            <button class="rdv-drop-item rdv-drop-item--annule" (click)="changeStatut(r, 'ANNULE'); openMenuId.set(null)">
+                              <span class="rdv-drop-dot rdv-drop-dot--annule"></span> Annuler
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 </td>
               </tr>
               <tr class="details-row" [hidden]="selectedId() !== r.id">

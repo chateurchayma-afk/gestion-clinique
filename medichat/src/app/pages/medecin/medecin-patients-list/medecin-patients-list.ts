@@ -10,7 +10,8 @@ import {
 } from '../../../services/admin-rendez-vous.service';
 import {
   DossierMedicalResponse,
-  DossierMedicalService
+  DossierMedicalService,
+  DossierMedicalVersionResponse
 } from '../../../services/dossier-medical.service';
 import { MedecinPortalService } from '../../../services/medecin-portal.service';
 import { Patient, PatientService, PatientUpdatePayload } from '../../../services/patient.service';
@@ -35,7 +36,7 @@ type PatientEditModel = {
   numeroDossier: string;
 };
 
-export type PatientPanelMode = 'coords' | 'edit' | 'dossier' | 'rdv';
+export type PatientPanelMode = 'coords' | 'edit' | 'dossier' | 'rdv' | 'historique';
 
 function isoOffset(days: number): string {
   const d = new Date();
@@ -108,6 +109,9 @@ export class MedecinPatientsList implements OnInit {
   readonly loading = signal(true);
   readonly dossierLoading = signal(false);
   readonly dossierData = signal<DossierMedicalResponse | null>(null);
+  readonly historiqueLoading = signal(false);
+  readonly historiqueRows = signal<DossierMedicalVersionResponse[]>([]);
+  readonly expandedVersionId = signal<number | null>(null);
   readonly rdvLoading = signal(false);
   readonly rdvRows = signal<AdminRendezVousPlanningItem[]>([]);
 
@@ -145,6 +149,8 @@ export class MedecinPatientsList implements OnInit {
     this.panelMode = 'coords';
     this.cancelEdit();
     this.dossierData.set(null);
+    this.historiqueRows.set([]);
+    this.expandedVersionId.set(null);
     this.rdvRows.set([]);
   }
 
@@ -156,12 +162,14 @@ export class MedecinPatientsList implements OnInit {
     this.cancelEdit();
     this.expandedId = patient.id;
     this.panelMode = mode;
+    this.dossierData.set(null);
+    this.historiqueRows.set([]);
+    this.expandedVersionId.set(null);
     if (mode === 'dossier') {
       this.loadDossier(patient.id);
     } else if (mode === 'rdv') {
       this.loadRendezVous(patient.id);
     } else {
-      this.dossierData.set(null);
       this.rdvRows.set([]);
     }
   }
@@ -184,6 +192,8 @@ export class MedecinPatientsList implements OnInit {
     this.editModel = this.toEditModel(patient);
     this.openMenuId = null;
     this.dossierData.set(null);
+    this.historiqueRows.set([]);
+    this.expandedVersionId.set(null);
     this.rdvRows.set([]);
   }
 

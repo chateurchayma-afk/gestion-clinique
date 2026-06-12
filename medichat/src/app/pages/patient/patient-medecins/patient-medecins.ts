@@ -11,7 +11,7 @@ import { Specialite, SpecialiteService } from '../../../services/specialite.serv
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './patient-medecins.html',
-  styleUrl: './patient-medecins.css'
+  styleUrls: ['./patient-medecins.css', '../patient-pro.css']
 })
 export class PatientMedecins implements OnInit {
   private readonly medecinService = inject(MedecinService);

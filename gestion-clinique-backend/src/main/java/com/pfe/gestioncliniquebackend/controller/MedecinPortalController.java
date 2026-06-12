@@ -1,11 +1,12 @@
 package com.pfe.gestioncliniquebackend.controller;
 
 import com.pfe.gestioncliniquebackend.dto.AdminRendezVousPlanningItem;
+import com.pfe.gestioncliniquebackend.dto.PatientProfilResponse;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
-import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.service.AdminRendezVousService;
 import com.pfe.gestioncliniquebackend.service.MedecinAccessService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Espace connecté médecin : profil, patients et planning filtrés par JWT.
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/medecin")
 @RequiredArgsConstructor
@@ -59,7 +62,20 @@ public class MedecinPortalController {
 
     /** Patients ayant au moins un rendez-vous avec le médecin connecté. */
     @GetMapping("/mes-patients")
-    public ResponseEntity<List<Patient>> mesPatients() {
-        return ResponseEntity.ok(medecinAccessService.listerMesPatients());
+    public ResponseEntity<List<PatientProfilResponse>> mesPatients() {
+        try {
+            Medecin medecin = medecinAccessService.requireMedecinConnecte();
+            Long medecinId = medecin.getId();
+            log.info("[mes-patients] medecinId={} email={}", medecinId,
+                    medecin.getUtilisateur() != null ? medecin.getUtilisateur().getEmail() : "?");
+            List<PatientProfilResponse> patients = medecinAccessService.listerMesPatientsById(medecinId).stream()
+                    .map(PatientProfilResponse::from)
+                    .toList();
+            log.info("[mes-patients] {} patient(s) trouvé(s) pour medecinId={}", patients.size(), medecinId);
+            return ResponseEntity.ok(patients);
+        } catch (Exception e) {
+            log.error("[mes-patients] Erreur: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Collections.emptyList());
+        }
     }
 }

@@ -31,6 +31,14 @@ export interface DossierMedicalResponse extends DossierMedicalPayload {
   patientId: number;
 }
 
+export interface DossierMedicalVersionResponse extends DossierMedicalPayload {
+  id: number;
+  versionNumero: number;
+  modifieLe: string;
+  modifieParNom: string | null;
+  modifieParPrenom: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DossierMedicalService {
   private readonly http = inject(HttpClient);
@@ -42,5 +50,9 @@ export class DossierMedicalService {
 
   saveForPatient(patientId: number, payload: DossierMedicalPayload): Observable<DossierMedicalResponse> {
     return this.http.put<DossierMedicalResponse>(`${this.base}/${patientId}`, payload);
+  }
+
+  getHistorique(patientId: number): Observable<DossierMedicalVersionResponse[]> {
+    return this.http.get<DossierMedicalVersionResponse[]>(`${this.base}/${patientId}/historique`);
   }
 }

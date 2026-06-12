@@ -40,6 +40,11 @@ public class MedecinAccessService {
     }
 
     @Transactional(readOnly = true)
+    public List<Patient> listerMesPatientsById(Long medecinId) {
+        return rendezVousRepository.findDistinctPatientsByMedecinId(medecinId);
+    }
+
+    @Transactional(readOnly = true)
     public boolean medecinConcernePatient(Long medecinId, Long patientId) {
         return rendezVousRepository.existsByPatient_IdAndMedecin_Id(patientId, medecinId);
     }

@@ -69,7 +69,7 @@ const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=11c930bb-ad
   standalone: true,
   imports: [CommonModule],
   templateUrl: './medecin-accueil.html',
-  styleUrl: './medecin-accueil.css'
+  styleUrls: ['./medecin-accueil.css', '../medecin-pro.css']
 })
 export class MedecinAccueil implements OnInit {
   private readonly medecinService = inject(MedecinService);

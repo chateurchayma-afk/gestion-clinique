@@ -21,7 +21,7 @@ function formatDateTimeFr(iso: string | null | undefined): string {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './patient-dossier-medical.html',
-  styleUrl: './patient-dossier-medical.css'
+  styleUrls: ['./patient-dossier-medical.css', '../patient-pro.css']
 })
 export class PatientDossierMedical implements OnInit {
   private readonly svc   = inject(PatientDossierService);

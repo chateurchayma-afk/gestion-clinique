@@ -32,7 +32,7 @@ function optionalPasswordMin6(): ValidatorFn {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './patient-profil.html',
-  styleUrls: ['./patient-profil.css']
+  styleUrls: ['./patient-profil.css', '../patient-pro.css']
 })
 export class PatientProfil implements OnInit {
   private readonly fb = inject(FormBuilder);

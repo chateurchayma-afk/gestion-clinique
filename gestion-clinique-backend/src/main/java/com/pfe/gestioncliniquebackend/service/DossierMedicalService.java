@@ -2,13 +2,16 @@ package com.pfe.gestioncliniquebackend.service;
 
 import com.pfe.gestioncliniquebackend.dto.DossierMedicalRequest;
 import com.pfe.gestioncliniquebackend.dto.DossierMedicalResponse;
+import com.pfe.gestioncliniquebackend.dto.DossierMedicalVersionResponse;
 import com.pfe.gestioncliniquebackend.dto.RappelTraitementPatientResponse;
 import com.pfe.gestioncliniquebackend.entity.DossierMedical;
+import com.pfe.gestioncliniquebackend.entity.DossierMedicalVersion;
 import com.pfe.gestioncliniquebackend.entity.Medecin;
 import com.pfe.gestioncliniquebackend.entity.Patient;
 import com.pfe.gestioncliniquebackend.entity.Utilisateur;
 import com.pfe.gestioncliniquebackend.enums.NotificationType;
 import com.pfe.gestioncliniquebackend.repository.DossierMedicalRepository;
+import com.pfe.gestioncliniquebackend.repository.DossierMedicalVersionRepository;
 import com.pfe.gestioncliniquebackend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,6 +39,7 @@ public class DossierMedicalService {
     );
 
     private final DossierMedicalRepository dossierRepository;
+    private final DossierMedicalVersionRepository versionRepository;
     private final PatientRepository patientRepository;
     private final MedecinAccessService medecinAccessService;
     private final PatientAccessService patientAccessService;
@@ -57,8 +62,8 @@ public class DossierMedicalService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acces interdit");
         }
 
-        DossierMedical dossier = dossierRepository.findByPatient_Id(patientId)
-                .orElseGet(() -> DossierMedical.builder().patient(patient).build());
+        Optional<DossierMedical> existing = dossierRepository.findByPatient_Id(patientId);
+        DossierMedical dossier = existing.orElseGet(() -> DossierMedical.builder().patient(patient).build());
 
         String ancienNom = dossier.getRappelTraitementNom();
         String ancienneFreq = dossier.getRappelTraitementFrequence();
@@ -67,6 +72,11 @@ public class DossierMedicalService {
         dossier.setUpdatedAt(LocalDateTime.now());
         dossier.setUpdatedByMedecin(medecin);
         DossierMedical saved = dossierRepository.save(dossier);
+
+        // Sauvegarde de la version après chaque enregistrement
+        long nextNum = versionRepository.countByDossier_Id(saved.getId()) + 1;
+        versionRepository.save(snapshotVersion(saved, medecin, (int) nextNum));
+
         notifierRappelTraitementSiBesoin(patient, ancienNom, ancienneFreq, saved);
         return toResponse(saved, patient.getId());
     }
@@ -129,6 +139,46 @@ public class DossierMedicalService {
         }
         String key = codeOuTexte.trim();
         return FREQUENCE_LIBELLES.getOrDefault(key, key);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DossierMedicalVersionResponse> getHistorique(Long patientId) {
+        requirePatient(patientId);
+        requireMedecinAccess(patientId);
+        return dossierRepository.findByPatient_Id(patientId)
+                .map(d -> versionRepository.findByDossierIdOrdered(d.getId()).stream()
+                        .map(DossierMedicalVersionResponse::from)
+                        .toList())
+                .orElse(List.of());
+    }
+
+    private DossierMedicalVersion snapshotVersion(DossierMedical d, Medecin medecin, int numero) {
+        return DossierMedicalVersion.builder()
+                .dossier(d)
+                .versionNumero(numero)
+                .modifieLe(d.getUpdatedAt())
+                .modifiePar(medecin)
+                .groupeSanguin(d.getGroupeSanguin())
+                .tailleCm(d.getTailleCm())
+                .poidsKg(d.getPoidsKg())
+                .allergies(d.getAllergies())
+                .medicaments(d.getMedicaments())
+                .maladiesChroniques(d.getMaladiesChroniques())
+                .interventions(d.getInterventions())
+                .hospitalisations(d.getHospitalisations())
+                .famDiabete(d.isFamDiabete())
+                .famHypertension(d.isFamHypertension())
+                .famAsthme(d.isFamAsthme())
+                .famCardiaque(d.isFamCardiaque())
+                .famMentaux(d.isFamMentaux())
+                .famCancer(d.isFamCancer())
+                .tabac(d.getTabac())
+                .alcool(d.getAlcool())
+                .activite(d.getActivite())
+                .alimentation(d.getAlimentation())
+                .rappelTraitementNom(d.getRappelTraitementNom())
+                .rappelTraitementFrequence(d.getRappelTraitementFrequence())
+                .build();
     }
 
     private Patient requirePatient(Long patientId) {
