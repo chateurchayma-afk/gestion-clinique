@@ -120,17 +120,28 @@ export class Login implements OnInit, AfterViewInit {
   }
 
   async installApp(): Promise<void> {
+    // Verifier si le prompt global est disponible
+    const win = window as any;
+    if (!this.deferredInstallPrompt && win.__pwaInstallPrompt) {
+      this.deferredInstallPrompt = win.__pwaInstallPrompt;
+    }
+
     if (!this.deferredInstallPrompt) {
-      this.toast.show("L'installation n'est pas disponible sur ce navigateur.", 'error');
+      // L'app est peut-etre deja installee, ou Chrome n'a pas encore valide les criteres
+      this.toast.show(
+        "Ouvrez le menu Chrome (⋮) puis « Ajouter à l'écran d'accueil »",
+        'success'
+      );
       return;
     }
+
     await this.deferredInstallPrompt.prompt();
     const result = await this.deferredInstallPrompt.userChoice;
     if (result.outcome === 'accepted') {
       this.deferredInstallPrompt = null;
-      (window as any).__pwaInstallPrompt = null;
+      win.__pwaInstallPrompt = null;
       this.canInstall.set(false);
-      this.toast.show('Application installée avec succès !', 'success');
+      this.toast.show('Application installee avec succes !', 'success');
     }
   }
 

@@ -28,11 +28,9 @@
 
       <div class="line"></div>
 
-      @if (canInstall()) {
-        <button type="button" class="install-btn" (click)="installApp()">
-          📲 Installer l’application MediChat
-        </button>
-      }
+      <button type="button" class="install-btn" (click)="installApp()">
+        📲 Installer l’application MediChat
+      </button>
     </ng-container>
 
     <ng-template #loginForm>
