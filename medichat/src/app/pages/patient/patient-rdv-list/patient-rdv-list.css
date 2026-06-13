@@ -902,3 +902,359 @@ td.actions {
     margin-top: 4px;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   TIME-GRID CALENDAR (copie du design médecin)
+═══════════════════════════════════════════════════ */
+
+/* Header toolbar */
+.rdv-cal-header-pickers {
+  display: flex;
+  gap: 8px;
+}
+
+.rdv-cal-select {
+  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #dbe5f6;
+  background: #fff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #1e3a5f;
+  cursor: pointer;
+}
+
+.rdv-btn-export {
+  border: 1px solid #315ea8;
+  background: #315ea8;
+  color: #fff;
+  border-radius: 9999px;
+  padding: 7px 14px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.rdv-btn-export:hover { filter: brightness(1.1); }
+
+/* Shell */
+.rdv-cal-shell {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+/* Sidebar */
+.rdv-cal-sidebar {
+  flex: 0 0 250px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Mini Calendar */
+.rdv-mini-cal {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 12px 10px 14px;
+}
+
+.rdv-mini-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rdv-mini-navbtn {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rdv-mini-navbtn:hover { background: #e2e8f0; }
+
+.rdv-mini-title {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.rdv-mini-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.rdv-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.rdv-mini-day {
+  aspect-ratio: 1;
+  max-height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rdv-mini-day:hover { background: #eff6ff; }
+.rdv-mini-day--muted { color: #cbd5e1; }
+.rdv-mini-day--today { box-shadow: 0 0 0 2px #315ea8; }
+.rdv-mini-day--week { background: #1e3a5f; color: #fff; }
+.rdv-mini-day--week.rdv-mini-day--muted { background: #64748b; }
+
+/* Sidebar blocks */
+.rdv-sidebar-block { display: flex; flex-direction: column; gap: 6px; }
+
+.rdv-sidebar-label {
+  font-size: 0.62rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.rdv-select {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #dbe5f6;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e3a5f;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.rdv-select--sidebar { width: 100%; }
+
+.rdv-sidebar-add {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;
+  border-radius: 10px;
+}
+
+/* Main area */
+.rdv-cal-main {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.rdv-cal-main-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.rdv-btn-ghost {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.rdv-btn-ghost:hover { background: #f8fafc; border-color: #94a3b8; }
+
+.rdv-cal-range {
+  text-align: center;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 0 0 12px;
+}
+
+/* Time grid */
+.rdv-time-grid { overflow-x: auto; margin-top: 4px; }
+
+.rdv-time-head {
+  display: grid;
+  grid-template-columns: 48px repeat(7, minmax(68px, 1fr));
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+.rdv-time-corner { min-width: 48px; }
+
+.rdv-time-day-head {
+  text-align: center;
+  padding: 4px 4px;
+  border-radius: 10px;
+}
+
+.rdv-time-day-head--today {
+  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 100%);
+}
+
+.rdv-time-dow {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 850;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.rdv-time-dom-line {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: capitalize;
+}
+
+.rdv-time-dom {
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.rdv-time-body {
+  display: grid;
+  grid-template-columns: 48px repeat(7, minmax(68px, 1fr));
+  --rdv-hour-count: 11;
+}
+
+.rdv-time-gutter { padding-top: 0; }
+
+.rdv-time-tick {
+  height: 3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-align: right;
+  padding-right: 8px;
+  border-top: 1px solid #f1f5f9;
+  line-height: 1;
+  padding-top: 4px;
+}
+
+.rdv-time-tick:first-child { border-top: none; }
+
+.rdv-time-col { border-left: 1px solid #eef2f7; min-width: 0; }
+
+.rdv-time-col-inner {
+  position: relative;
+  min-height: calc(var(--rdv-hour-count) * 3rem);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0, #ffffff calc(3rem - 1px),
+    #f1f5f9 calc(3rem - 1px), #f1f5f9 3rem
+  );
+}
+
+/* Events */
+.rdv-time-event {
+  position: absolute;
+  left: 4px; right: 4px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+  border-top: 1px solid #fcd34d;
+  border-right: 1px solid #fcd34d;
+  border-bottom: 1px solid #fcd34d;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef9e7 100%);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(245,158,11,0.12);
+  transition: box-shadow 0.15s, transform 0.12s;
+}
+
+.rdv-time-event:hover {
+  box-shadow: 0 4px 12px rgba(245,158,11,0.22);
+  transform: translateY(-1px);
+}
+
+.rdv-time-event--confirme {
+  border-left-color: #22c55e;
+  border-color: #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.rdv-time-event--termine {
+  border-left-color: #64748b;
+  border-color: #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+}
+
+.rdv-time-event--annule {
+  border-left-color: #ef4444;
+  border-color: #fecaca;
+  background: linear-gradient(135deg, #fff1f2, #fee2e2);
+  opacity: 0.75;
+}
+
+.rdv-time-event-time {
+  font-size: 0.66rem;
+  font-weight: 900;
+  color: #92400e;
+  font-variant-numeric: tabular-nums;
+}
+
+.rdv-time-event--confirme .rdv-time-event-time { color: #166534; }
+.rdv-time-event--termine .rdv-time-event-time { color: #475569; }
+.rdv-time-event--annule .rdv-time-event-time { color: #991b1b; }
+
+.rdv-time-event-name {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #431407;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.rdv-time-event--confirme .rdv-time-event-name { color: #14532d; }
+.rdv-time-event--termine .rdv-time-event-name { color: #334155; }
+.rdv-time-event--annule .rdv-time-event-name { color: #7f1d1d; }
+
+@media (max-width: 1100px) {
+  .rdv-cal-shell { flex-direction: column; }
+  .rdv-cal-sidebar { flex: 1 1 auto; width: 100%; max-width: none; }
+}

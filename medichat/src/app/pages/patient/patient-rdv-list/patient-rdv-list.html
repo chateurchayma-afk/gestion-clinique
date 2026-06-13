@@ -3,30 +3,28 @@
     <div>
       <p class="rdv-kicker">Rendez-vous</p>
       <h1>Mes rendez-vous</h1>
-      <p>Vue liste complète ou calendrier hebdomadaire des mêmes rendez-vous.</p>
+      <p>Calendrier hebdomadaire de vos rendez-vous ou vue liste complète.</p>
     </div>
     <div class="rdv-hero-actions">
-      <div class="rdv-view-toggle" role="group" aria-label="Mode d'affichage">
-        <button
-          type="button"
-          class="rdv-seg"
-          [class.rdv-seg--active]="viewMode() === 'liste'"
-          [disabled]="loading() || rdvs().length === 0"
-          (click)="setViewMode('liste')"
-        >
-          Liste
-        </button>
-        <button
-          type="button"
-          class="rdv-seg"
-          [class.rdv-seg--active]="viewMode() === 'calendrier'"
-          [disabled]="loading() || rdvs().length === 0"
-          (click)="setViewMode('calendrier')"
-        >
-          Calendrier
-        </button>
+      @if (viewMode() === 'calendrier') {
+        <div class="rdv-cal-header-pickers">
+          <select class="rdv-cal-select" [ngModel]="calHeaderMonth()" (ngModelChange)="onHeaderMonthSelect($event)">
+            @for (label of moisOptions; track $index) {
+              <option [ngValue]="$index">{{ label }}</option>
+            }
+          </select>
+          <select class="rdv-cal-select" [ngModel]="calHeaderYear()" (ngModelChange)="onHeaderYearSelect($event)">
+            @for (y of anneeOptions; track y) {
+              <option [ngValue]="y">{{ y }}</option>
+            }
+          </select>
+        </div>
+        <button type="button" class="rdv-btn-export" (click)="exportCsv()">⬇ Export CSV</button>
+      }
+      <div class="rdv-view-toggle" role="group">
+        <button type="button" class="rdv-seg" [class.rdv-seg--active]="viewMode() === 'calendrier'" (click)="setViewMode('calendrier')">Calendrier</button>
+        <button type="button" class="rdv-seg" [class.rdv-seg--active]="viewMode() === 'liste'" (click)="setViewMode('liste')">Liste</button>
       </div>
-      <a class="btn-primary" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">Nouveau rendez-vous</a>
     </div>
   </header>
 
@@ -44,13 +42,107 @@
     </section>
   } @else {
     <section class="table-card">
-      <div class="table-head">
-        <div>
-          <p class="rdv-kicker">Historique</p>
-          <h2>{{ viewMode() === 'liste' ? 'Liste des rendez-vous' : 'Calendrier de la semaine' }}</h2>
-        </div>
-      </div>
 
+      <!-- ======== VUE CALENDRIER (time-grid) ======== -->
+      @if (viewMode() === 'calendrier') {
+        <div class="rdv-cal-shell">
+          <!-- Sidebar -->
+          <aside class="rdv-cal-sidebar">
+            <div class="rdv-mini-cal">
+              <div class="rdv-mini-cal-head">
+                <button type="button" class="rdv-mini-navbtn" (click)="miniCalPrevMonth()">‹</button>
+                <span class="rdv-mini-title">{{ miniCalTitle() }}</span>
+                <button type="button" class="rdv-mini-navbtn" (click)="miniCalNextMonth()">›</button>
+              </div>
+              <div class="rdv-mini-weekdays">
+                @for (w of miniCalWeekdayLabels; track w) { <span>{{ w }}</span> }
+              </div>
+              <div class="rdv-mini-grid">
+                @for (c of miniCalCells(); track c.iso) {
+                  <button
+                    type="button"
+                    class="rdv-mini-day"
+                    [class.rdv-mini-day--muted]="!c.inMonth"
+                    [class.rdv-mini-day--today]="c.isToday"
+                    [class.rdv-mini-day--week]="c.inSelectedWeek"
+                    (click)="jumpToMiniDay(c.date)"
+                  >{{ c.dom }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="rdv-sidebar-block">
+              <span class="rdv-sidebar-label">Statut</span>
+              <select class="rdv-select rdv-select--sidebar" [ngModel]="filterStatut()" (ngModelChange)="filterStatut.set($event)">
+                <option value="TOUS">Tous</option>
+                <option value="EN_ATTENTE">En attente</option>
+                <option value="CONFIRME">Confirmé</option>
+                <option value="ANNULE">Annulé</option>
+                <option value="TERMINE">Terminé</option>
+              </select>
+            </div>
+
+            <a class="btn-primary rdv-sidebar-add" [routerLink]="['/patient-dashboard', 'rendez-vous', 'nouveau']">
+              + Nouveau rendez-vous
+            </a>
+          </aside>
+
+          <!-- Main time-grid -->
+          <div class="rdv-cal-main">
+            <div class="rdv-cal-main-toolbar">
+              <button type="button" class="rdv-btn-ghost" (click)="prevWeek()">‹ Semaine précédente</button>
+              <button type="button" class="rdv-btn-ghost" (click)="goThisWeek()">Cette semaine</button>
+              <button type="button" class="rdv-btn-ghost" (click)="nextWeek()">Semaine suivante ›</button>
+            </div>
+            <p class="rdv-cal-range">{{ weekRangeLabel() }}</p>
+
+            <div class="rdv-time-grid">
+              <!-- Header row -->
+              <div class="rdv-time-head">
+                <div class="rdv-time-corner"></div>
+                @for (day of calendarWeekDays(); track day.iso) {
+                  <div class="rdv-time-day-head" [class.rdv-time-day-head--today]="isTodayIso(day.iso)">
+                    <span class="rdv-time-dow">{{ day.shortLabel }}</span>
+                    <span class="rdv-time-dom-line"><span class="rdv-time-dom">{{ day.dom }}</span> {{ day.monthShort }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Body -->
+              <div class="rdv-time-body" [style.--rdv-hour-count]="calHourEnd - calHourStart">
+                <div class="rdv-time-gutter">
+                  @for (h of calendarHourTicks(); track h) {
+                    <div class="rdv-time-tick">{{ h }}:00</div>
+                  }
+                </div>
+                @for (day of calendarWeekDays(); track day.iso) {
+                  <div class="rdv-time-col">
+                    <div class="rdv-time-col-inner">
+                      @for (r of rdvsPourJour(day.iso); track r.id) {
+                        <button
+                          type="button"
+                          class="rdv-time-event"
+                          [class.rdv-time-event--attente]="r.statut === 'EN_ATTENTE'"
+                          [class.rdv-time-event--confirme]="r.statut === 'CONFIRME'"
+                          [class.rdv-time-event--termine]="r.statut === 'TERMINE'"
+                          [class.rdv-time-event--annule]="r.statut === 'ANNULE'"
+                          [ngStyle]="eventGridStyle(r)"
+                          (click)="openDetails(r)"
+                        >
+                          <span class="rdv-time-event-time">{{ formatHeure(r.heureDebut) }} – {{ formatHeure(r.heureFin) }}</span>
+                          <span class="rdv-time-event-name">Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ======== VUE LISTE ======== -->
       @if (viewMode() === 'liste') {
         <div class="table-wrap">
           <table>
@@ -60,7 +152,7 @@
                 <th>Horaire</th>
                 <th>Médecin</th>
                 <th>Spécialité</th>
-                <th>Disponibilité</th>
+                <th>Statut</th>
                 <th class="th-actions">Actions</th>
               </tr>
             </thead>
@@ -69,46 +161,22 @@
                 <tr>
                   <td class="date-cell">{{ formatDateCourt(r) }}</td>
                   <td>{{ formatHeure(r.heureDebut) }} - {{ formatHeure(r.heureFin) }}</td>
-                  <td>
-                    <strong>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</strong>
-                  </td>
+                  <td><strong>Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</strong></td>
                   <td>{{ r.specialiteNom ?? 'Consultation' }}</td>
                   <td class="td-disponibilite">
-                    <span
-                      class="pill"
+                    <span class="pill"
                       [class.pill-warn]="r.statut === 'EN_ATTENTE'"
                       [class.pill-muted]="r.statut === 'ANNULE'"
                       [class.pill-done]="r.statut === 'TERMINE'"
-                    >
-                      {{ labelStatut(r.statut) }}
-                    </span>
+                    >{{ labelStatut(r.statut) }}</span>
                   </td>
                   <td class="actions">
-                    <div
-                      class="actions-col"
-                      role="group"
-                      [attr.aria-label]="'Actions pour le rendez-vous du ' + r.dateRendezVous"
-                    >
-                      <button
-                        type="button"
-                        class="rdv-action-btn"
-                        title="Voir le détail"
-                        aria-label="Voir le détail"
-                        (click)="openDetails(r)">
-                        👁️
-                      </button>
-                      <button
-                        type="button"
-                        class="rdv-action-btn rdv-action-btn--danger"
-                        [title]="peutAnnuler(r) ? 'Annuler le rendez-vous' : 'Annulation impossible (rendez-vous terminé ou annulé)'"
-                        [attr.aria-label]="peutAnnuler(r) ? 'Annuler le rendez-vous' : 'Annuler indisponible'"
+                    <div class="actions-col">
+                      <button type="button" class="rdv-action-btn" title="Voir le détail" (click)="openDetails(r)">👁️</button>
+                      <button type="button" class="rdv-action-btn rdv-action-btn--danger"
                         [disabled]="!peutAnnuler(r) || cancellingId() === r.id"
                         (click)="annuler(r)">
-                        @if (cancellingId() === r.id) {
-                          ⏳
-                        } @else {
-                          🗑️
-                        }
+                        @if (cancellingId() === r.id) { ⏳ } @else { 🗑️ }
                       </button>
                     </div>
                   </td>
@@ -117,176 +185,60 @@
             </tbody>
           </table>
         </div>
-      } @else {
-        <div class="rdv-cal">
-          <div class="rdv-cal-toolbar">
-            <div class="rdv-cal-nav">
-              <button type="button" class="btn-secondary" (click)="prevWeek()">‹ Semaine précédente</button>
-              <button type="button" class="btn-secondary" (click)="goThisWeek()">Cette semaine</button>
-              <button type="button" class="btn-secondary" (click)="nextWeek()">Semaine suivante ›</button>
-            </div>
-            <p class="rdv-cal-range">{{ weekRangeLabel() }}</p>
-          </div>
-          <div class="rdv-cal-grid">
-            @for (day of calendarWeekDays(); track day.iso) {
-              <div class="rdv-cal-col">
-                <div class="rdv-cal-col-head" [class.rdv-cal-col-head--today]="isTodayIso(day.iso)">
-                  <span class="rdv-cal-dow">{{ day.label }}</span>
-                  <span class="rdv-cal-dom">{{ day.dom }}</span>
-                </div>
-                <div class="rdv-cal-slots">
-                  @if (rdvsPourJour(day.iso).length) {
-                    @for (r of rdvsPourJour(day.iso); track r.id) {
-                      <button
-                        type="button"
-                        class="rdv-cal-card"
-                        [class.rdv-cal-card--open]="selectedRdv()?.id === r.id"
-                        (click)="openDetails(r)"
-                      >
-                        <span class="rdv-cal-time">
-                          {{ formatHeure(r.heureDebut) }}
-                          <span class="rdv-cal-time-sep">→</span>
-                          {{ formatHeure(r.heureFin) }}
-                        </span>
-                        <span class="rdv-cal-dr">Dr. {{ r.medecinPrenom }} {{ r.medecinNom }}</span>
-                        <span
-                          class="rdv-cal-statut"
-                          [class.rdv-cal-statut--ok]="r.statut === 'CONFIRME'"
-                          [class.rdv-cal-statut--off]="r.statut === 'ANNULE'"
-                          [class.rdv-cal-statut--done]="r.statut === 'TERMINE'"
-                        >
-                          {{ labelStatut(r.statut) }}
-                        </span>
-                      </button>
-                    }
-                  } @else {
-                    <p class="rdv-cal-empty muted">Aucun RDV</p>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-          <p class="rdv-cal-hint muted">
-            Les créneaux affichés correspondent à la semaine choisie. Utilisez « Liste » pour tout voir d’un coup.
-          </p>
-        </div>
       }
     </section>
   }
 </div>
 
+<!-- Modal détail RDV -->
 @if (selectedRdv(); as rdv) {
   <div class="modal-backdrop" (click)="closeDetails()"></div>
-  <div
-    class="modal-panel"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="rdv-detail-title"
-    (click)="$event.stopPropagation()"
-  >
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="rdv-detail-title" (click)="$event.stopPropagation()">
     <h2 id="rdv-detail-title">Détails du rendez-vous</h2>
     <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">×</button>
     <div class="rdv-detail">
       <div class="rdv-detail-hero">
         <p class="rdv-detail-date">{{ formatDateLong(rdv) }}</p>
-        <p class="rdv-detail-slot">
-          {{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}
-        </p>
-        <span
-          class="pill"
-          [class.pill-warn]="rdv.statut === 'EN_ATTENTE'"
-          [class.pill-muted]="rdv.statut === 'ANNULE'"
-          [class.pill-done]="rdv.statut === 'TERMINE'"
-        >
-          {{ labelStatut(rdv.statut) }}
-        </span>
+        <p class="rdv-detail-slot">{{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}</p>
+        <span class="pill" [class.pill-warn]="rdv.statut === 'EN_ATTENTE'" [class.pill-muted]="rdv.statut === 'ANNULE'" [class.pill-done]="rdv.statut === 'TERMINE'">{{ labelStatut(rdv.statut) }}</span>
       </div>
       <dl class="rdv-detail-grid">
-        <div>
-          <dt>Médecin</dt>
-          <dd>Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd>
-        </div>
-        <div>
-          <dt>Spécialité</dt>
-          <dd>{{ rdv.specialiteNom ?? 'Consultation' }}</dd>
-        </div>
-        <div>
-          <dt>Date</dt>
-          <dd>{{ rdv.dateRendezVous }}</dd>
-        </div>
-        <div>
-          <dt>Heure</dt>
-          <dd>{{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}</dd>
-        </div>
-        <div>
-          <dt>Statut</dt>
-          <dd>{{ labelStatut(rdv.statut) }}</dd>
-        </div>
+        <div><dt>Médecin</dt><dd>Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd></div>
+        <div><dt>Spécialité</dt><dd>{{ rdv.specialiteNom ?? 'Consultation' }}</dd></div>
+        <div><dt>Date</dt><dd>{{ rdv.dateRendezVous }}</dd></div>
+        <div><dt>Heure</dt><dd>{{ formatHeure(rdv.heureDebut) }} – {{ formatHeure(rdv.heureFin) }}</dd></div>
+        <div><dt>Statut</dt><dd>{{ labelStatut(rdv.statut) }}</dd></div>
         @if (rdv.prixConsultation != null) {
-          <div>
-            <dt>Prix de consultation</dt>
-            <dd>{{ rdv.prixConsultation | number:'1.0-2' }} DT</dd>
-          </div>
+          <div><dt>Prix de consultation</dt><dd>{{ rdv.prixConsultation | number:'1.0-2' }} DT</dd></div>
         }
       </dl>
     </div>
     <div class="modal-actions modal-actions--split">
-      <button
-        type="button"
-        class="btn-secondary"
-        [disabled]="qrGenerating()"
-        (click)="openQrCode(rdv)"
-      >
+      <button type="button" class="btn-secondary" [disabled]="qrGenerating()" (click)="openQrCode(rdv)">
         {{ qrGenerating() ? 'Génération…' : '🔲 Voir QR Code' }}
       </button>
       <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
     </div>
-    </div>
+  </div>
 }
 
+<!-- Modal QR Code -->
 @if (qrRdv(); as rdv) {
   <div class="modal-backdrop" (click)="closeQrCode()"></div>
-  <div
-    class="modal-panel"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="rdv-qr-title"
-    (click)="$event.stopPropagation()"
-    style="max-width: 400px; text-align: center;"
-  >
-    <h2 id="rdv-qr-title">QR Code du rendez-vous</h2>
+  <div class="modal-panel" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" style="max-width:400px;text-align:center">
+    <h2>QR Code du rendez-vous</h2>
     <button type="button" class="modal-close" (click)="closeQrCode()" aria-label="Fermer">×</button>
-    
-    <div style="padding: 20px;">
-      <p style="margin-bottom: 20px; color: #65748a; font-size: 14px;">
-        Montrez ce code QR au médecin lors de votre rendez-vous
-      </p>
-      
+    <div style="padding:20px">
+      <p style="margin-bottom:20px;color:#65748a;font-size:14px">Montrez ce code QR au médecin lors de votre rendez-vous</p>
       @if (qrGenerating()) {
-        <div style="display: flex; align-items: center; justify-content: center; min-height: 300px;">
-          <span class="loader" aria-hidden="true"></span>
-        </div>
+        <div style="display:flex;align-items:center;justify-content:center;min-height:300px"><span class="loader"></span></div>
       } @else if (qrCodeDataUrl()) {
-        <img 
-          [src]="qrCodeDataUrl()" 
-          alt="QR Code du rendez-vous"
-          style="max-width: 300px; border: 2px solid #edf3ff; border-radius: 8px; padding: 10px; background: white;"
-        />
-        
-        <div style="margin-top: 20px; padding: 15px; background: #edf3ff; border-radius: 8px; text-align: left;">
-          <dl style="margin: 0; font-size: 13px; line-height: 1.8;">
-            <div>
-              <dt style="font-weight: 600; color: #26364f;">Patient</dt>
-              <dd style="margin: 0; color: #65748a;">{{ patientLabel() }}</dd>
-            </div>
-            <div>
-              <dt style="font-weight: 600; color: #26364f; margin-top: 8px;">Médecin</dt>
-              <dd style="margin: 0; color: #65748a;">Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd>
-            </div>
-            <div>
-              <dt style="font-weight: 600; color: #26364f; margin-top: 8px;">Date & Heure</dt>
-              <dd style="margin: 0; color: #65748a;">{{ formatDateCourt(rdv) }} à {{ formatHeure(rdv.heureDebut) }}</dd>
-            </div>
+        <img [src]="qrCodeDataUrl()" alt="QR Code" style="max-width:300px;border:2px solid #edf3ff;border-radius:8px;padding:10px;background:white" />
+        <div style="margin-top:20px;padding:15px;background:#edf3ff;border-radius:8px;text-align:left">
+          <dl style="margin:0;font-size:13px;line-height:1.8">
+            <div><dt style="font-weight:600;color:#26364f">Patient</dt><dd style="margin:0;color:#65748a">{{ patientLabel() }}</dd></div>
+            <div><dt style="font-weight:600;color:#26364f;margin-top:8px">Médecin</dt><dd style="margin:0;color:#65748a">Dr. {{ rdv.medecinPrenom }} {{ rdv.medecinNom }}</dd></div>
+            <div><dt style="font-weight:600;color:#26364f;margin-top:8px">Date & Heure</dt><dd style="margin:0;color:#65748a">{{ formatDateCourt(rdv) }} à {{ formatHeure(rdv.heureDebut) }}</dd></div>
           </dl>
         </div>
       }
