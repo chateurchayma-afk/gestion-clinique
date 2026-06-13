@@ -130,6 +130,27 @@
   margin: 22px 0 18px;
 }
 
+.install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border: 2px solid #143479;
+  border-radius: 999px;
+  background: transparent;
+  color: #143479;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-family: inherit;
+}
+
+.install-btn:hover {
+  background: #143479;
+  color: #fff;
+}
+
 .login-form {
   width: 100%;
   margin: 26px 0;

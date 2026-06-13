@@ -8,6 +8,8 @@
   <!-- Aide les popups / postMessage du flux Google Sign-In avec le navigateur -->
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#143479">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -22,6 +24,21 @@
         }
       } catch (e) {}
     })();
+
+    // Capture l'événement PWA avant qu'Angular ne charge
+    window.__pwaInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      window.__pwaInstallPrompt = e;
+      window.dispatchEvent(new CustomEvent('pwainstallready'));
+    });
+
+    // Enregistrement du service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
   </script>
 </head>
 <body>

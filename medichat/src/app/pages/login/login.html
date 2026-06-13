@@ -28,7 +28,11 @@
 
       <div class="line"></div>
 
-      <a class="link" href="#">Installer l’application MediChat</a>
+      @if (canInstall()) {
+        <button type="button" class="install-btn" (click)="installApp()">
+          📲 Installer l’application MediChat
+        </button>
+      }
     </ng-container>
 
     <ng-template #loginForm>

@@ -28,13 +28,43 @@ export class Login implements OnInit, AfterViewInit {
   errorMessage = '';
   pendingMessage = '';
   googleLoading = signal(false);
-  /** Évite un double rendu du widget Google sur l’écran d’accueil. */
+  readonly canInstall = signal(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private deferredInstallPrompt: any = null;
   private googleWelcomeMounted = false;
-
   private returnUrl = '';
   guardHint = '';
 
   ngOnInit(): void {
+    // Recuperer le prompt capturé globalement avant qu'Angular charge
+    const win = window as any;
+    if (win.__pwaInstallPrompt) {
+      this.deferredInstallPrompt = win.__pwaInstallPrompt;
+      this.canInstall.set(true);
+    }
+
+    // Ecouter si l'evenement arrive apres l'initialisation
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      this.deferredInstallPrompt = e;
+      (window as any).__pwaInstallPrompt = e;
+      this.canInstall.set(true);
+    });
+
+    // Evenement personnalise dispatche depuis index.html
+    window.addEventListener('pwainstallready', () => {
+      if ((window as any).__pwaInstallPrompt) {
+        this.deferredInstallPrompt = (window as any).__pwaInstallPrompt;
+        this.canInstall.set(true);
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      this.deferredInstallPrompt = null;
+      (window as any).__pwaInstallPrompt = null;
+      this.canInstall.set(false);
+    });
+
     void this.googleAuth.ensureScriptLoaded().catch(() => {});
 
     this.route.queryParamMap.subscribe((q) => {
@@ -68,13 +98,13 @@ export class Login implements OnInit, AfterViewInit {
 
       if (q.get('needAdmin') === '1') {
         this.guardHint =
-          'L’administration requiert un compte administrateur. Connectez-vous avec un compte ADMIN.';
+          "L'administration requiert un compte administrateur. Connectez-vous avec un compte ADMIN.";
         this.showForm.set(true);
         this.googleWelcomeMounted = false;
       }
       if (q.get('needMedecin') === '1') {
         this.guardHint =
-          'Cet espace requiert un compte médecin. Connectez-vous avec un compte MEDECIN.';
+          "Cet espace requiert un compte medecin. Connectez-vous avec un compte MEDECIN.";
         this.showForm.set(true);
         this.googleWelcomeMounted = false;
       }
@@ -87,6 +117,21 @@ export class Login implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     setTimeout(() => this.tryMountGoogleWelcome(), 150);
+  }
+
+  async installApp(): Promise<void> {
+    if (!this.deferredInstallPrompt) {
+      this.toast.show("L'installation n'est pas disponible sur ce navigateur.", 'error');
+      return;
+    }
+    await this.deferredInstallPrompt.prompt();
+    const result = await this.deferredInstallPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      this.deferredInstallPrompt = null;
+      (window as any).__pwaInstallPrompt = null;
+      this.canInstall.set(false);
+      this.toast.show('Application installée avec succès !', 'success');
+    }
   }
 
   showLoginForm() {
@@ -111,7 +156,7 @@ export class Login implements OnInit, AfterViewInit {
             next: (response) => {
               localStorage.setItem('user', JSON.stringify(response));
               this.googleLoading.set(false);
-              this.toast.show('Connexion réussie avec Google !', 'success');
+              this.toast.show('Connexion reussie avec Google !', 'success');
               this.redirectAfterLogin(response.role ?? '');
             },
             error: (error) => {
@@ -131,7 +176,7 @@ export class Login implements OnInit, AfterViewInit {
       .catch((err: unknown) => {
         console.warn('Google bouton (login accueil):', err);
         this.errorMessage =
-          err instanceof Error ? err.message : 'Impossible d’afficher le bouton Google.';
+          err instanceof Error ? err.message : "Impossible d'afficher le bouton Google.";
         this.toast.show(this.errorMessage, 'error');
       });
   }
@@ -173,13 +218,12 @@ export class Login implements OnInit, AfterViewInit {
         const token = response?.token ?? null;
         const message: string = (response?.message ?? '').toString().trim();
 
-        // Pas de token = login bloqué (EN_ATTENTE, REFUSE, mauvais credentials)
         if (!token || !role) {
           const msgLower = message.toLowerCase();
           if (msgLower.includes('attente') || msgLower.includes('validation')) {
-            this.pendingMessage = message || 'Votre compte est en attente de validation par l\'administrateur.';
+            this.pendingMessage = message || "Votre compte est en attente de validation par l'administrateur.";
           } else if (msgLower.includes('refus')) {
-            this.errorMessage = message || 'Votre compte a été refusé. Contactez l\'administrateur.';
+            this.errorMessage = message || "Votre compte a ete refuse. Contactez l'administrateur.";
           } else {
             this.errorMessage = message || 'Email ou mot de passe incorrect';
           }
