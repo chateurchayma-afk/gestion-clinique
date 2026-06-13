@@ -1,15 +1,53 @@
-import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ContactService } from '../../services/contact.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule, CommonModule],
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })
 export class Home implements OnInit, AfterViewInit {
   private readonly router = inject(Router);
+  private readonly contactService = inject(ContactService);
+
+  contactNom = '';
+  contactEmail = '';
+  contactSujet = '';
+  contactMessage = '';
+
+  readonly sending = signal(false);
+  readonly sent = signal(false);
+  readonly sendError = signal('');
+
+  onContactSubmit(): void {
+    if (!this.contactNom || !this.contactEmail || !this.contactSujet || !this.contactMessage) return;
+    this.sending.set(true);
+    this.sendError.set('');
+    this.contactService.send({
+      nom: this.contactNom,
+      email: this.contactEmail,
+      sujet: this.contactSujet,
+      message: this.contactMessage
+    }).subscribe({
+      next: () => {
+        this.sending.set(false);
+        this.sent.set(true);
+        this.contactNom = '';
+        this.contactEmail = '';
+        this.contactSujet = '';
+        this.contactMessage = '';
+      },
+      error: () => {
+        this.sending.set(false);
+        this.sendError.set('Erreur lors de l\'envoi. Veuillez réessayer.');
+      }
+    });
+  }
 
   ngOnInit(): void {
     const data = this.extractOrdonnanceDataToken();

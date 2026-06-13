@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public : auth + catalogue médecins + spécialités (inscription)
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/contact").permitAll()
                         .requestMatchers("/api/medecins/catalogue/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/specialites/**").permitAll()
                         // Espace patient (JWT requis)
