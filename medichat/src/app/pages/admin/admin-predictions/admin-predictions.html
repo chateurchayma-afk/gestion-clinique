@@ -1,0 +1,267 @@
+<div class="adm-pred-page">
+  <!-- En-tête -->
+  <header class="adm-hero">
+    <div>
+      <p class="adm-kicker">Intelligence Artificielle · Administration</p>
+      <h1 class="adm-title">Prédictions IA</h1>
+      <p class="adm-sub">
+        Outils d'analyse prédictive pour la gestion opérationnelle de la clinique.
+      </p>
+    </div>
+  </header>
+
+  <!-- Onglets -->
+  <div class="adm-tabs">
+    <button
+      class="adm-tab"
+      [class.active]="activeTab() === 'prevision'"
+      (click)="setTab('prevision')"
+    >
+      Prévision de charge
+    </button>
+    <button
+      class="adm-tab"
+      [class.active]="activeTab() === 'segmentation'"
+      (click)="setTab('segmentation')"
+    >
+      Segmentation patient
+    </button>
+  </div>
+
+  <!-- ── ML-04 Prévision de charge ─────────────────────────── -->
+  @if (activeTab() === 'prevision') {
+    <div class="adm-card">
+      <p class="adm-card-kicker">ML-04</p>
+      <h2 class="adm-card-title">Prévision de charge</h2>
+      <p class="adm-card-sub">
+        Anticipez le volume de rendez-vous pour optimiser la planification des ressources.
+      </p>
+
+      <div class="adm-prev-form">
+        <div class="adm-prev-field">
+          <label for="dateDebut">Date de début</label>
+          <input id="dateDebut" type="date" [(ngModel)]="prevForm.dateDebut" class="adm-input" />
+        </div>
+        <div class="adm-prev-field">
+          <label for="nbJours">Période</label>
+          <select id="nbJours" [(ngModel)]="prevForm.nbJours" class="adm-input">
+            @for (opt of NB_JOURS_OPTIONS; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="adm-prev-field adm-prev-field--computed">
+          <label>Date de fin estimée</label>
+          <span class="adm-date-fin">{{ dateFinEstimee }}</span>
+        </div>
+        <div class="adm-actions">
+          <button class="adm-btn" (click)="loadPrevision()" [disabled]="prevLoading()">
+            @if (prevLoading()) {
+              Calcul en cours...
+            } @else {
+              Générer la prévision
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (prevResult(); as r) {
+        <div class="adm-prev-result">
+          <!-- KPIs -->
+          <div class="adm-kpi-row">
+            <div class="adm-kpi">
+              <span class="adm-kpi-value">{{ r.total30j }}</span>
+              <span class="adm-kpi-label">RDV prévus sur {{ prevForm.nbJours }}j</span>
+            </div>
+            <div class="adm-kpi">
+              <span class="adm-kpi-value">{{ r.moyenneParJourOuvrable.toFixed(1) }}</span>
+              <span class="adm-kpi-label">Moy. / jour ouvrable</span>
+            </div>
+            <div class="adm-kpi">
+              <span class="adm-kpi-value">{{ r.periode }}</span>
+              <span class="adm-kpi-label">Période</span>
+            </div>
+          </div>
+
+          <!-- Histogramme simplifié -->
+          <div class="adm-chart">
+            @for (jour of r.previsions; track jour.date) {
+              <div
+                class="adm-bar-col"
+                [class.weekend]="jour.estWeekend"
+                [title]="jour.date + ' — ' + jour.jour + ' : ' + jour.nbRdvPrevu + ' RDV'"
+              >
+                <div
+                  class="adm-bar"
+                  [style.height.%]="barHeight(jour.nbRdvPrevu, maxNbRdv(r))"
+                ></div>
+                <span class="adm-bar-label">{{ jour.nbRdvPrevu }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Tableau -->
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Jour</th>
+                  <th>RDV prévus</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (jour of r.previsions; track jour.date) {
+                  <tr [class.weekend-row]="jour.estWeekend">
+                    <td>{{ jour.date }}</td>
+                    <td>{{ jour.jour }}</td>
+                    <td class="adm-rdv-count">{{ jour.nbRdvPrevu }}</td>
+                    <td>
+                      @if (jour.estWeekend) {
+                        <span class="adm-badge adm-badge--gray">Weekend</span>
+                      } @else {
+                        <span class="adm-badge adm-badge--blue">Ouvrable</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── ML-06 Segmentation ─────────────────────────────────── -->
+  @if (activeTab() === 'segmentation') {
+    <div class="adm-card">
+      <p class="adm-card-kicker">ML-06</p>
+      <h2 class="adm-card-title">Segmentation comportementale d'un patient</h2>
+      <p class="adm-card-sub">
+        Classifiez un patient dans un groupe comportemental pour personnaliser le suivi.
+      </p>
+
+      <form class="adm-form" (ngSubmit)="predictSegmentation()">
+        <fieldset class="adm-section">
+          <legend>Profil démographique</legend>
+          <div class="adm-grid">
+            <label class="adm-field">
+              <span>Âge</span>
+              <input type="number" [(ngModel)]="seg.age" name="age" min="1" max="120" />
+            </label>
+            <label class="adm-field">
+              <span>Sexe</span>
+              <select [(ngModel)]="seg.sexe" name="sexe">
+                <option [value]="0">Femme</option>
+                <option [value]="1">Homme</option>
+              </select>
+            </label>
+            <label class="adm-field">
+              <span>Situation matrimoniale</span>
+              <select [(ngModel)]="seg.situationMat" name="sitMat">
+                <option [value]="0">Célibataire</option>
+                <option [value]="1">Marié(e)</option>
+                <option [value]="2">Divorcé(e)</option>
+                <option [value]="3">Veuf(ve)</option>
+              </select>
+            </label>
+            <label class="adm-field">
+              <span>Méthode de contact préférée</span>
+              <select [(ngModel)]="seg.methodeContact" name="methode">
+                <option [value]="0">Email</option>
+                <option [value]="1">SMS</option>
+                <option [value]="2">Téléphone</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="adm-section">
+          <legend>Historique des rendez-vous</legend>
+          <div class="adm-grid">
+            <label class="adm-field">
+              <span>Nb RDV total</span>
+              <input type="number" [(ngModel)]="seg.nbRdvTotal" name="nbRdv" min="0" />
+            </label>
+            <label class="adm-field">
+              <span>Nb annulations passées</span>
+              <input type="number" [(ngModel)]="seg.nbAnnulations" name="nbAnnul" min="0" />
+            </label>
+            <!-- Taux annulation calculé -->
+            <div class="adm-field adm-computed">
+              <span>Taux d'annulation</span>
+              <div class="adm-computed-val">
+                {{ (tauxAnnulation * 100).toFixed(0) }}%
+                <span class="adm-computed-hint">auto</span>
+              </div>
+            </div>
+            <label class="adm-field">
+              <span>Nb consultations effectuées</span>
+              <input type="number" [(ngModel)]="seg.nbConsultations" name="nbConsult" min="0" />
+            </label>
+            <!-- Taux complétion calculé -->
+            <div class="adm-field adm-computed">
+              <span>Taux de complétion</span>
+              <div class="adm-computed-val">
+                {{ (tauxCompletion * 100).toFixed(0) }}%
+                <span class="adm-computed-hint">auto</span>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="adm-section">
+          <legend>Comportement clinique</legend>
+          <div class="adm-grid">
+            <label class="adm-field">
+              <span>Nb ordonnances</span>
+              <input type="number" [(ngModel)]="seg.nbOrdonnances" name="nbOrd" min="0" />
+            </label>
+            <label class="adm-field">
+              <span>Nb spécialités consultées</span>
+              <input type="number" [(ngModel)]="seg.nbSpecialites" name="nbSpec" min="0" />
+            </label>
+            <label class="adm-field">
+              <span>Prix moyen consultation (DT)</span>
+              <input type="number" [(ngModel)]="seg.prixMoyen" name="prix" step="0.5" min="0" />
+            </label>
+          </div>
+        </fieldset>
+
+        @if (!segDataValid) {
+          <div class="adm-error-banner">⚠ {{ segDataError }}</div>
+        }
+
+        <div class="adm-form-actions">
+          <button type="submit" class="adm-btn" [disabled]="segLoading() || !segDataValid">
+            @if (segLoading()) {
+              Analyse en cours...
+            } @else {
+              Classifier ce patient
+            }
+          </button>
+        </div>
+      </form>
+
+      @if (segResult(); as r) {
+        <div class="adm-seg-result" [style.border-left-color]="r.couleur">
+          <div class="adm-seg-header">
+            <span class="adm-seg-emoji">{{ r.emoji }}</span>
+            <div>
+              <h3 class="adm-seg-cluster-name">{{ r.nomCluster }}</h3>
+              <span class="adm-seg-badge" [style.background]="r.couleur"
+                >Cluster {{ r.cluster }}</span
+              >
+            </div>
+            <div class="adm-seg-meta">
+              <span>{{ r.tailleGroupe }} patients similaires</span>
+            </div>
+          </div>
+          <p class="adm-seg-desc">{{ r.description }}</p>
+        </div>
+      }
+    </div>
+  }
+</div>

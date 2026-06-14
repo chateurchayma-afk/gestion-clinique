@@ -1,0 +1,380 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1 class="page-title">Prédictions IA</h1>
+    <p class="page-subtitle">Analyse intelligente basée sur les modèles de machine learning</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn" [class.active]="activeTab() === 'annulation'" (click)="setTab('annulation')">
+      <span class="tab-icon">📅</span> Risque d'annulation
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'urgence'" (click)="setTab('urgence')">
+      <span class="tab-icon">🚨</span> Niveau d'urgence
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'anomalie'" (click)="setTab('anomalie')">
+      <span class="tab-icon">💊</span> Anomalie ordonnance
+    </button>
+  </div>
+
+  <!-- ───────────── ML-01 Annulation ───────────── -->
+  @if (activeTab() === 'annulation') {
+    <div class="tab-content">
+      <div class="card prediction-card">
+        <div class="card-header-row">
+          <div class="card-label">ML-01</div>
+          <h2 class="card-title">Risque d'annulation de rendez-vous</h2>
+          <p class="card-desc">Estimez la probabilité qu'un patient annule son rendez-vous à partir des informations disponibles.</p>
+        </div>
+
+        <div class="form-grid">
+
+          <!-- Bloc patient -->
+          <fieldset class="form-section">
+            <legend>Profil patient</legend>
+
+            <div class="field-row">
+              <label>Sexe</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" [(ngModel)]="annul.sexe" value="HOMME" name="sexe"> Homme
+                </label>
+                <label class="radio-label">
+                  <input type="radio" [(ngModel)]="annul.sexe" value="FEMME" name="sexe"> Femme
+                </label>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <label for="age">Âge du patient</label>
+              <div class="input-with-unit">
+                <input id="age" type="number" [(ngModel)]="annul.age" min="1" max="120" class="form-input">
+                <span class="unit">ans</span>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <label for="gouvernorat">Gouvernorat</label>
+              <select id="gouvernorat" [(ngModel)]="annul.gouvernorat" class="form-input">
+                @for (g of GOUVERNORATS; track g) {
+                  <option [value]="g">{{ g }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field-row">
+              <label for="methodeContact">Méthode de contact préférée</label>
+              <select id="methodeContact" [(ngModel)]="annul.methodeContact" class="form-input">
+                <option value="SMS">SMS</option>
+                <option value="EMAIL">Email</option>
+                <option value="APPEL">Appel téléphonique</option>
+                <option value="APPLICATION">Application mobile</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <!-- Bloc historique -->
+          <fieldset class="form-section">
+            <legend>Historique du patient</legend>
+
+            <div class="field-row">
+              <label for="nbRdvTotal">Nombre total de RDV passés</label>
+              <input id="nbRdvTotal" type="number" [(ngModel)]="annul.nbRdvTotal" min="0" class="form-input">
+            </div>
+
+            <div class="field-row">
+              <label for="nbAnnul">Nombre d'annulations passées</label>
+              <input id="nbAnnul" type="number" [(ngModel)]="annul.nbAnnulationsPassees" min="0" class="form-input">
+            </div>
+
+            <div class="computed-row">
+              <span class="computed-label">Taux d'annulation calculé</span>
+              <span class="computed-value">
+                {{ (tauxAnnulationHistorique * 100).toFixed(0) }}%
+                <span class="computed-hint">(calculé automatiquement)</span>
+              </span>
+            </div>
+
+            <div class="field-row">
+              <label for="motifFrequence">Type de motif du RDV</label>
+              <select id="motifFrequence" [(ngModel)]="annul.motifFrequence" class="form-input">
+                @for (opt of MOTIF_OPTIONS; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </fieldset>
+
+          <!-- Bloc rendez-vous -->
+          <fieldset class="form-section">
+            <legend>Informations du rendez-vous</legend>
+
+            <div class="field-row">
+              <label for="dateRdv">Date du rendez-vous</label>
+              <div class="date-preview-wrapper">
+                <input id="dateRdv" type="date" [(ngModel)]="annul.dateRdv" class="form-input">
+                @if (annul.dateRdv) {
+                  <span class="day-badge">{{ jourLabel }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="field-row">
+              <label for="heureRdv">Heure de début</label>
+              <select id="heureRdv" [(ngModel)]="annul.heureRdv" class="form-input">
+                @for (h of HEURES; track h) {
+                  <option [value]="h">{{ h }}h00</option>
+                }
+              </select>
+            </div>
+          </fieldset>
+
+          <!-- Bloc médecin -->
+          <fieldset class="form-section">
+            <legend>Profil du médecin</legend>
+
+            <div class="field-row">
+              <label for="specialite">Spécialité</label>
+              <select id="specialite" [(ngModel)]="annul.specialite" class="form-input">
+                <option value="Médecine générale">Médecine générale</option>
+                <option value="Cardiologie">Cardiologie</option>
+                <option value="Dermatologie">Dermatologie</option>
+                <option value="Gynécologie">Gynécologie</option>
+                <option value="Neurologie">Neurologie</option>
+                <option value="Ophtalmologie">Ophtalmologie</option>
+                <option value="Orthopédie">Orthopédie</option>
+                <option value="Pédiatrie">Pédiatrie</option>
+                <option value="Psychiatrie">Psychiatrie</option>
+                <option value="Radiologie">Radiologie</option>
+              </select>
+            </div>
+
+            <div class="field-row">
+              <label for="experienceAnnees">Années d'expérience</label>
+              <div class="input-with-unit">
+                <input id="experienceAnnees" type="number" [(ngModel)]="annul.experienceAnnees" min="0" max="50" class="form-input">
+                <span class="unit">ans</span>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <label for="prixPositionnement">Positionnement tarifaire</label>
+              <select id="prixPositionnement" [(ngModel)]="annul.prixPositionnement" class="form-input">
+                @for (opt of PRIX_OPTIONS; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </fieldset>
+
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-predict" (click)="predictAnnulation()" [disabled]="annulLoading()">
+            @if (annulLoading()) {
+              <span class="spinner"></span> Analyse en cours…
+            } @else {
+              Analyser le risque d'annulation
+            }
+          </button>
+        </div>
+
+        <!-- Résultat -->
+        @if (annulResult()) {
+          <div class="result-card" [style.border-color]="annulResult()!.couleur">
+            <div class="result-header">
+              <div class="result-badge" [style.background]="annulResult()!.couleur">
+                {{ annulResult()!.niveauRisque }}
+              </div>
+              <div class="result-pct">
+                {{ (annulResult()!.probabiliteAnnulation * 100).toFixed(1) }}%
+                <span class="result-pct-label">risque d'annulation</span>
+              </div>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-fill"
+                   [style.width.%]="annulResult()!.probabiliteAnnulation * 100"
+                   [style.background]="annulResult()!.couleur">
+              </div>
+            </div>
+            @if (annulResult()!.creneauDetecte) {
+              <p class="result-creneau">
+                <strong>Créneau détecté :</strong> {{ annulResult()!.creneauDetecte }}
+              </p>
+            }
+            <p class="result-recommandation">{{ annulResult()!.recommandation }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ───────────── ML-03 Urgence ───────────── -->
+  @if (activeTab() === 'urgence') {
+    <div class="tab-content">
+      <div class="card prediction-card">
+        <div class="card-header-row">
+          <div class="card-label">ML-03</div>
+          <h2 class="card-title">Niveau d'urgence patient</h2>
+          <p class="card-desc">Détectez automatiquement le niveau d'urgence à partir des symptômes décrits par le patient.</p>
+        </div>
+
+        <div class="field-row" style="flex-direction:column;gap:8px">
+          <label for="symptomes">Symptômes du patient</label>
+          <textarea
+            id="symptomes"
+            [(ngModel)]="symptomes"
+            rows="5"
+            class="form-input textarea"
+            placeholder="Ex: fièvre élevée depuis 3 jours, douleur thoracique, difficultés à respirer…">
+          </textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-predict" (click)="predictUrgence()" [disabled]="urgenceLoading()">
+            @if (urgenceLoading()) {
+              <span class="spinner"></span> Analyse en cours…
+            } @else {
+              Analyser le niveau d'urgence
+            }
+          </button>
+        </div>
+
+        @if (urgenceResult()) {
+          <div class="result-card" [style.border-color]="urgenceResult()!.couleur">
+            <div class="result-header">
+              <div class="result-badge" [style.background]="urgenceResult()!.couleur">
+                {{ urgenceResult()!.niveau }}
+              </div>
+            </div>
+            <p class="result-recommandation">{{ urgenceResult()!.message }}</p>
+            <div class="proba-list">
+              @for (entry of probabilitesEntries(urgenceResult()!.probabilites); track entry.key) {
+                <div class="proba-row">
+                  <span class="proba-key">{{ entry.key }}</span>
+                  <div class="proba-bar-wrap">
+                    <div class="proba-bar-fill" [style.width.%]="entry.value * 100"></div>
+                  </div>
+                  <span class="proba-val">{{ (entry.value * 100).toFixed(1) }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ───────────── ML-05 Anomalie ordonnance ───────────── -->
+  @if (activeTab() === 'anomalie') {
+    <div class="tab-content">
+      <div class="card prediction-card">
+        <div class="card-header-row">
+          <div class="card-label">ML-05</div>
+          <h2 class="card-title">Détection d'anomalie dans l'ordonnance</h2>
+          <p class="card-desc">Analysez une ordonnance pour détecter d'éventuelles anomalies ou risques d'erreurs médicamenteuses.</p>
+        </div>
+
+        <div class="form-grid">
+          <fieldset class="form-section">
+            <legend>Structure de l'ordonnance</legend>
+
+            <div class="field-row">
+              <label for="nbMed">Nombre de médicaments</label>
+              <input id="nbMed" type="number" [(ngModel)]="anomalieForm.nbMedicaments" min="1" max="20" class="form-input">
+            </div>
+            <div class="field-row">
+              <label for="nbMedUniq">Médicaments uniques</label>
+              <input id="nbMedUniq" type="number" [(ngModel)]="anomalieForm.nbMedicamentsUniques" min="1" max="20" class="form-input">
+            </div>
+            <div class="field-row">
+              <label for="duree">Durée max (jours)</label>
+              <input id="duree" type="number" [(ngModel)]="anomalieForm.dureeMaxJours" min="1" max="365" class="form-input">
+            </div>
+            <div class="field-row">
+              <label for="posologie">Posologie</label>
+              <select id="posologie" [(ngModel)]="anomalieForm.posologieCode" class="form-input">
+                <option [value]="1">1× par jour</option>
+                <option [value]="2">2× par jour</option>
+                <option [value]="3">3× par jour</option>
+                <option [value]="4">4× par jour ou plus</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="nbOrd">Ordonnances médecin (total)</label>
+              <input id="nbOrd" type="number" [(ngModel)]="anomalieForm.nbOrdMedecinTotal" min="0" class="form-input">
+            </div>
+          </fieldset>
+
+          <fieldset class="form-section">
+            <legend>Profil du médecin</legend>
+
+            <div class="field-row">
+              <label for="expAnomalie">Années d'expérience</label>
+              <div class="input-with-unit">
+                <input id="expAnomalie" type="number" [(ngModel)]="anomalieForm.experienceAnnees" min="0" max="50" class="form-input">
+                <span class="unit">ans</span>
+              </div>
+            </div>
+
+            <div class="computed-row">
+              <span class="computed-label">Statut médecin</span>
+              <span class="computed-value">
+                @if (anomalieForm.experienceAnnees < 3) {
+                  <span style="color:#dc2626;font-weight:600">Junior (&lt; 3 ans)</span>
+                } @else {
+                  <span style="color:#16a34a;font-weight:600">Expérimenté ({{ anomalieForm.experienceAnnees }} ans)</span>
+                }
+                <span class="computed-hint">(calculé automatiquement)</span>
+              </span>
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="anomalieForm.aDoublons">
+                Doublons détectés dans l'ordonnance
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-section full-width">
+            <legend>Médicaments présents dans l'ordonnance</legend>
+            <div class="meds-grid">
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.amoxicilline1g"> Amoxicilline 1g</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.cetirizine10mg"> Cétirizine 10mg</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.doliprane"> Doliprane</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.ibuprofene400mg"> Ibuprofène 400mg</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.omeprazole20mg"> Oméprazole 20mg</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.paracetamol500mg"> Paracétamol 500mg</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.spasfon"> Spasfon</label>
+              <label class="toggle-label"><input type="checkbox" [(ngModel)]="anomalieForm.vitamineD"> Vitamine D</label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-predict" (click)="predictAnomalie()" [disabled]="anomalieLoading()">
+            @if (anomalieLoading()) {
+              <span class="spinner"></span> Analyse en cours…
+            } @else {
+              Analyser l'ordonnance
+            }
+          </button>
+        </div>
+
+        @if (anomalieResult()) {
+          <div class="result-card" [style.border-color]="anomalieResult()!.couleur">
+            <div class="result-header">
+              <div class="result-badge" [style.background]="anomalieResult()!.couleur">
+                @if (anomalieResult()!.estAnomalie) { ⚠ ANOMALIE } @else { ✓ NORMALE }
+              </div>
+              <div class="result-pct">
+                Score de risque :&nbsp;<strong>{{ anomalieResult()!.scoreRisque }}</strong>
+              </div>
+            </div>
+            <p class="result-recommandation">{{ anomalieResult()!.message }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

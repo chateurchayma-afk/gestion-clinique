@@ -1,0 +1,292 @@
+:host {
+  display: block;
+  font-family: var(--font-sans, 'Inter', 'Segoe UI', system-ui, sans-serif);
+  color: #0f172a;
+}
+
+.pat-pred-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ── Hero ──────────────────────────────────────────────────── */
+.pat-hero {
+  padding: 26px 28px;
+  border: 1px solid #e5ebf3;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(79, 111, 168, 0.08), rgba(19, 138, 85, 0.04)), #fff;
+  box-shadow: 0 14px 34px rgba(38, 54, 79, 0.07);
+  margin-bottom: 20px;
+}
+
+.pat-kicker {
+  margin: 0 0 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4f6fa8;
+}
+
+.pat-title {
+  margin: 0 0 6px;
+  font-size: clamp(1.3rem, 1.5vw + 0.8rem, 1.75rem);
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pat-sub {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+}
+
+/* ── Card form ─────────────────────────────────────────────── */
+.pat-card {
+  background: #fff;
+  border: 1px solid #e5ebf3;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(47, 74, 114, 0.07);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.pat-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.pat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.pat-field--sm {
+  max-width: 160px;
+  flex: 0 0 160px;
+}
+
+.pat-field span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.pat-field input,
+.pat-field select {
+  padding: 10px 14px;
+  border: 1px solid #dde6f5;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.pat-field input:focus,
+.pat-field select:focus {
+  border-color: #4f6fa8;
+  background: #fff;
+}
+
+.pat-field-action {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.pat-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f6fa8, #5c7eb8);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(79, 111, 168, 0.25);
+  transition: filter 0.15s;
+  white-space: nowrap;
+}
+
+.pat-btn:hover { filter: brightness(1.06); }
+.pat-btn:disabled { opacity: 0.6; cursor: not-allowed; filter: none; }
+
+/* ── Results header ────────────────────────────────────────── */
+.pat-results-section { animation: fade-in 0.3s ease; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pat-results-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pat-results-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.pat-mode-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #edf3ff;
+  border: 1px solid #dde6f5;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4f6fa8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Med cards grid ────────────────────────────────────────── */
+.pat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.pat-med-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e5ebf3;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(47, 74, 114, 0.06);
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.pat-med-card:hover {
+  box-shadow: 0 8px 24px rgba(47, 74, 114, 0.12);
+}
+
+.pat-med-rank {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+.pat-med-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f6fa8, #6f8fcb);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pat-med-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pat-med-name {
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.pat-med-spec {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  color: #4f6fa8;
+  font-weight: 600;
+}
+
+.pat-med-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.pat-med-stars span {
+  font-size: 1rem;
+  color: #d1d9e8;
+}
+
+.pat-med-stars span.filled {
+  color: #f59e0b;
+}
+
+.pat-med-note {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-left: 4px;
+}
+
+.pat-med-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+/* ── Score ring ────────────────────────────────────────────── */
+.pat-med-score-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pat-med-score-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.pat-score-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.pat-ring-svg {
+  width: 52px;
+  height: 52px;
+  transform: rotate(-90deg);
+}
+
+.pat-ring-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #1e3a5f;
+}

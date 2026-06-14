@@ -27,7 +27,8 @@ export const PATIENT_SHELL: DashboardShellConfig = {
         { label: '📅 Mes rendez-vous', path: '/patient-dashboard/rendez-vous' },
         { label: '📋 Mes ordonnances', path: '/patient-dashboard/ordonnances' },
         { label: '📁 Mon dossier médical', path: '/patient-dashboard/dossier-medical' },
-        { label: '👤 Mon profil', path: '/patient-dashboard/profil', exact: true }
+        { label: '👤 Mon profil', path: '/patient-dashboard/profil', exact: true },
+        { label: '🤖 Prédictions IA', path: '/patient-dashboard/predictions' }
       ]
     }
   ]
@@ -49,7 +50,8 @@ export const ADMIN_SHELL: DashboardShellConfig = {
         { label: '👥 Liste des patients', path: '/admin/patients' },
         { label: '➕ Ajouter un patient', path: '/admin/add-patient' },
         { label: '📅 Liste des rendez-vous', path: '/admin/rdv' },
-        { label: '🩺 Liste des spécialités', path: '/admin/specialites' }
+        { label: '🩺 Liste des spécialités', path: '/admin/specialites' },
+        { label: '🤖 Prédictions IA', path: '/admin/predictions' }
       ]
     }
   ]
@@ -69,7 +71,8 @@ export const MEDECIN_SHELL: DashboardShellConfig = {
         { label: '📂 Dossier médical', path: '/medecin-dashboard/dossier-medical' },
         { label: '🩺 Consultation', path: '/medecin-dashboard/consultation' },
         { label: '📄 Ordonnance', path: '/medecin-dashboard/ordonnance-pdf' },
-        { label: '📅 Mes disponibilités', path: '/medecin-dashboard/disponibilites' }
+        { label: '📅 Mes disponibilités', path: '/medecin-dashboard/disponibilites' },
+        { label: '🤖 Prédictions IA', path: '/medecin-dashboard/predictions' }
       ]
     }
   ]

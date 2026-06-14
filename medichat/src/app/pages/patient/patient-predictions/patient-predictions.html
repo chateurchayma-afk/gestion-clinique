@@ -1,0 +1,86 @@
+<div class="pat-pred-page">
+
+  <!-- En-tête -->
+  <header class="pat-hero">
+    <div class="pat-hero-text">
+      <p class="pat-kicker">Intelligence Artificielle · ML-02</p>
+      <h1 class="pat-title">Recommandation de médecins</h1>
+      <p class="pat-sub">Notre IA analyse votre profil et vous recommande les médecins les plus compatibles.</p>
+    </div>
+  </header>
+
+  <!-- Formulaire -->
+  <div class="pat-card">
+    <form class="pat-form" (ngSubmit)="predict()">
+      <div class="pat-form-row">
+        <label class="pat-field">
+          <span>Spécialité recherchée</span>
+          <select [(ngModel)]="specialite" name="specialite">
+            <option value="">Toutes les spécialités</option>
+            @for (s of SPECIALITES; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </label>
+        <label class="pat-field pat-field--sm">
+          <span>Nombre de résultats</span>
+          <input type="number" [(ngModel)]="topN" name="topN" min="1" max="20">
+        </label>
+        <div class="pat-field-action">
+          <button type="submit" class="pat-btn" [disabled]="loading()">
+            @if (loading()) { Recherche en cours... } @else { Trouver mes médecins }
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Résultats -->
+  @if (result(); as r) {
+    <div class="pat-results-section">
+      <div class="pat-results-header">
+        <h2 class="pat-results-title">{{ r.nbResultats }} médecin{{ r.nbResultats > 1 ? 's' : '' }} recommandé{{ r.nbResultats > 1 ? 's' : '' }}</h2>
+        <span class="pat-mode-badge">Mode : {{ r.mode }}</span>
+      </div>
+
+      <div class="pat-cards-grid">
+        @for (med of r.recommandations; track med.medecinId; let rank = $index) {
+          <div class="pat-med-card">
+            <div class="pat-med-rank">#{{ rank + 1 }}</div>
+            <div class="pat-med-avatar">
+              {{ med.prenom.charAt(0) }}{{ med.nom.charAt(0) }}
+            </div>
+            <div class="pat-med-info">
+              <h3 class="pat-med-name">Dr. {{ med.prenom }} {{ med.nom }}</h3>
+              <p class="pat-med-spec">{{ med.specialite }}</p>
+              <div class="pat-med-stars">
+                @for (i of starsArray; track i) {
+                  <span [class.filled]="isStarFilled(i, med.noteMoyenne)">★</span>
+                }
+                <span class="pat-med-note">{{ med.noteMoyenne.toFixed(1) }}</span>
+              </div>
+              <div class="pat-med-meta">
+                <span>{{ med.experienceAnnees }} ans d'exp.</span>
+                <span>{{ med.prixConsultation.toFixed(0) }} DT</span>
+              </div>
+            </div>
+            <div class="pat-med-score-wrap">
+              <span class="pat-med-score-label">Compatibilité</span>
+              <div class="pat-score-ring">
+                <svg viewBox="0 0 36 36" class="pat-ring-svg">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#e5ebf3" stroke-width="3"/>
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#4f6fa8" stroke-width="3"
+                    [attr.stroke-dasharray]="(scoreRingFill(med.scoreCompatibilite)).toFixed(1) + ' 94.2'"
+                    stroke-dashoffset="23.6"
+                    stroke-linecap="round"/>
+                </svg>
+                <span class="pat-ring-pct">{{ scorePct(med.scoreCompatibilite) }}%</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

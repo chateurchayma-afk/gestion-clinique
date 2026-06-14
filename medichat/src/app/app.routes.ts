@@ -45,6 +45,9 @@ import { NotificationsRedirect } from './pages/notifications/notifications-redir
 import { adminGuard } from './core/admin.guard';
 import { medecinGuard } from './core/medecin.guard';
 import { patientGuard } from './core/patient.guard';
+import { MedecinPredictions } from './pages/medecin/medecin-predictions/medecin-predictions';
+import { PatientPredictions } from './pages/patient/patient-predictions/patient-predictions';
+import { AdminPredictions } from './pages/admin/admin-predictions/admin-predictions';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -80,6 +83,7 @@ export const routes: Routes = [
       { path: 'rendez-vous', pathMatch: 'full', redirectTo: 'rdv' },
       { path: 'rdv', component: AdminRendezVousList },
       { path: 'medecins-validation', component: MedecinsValidation },
+      { path: 'predictions', component: AdminPredictions },
       { path: 'notifications', component: NotificationsPage }
     ]
   },
@@ -100,6 +104,7 @@ export const routes: Routes = [
       { path: 'consultation', component: MedecinConsultation },
       { path: 'ordonnance-pdf', component: MedecinOrdonnancePdf },
       { path: 'disponibilites', component: MedecinDisponibilites },
+      { path: 'predictions', component: MedecinPredictions },
       { path: 'notifications', component: NotificationsPage }
     ]
   },
@@ -118,6 +123,7 @@ export const routes: Routes = [
       { path: 'rendez-vous', component: PatientRdvList },
       { path: 'ordonnances', component: PatientOrdonnances },
       { path: 'dossier-medical', component: PatientDossierMedical },
+      { path: 'predictions', component: PatientPredictions },
       { path: 'notifications', component: NotificationsPage }
     ]
   },
