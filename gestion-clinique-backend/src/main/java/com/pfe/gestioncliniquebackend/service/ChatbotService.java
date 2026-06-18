@@ -16,20 +16,38 @@ import java.util.Map;
 @Service
 public class ChatbotService {
 
-    @Value("${anthropic.api.key:}")
-    private String apiKey;
+    @Value("${gemini.api.key.primary:}")
+    private String primaryApiKey;
 
-    private static final String ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-    private static final String MODEL         = "claude-haiku-4-5-20251001";
-    private static final int    MAX_TOKENS    = 1024;
+    @Value("${gemini.api.key.secondary:}")
+    private String secondaryApiKey;
+
+    @Value("${gemini.api.key.tertiary:}")
+    private String tertiaryApiKey;
+
+    private static final String GEMINI_BASE_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
+    private static final int MAX_TOKENS = 1024;
 
     private static final String SYSTEM_PROMPT = """
-            Tu es MediBot, un assistant médical IA intégré à MediChat, une application de gestion de clinique.
+            Tu es MediBot, un assistant médical IA intégré à MediChat, une application de gestion de clinique médicale.
 
-            Ton rôle est d'aider les patients à :
-            1. Obtenir des informations médicales générales claires et fiables.
-            2. Comprendre leurs symptômes et être orientés vers la spécialité médicale la plus adaptée.
-            3. Savoir quand consulter un médecin en urgence.
+            DOMAINE EXCLUSIF — RÈGLE ABSOLUE :
+            Tu réponds UNIQUEMENT aux questions liées à la santé et à la médecine.
+            Sujets autorisés :
+            • Maladies, symptômes, pathologies et leur évolution
+            • Traitements, médicaments, thérapies et effets secondaires
+            • Prévention, hygiène de vie et nutrition liée à la santé
+            • Spécialités médicales et orientation vers le bon médecin
+            • Prise de rendez-vous et fonctionnement d'une clinique ou d'un cabinet médical
+            • Urgences médicales et conduite à tenir / premiers secours
+            • Bien-être physique et mental en lien direct avec la santé
+
+            REFUS OBLIGATOIRE — sujets interdits :
+            Si la question porte sur un sujet NON MÉDICAL (programmation, informatique, sport général,
+            politique, finance, voyage, jeux vidéo, cuisine non thérapeutique, actualités, mathématiques,
+            science hors santé, musique, cinéma, etc.), réponds EXACTEMENT et UNIQUEMENT :
+            "Je suis MediBot, un assistant médical spécialisé dans le domaine de la santé. Je ne peux répondre qu'aux questions médicales ou liées au bien-être et aux soins de santé. Pour votre question, veuillez consulter une autre source."
 
             Spécialités disponibles dans notre clinique :
             Cardiologie, Dermatologie, Ophtalmologie, Neurologie, Pneumologie,
@@ -40,68 +58,130 @@ public class ChatbotService {
             - Réponds TOUJOURS en français.
             - Sois empathique, rassurant et professionnel.
             - Tes réponses doivent être concises (4 à 6 lignes maximum).
-            - Ne pose JAMAIS de diagnostic définitif.
-            - IMPORTANT : si le patient pose une NOUVELLE question médicale, traite-la IMMÉDIATEMENT
-              sans tenir compte du sujet précédent. Ne reste JAMAIS bloqué sur une ancienne spécialité.
+            - Ne pose JAMAIS de diagnostic définitif — tu fournis des informations générales.
+            - Rappelle que tu ne remplaces pas un médecin et que toute décision médicale nécessite une consultation.
+            - Si le patient pose une NOUVELLE question médicale, traite-la IMMÉDIATEMENT
+              sans tenir compte du sujet précédent. Ne reste jamais bloqué sur une ancienne spécialité.
             - Pour les urgences vitales (douleur thoracique intense, difficultés respiratoires sévères,
-              perte de conscience, saignement abondant, AVC), recommande IMMÉDIATEMENT d'appeler
-              le 15 (SAMU) ou de se rendre aux urgences.
-            - Après avoir recommandé une spécialité, propose au patient de consulter les médecins disponibles.
-            - Si le patient dit "autre question", "changer de sujet" ou formule une nouvelle question médicale,
-              abandonne COMPLÈTEMENT le contexte précédent et réponds à la nouvelle question.
+              perte de conscience, saignement abondant, signes d'AVC), recommande IMMÉDIATEMENT
+              d'appeler le 15 (SAMU) ou de se rendre aux urgences.
+            - Après avoir recommandé une spécialité, propose de consulter les médecins disponibles dans la clinique.
             """;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     // ══════════════════════════════════════════════════════════════════════
-    // API Anthropic
+    // Point d'entrée — cascade : Gemini primaire → Gemini secondaire → fallback
     // ══════════════════════════════════════════════════════════════════════
 
     public String generateResponse(String userMessage, List<MessageDto> history) {
-        if (apiKey == null || apiKey.isBlank()) {
-            log.warn("Anthropic API key not configured — using fallback");
-            return fallback(userMessage, history);
-        }
-        try {
-            List<Map<String, String>> messages = new ArrayList<>();
-            if (history != null) {
-                for (MessageDto msg : history) {
-                    messages.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
+
+        if (isConfigured(primaryApiKey)) {
+            try {
+                String response = callGemini(primaryApiKey, userMessage, history);
+                if (response != null) {
+                    log.debug("Gemini primary key responded successfully");
+                    return response;
                 }
+            } catch (Exception e) {
+                log.warn("Gemini primary key failed: {} — trying secondary key", e.getMessage());
             }
-            messages.add(Map.of("role", "user", "content", userMessage));
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("model", MODEL);
-            body.put("max_tokens", MAX_TOKENS);
-            body.put("system", SYSTEM_PROMPT);
-            body.put("messages", messages);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("x-api-key", apiKey);
-            headers.set("anthropic-version", "2023-06-01");
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> response = restTemplate.postForObject(
-                    ANTHROPIC_URL, new HttpEntity<>(body, headers), Map.class);
-
-            if (response == null) return fallback(userMessage, history);
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> content = (List<Map<String, Object>>) response.get("content");
-            if (content == null || content.isEmpty()) return fallback(userMessage, history);
-
-            return (String) content.get(0).get("text");
-
-        } catch (Exception e) {
-            log.error("Anthropic API error: {} — using fallback", e.getMessage());
-            return fallback(userMessage, history);
+        } else {
+            log.warn("Gemini primary API key not configured");
         }
+
+        if (isConfigured(secondaryApiKey)) {
+            try {
+                String response = callGemini(secondaryApiKey, userMessage, history);
+                if (response != null) {
+                    log.info("Gemini secondary key responded (primary unavailable)");
+                    return response;
+                }
+            } catch (Exception e) {
+                log.warn("Gemini secondary key failed: {} — trying tertiary key", e.getMessage());
+            }
+        } else {
+            log.warn("Gemini secondary API key not configured");
+        }
+
+        if (isConfigured(tertiaryApiKey)) {
+            try {
+                String response = callGemini(tertiaryApiKey, userMessage, history);
+                if (response != null) {
+                    log.info("Gemini tertiary key responded (primary and secondary unavailable)");
+                    return response;
+                }
+            } catch (Exception e) {
+                log.warn("Gemini tertiary key failed: {} — activating rule-based fallback", e.getMessage());
+            }
+        } else {
+            log.warn("Gemini tertiary API key not configured");
+        }
+
+        log.info("All Gemini keys unavailable — activating rule-based fallback");
+        return fallback(userMessage, history);
+    }
+
+    private boolean isConfigured(String key) {
+        return key != null && !key.isBlank();
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // FALLBACK — ordre de priorité strict
+    // Appel API Gemini
+    // ══════════════════════════════════════════════════════════════════════
+
+    private String callGemini(String apiKey, String userMessage, List<MessageDto> history) {
+        List<Map<String, Object>> contents = new ArrayList<>();
+
+        if (history != null) {
+            for (MessageDto msg : history) {
+                // Gemini utilise "model" là où Anthropic utilisait "assistant"
+                String role = "assistant".equals(msg.getRole()) ? "model" : "user";
+                contents.add(Map.of(
+                        "role", role,
+                        "parts", List.of(Map.of("text", msg.getContent()))
+                ));
+            }
+        }
+        contents.add(Map.of(
+                "role", "user",
+                "parts", List.of(Map.of("text", userMessage))
+        ));
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("system_instruction", Map.of("parts", List.of(Map.of("text", SYSTEM_PROMPT))));
+        body.put("contents", contents);
+        body.put("generationConfig", Map.of("maxOutputTokens", MAX_TOKENS, "temperature", 0.7));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = restTemplate.postForObject(
+                GEMINI_BASE_URL + apiKey,
+                new HttpEntity<>(body, headers),
+                Map.class
+        );
+
+        if (response == null) return null;
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
+        if (candidates == null || candidates.isEmpty()) return null;
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+        if (content == null) return null;
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+        if (parts == null || parts.isEmpty()) return null;
+
+        return (String) parts.get(0).get("text");
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // FALLBACK — ordre de priorité strict (PRÉSERVÉ INTÉGRALEMENT)
     // ══════════════════════════════════════════════════════════════════════
 
     private String fallback(String userMessage, List<MessageDto> history) {
