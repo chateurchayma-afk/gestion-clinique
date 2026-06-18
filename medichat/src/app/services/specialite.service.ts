@@ -22,6 +22,10 @@ export class SpecialiteService {
     return this.http.post<Specialite>(this.url, body);
   }
 
+  update(id: number, body: { nom: string; description?: string | null }): Observable<Specialite> {
+    return this.http.put<Specialite>(`${this.url}/${id}`, body);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }

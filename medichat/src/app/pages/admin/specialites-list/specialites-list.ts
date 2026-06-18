@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Specialite, SpecialiteService } from '../../../services/specialite.service';
 import { ToastService } from '../../../core/toast.service';
@@ -7,7 +8,7 @@ import { ToastService } from '../../../core/toast.service';
 @Component({
   selector: 'app-specialites-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './specialites-list.html',
   styleUrl: './specialites-list.css'
 })
@@ -18,6 +19,10 @@ export class SpecialitesList implements OnInit {
   specialites = signal<Specialite[]>([]);
   loading = signal(true);
   searchTerm = signal('');
+
+  editingSpecialite = signal<Specialite | null>(null);
+  editForm = { nom: '', description: '' };
+  isSaving = signal(false);
 
   ngOnInit(): void {
     this.reload();
@@ -53,6 +58,38 @@ export class SpecialitesList implements OnInit {
         (s.description ?? '').toLowerCase().includes(term)
     );
   });
+
+  openEdit(s: Specialite, event: Event): void {
+    event.stopPropagation();
+    this.editForm = { nom: s.nom, description: s.description ?? '' };
+    this.editingSpecialite.set(s);
+  }
+
+  cancelEdit(): void {
+    this.editingSpecialite.set(null);
+  }
+
+  saveEdit(): void {
+    const s = this.editingSpecialite();
+    if (!s) return;
+    const nom = this.editForm.nom.trim();
+    if (!nom) return;
+
+    this.isSaving.set(true);
+    this.specialiteService.update(s.id, { nom, description: this.editForm.description.trim() || null }).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.editingSpecialite.set(null);
+        this.toast.show('Spécialité modifiée avec succès.', 'success');
+        this.reload();
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        console.error(err);
+        this.toast.show('Impossible de modifier la spécialité.', 'error');
+      }
+    });
+  }
 
   deleteOne(s: Specialite, event: Event): void {
     event.stopPropagation();
