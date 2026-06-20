@@ -62,7 +62,7 @@ type TopScope = 'annee' | 'mois' | 'semaine';
 
 const PBI_TABLE = 'dim_medecin';
 const PBI_COLUMN = 'medecin_id';
-const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=11c930bb-adc6-42e2-b070-0a26e3dcd66b&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
+const PBI_REPORT_URL = 'https://app.powerbi.com/reportEmbed?reportId=06b3623c-067b-4ef4-9050-ddaf059bd3d5&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730';
 
 @Component({
   selector: 'app-medecin-accueil',
